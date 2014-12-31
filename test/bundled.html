@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="../dist/docx4js.min.js"></script>
+	<script>
+		var Text=(function(){
+			var converter=[]
+			converter.visit=function(){
+				if(this.model.type=='paragraph')
+					return this.push("\n\r")
+				if(this.model.type=='text')
+					return this.push(this.model.getText())
+			}
+			
+			function factory(model, doc, parent){
+				converter.model=model
+				return converter
+			}
+			
+			factory.with=function(parent){
+				return factory
+			}
+			
+			factory.asResult=function(){
+				return converter.join('')
+			}
+			
+			return factory
+		})();
+		
+		function test(input){
+			Docx4JS.load(input.files[0])
+				.then(function(doc){
+					input.value=""
+					$('body>pre').empty()
+					doc.parse(Text)
+					$('body>pre').text(Text.asResult())
+				})
+		}
+	</script>
+</head>
+<body>
+	<input type="file" style="position:absolute;top:0" onchange="test(this)">
+	<pre></pre>
+</body>
+</html>

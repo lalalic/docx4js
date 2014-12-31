@@ -1,0 +1,37 @@
+{
+  "name": "docx4js",
+  "description": "javascript docx parser",
+  "version": "0.0.1",
+  "author": {
+    "name": "Raymond Li",
+    "email": "lalalic@139.com"
+  },
+  "keywords": [
+    "docx",
+    "parser",
+    "javascript"
+  ],
+  "license":"MIT",
+  "readme":"README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lalalic/docx4js.git"
+  },
+  "devDependencies": {
+    "requirejs": "*",
+	"deamdify": "*"
+  },
+  "dependencies": {
+    "jquery": "2.1.0",
+	"jszip":"*"
+  },
+  "main":"main.js",
+  "browser":"browser.js",
+  "browserify":{
+	"tranform":["deamdify"]
+  },
+  "scripts": {
+	"pretest": "browserify -t deamdify browser.js | uglifyjs > dist/docx4js.min.js",
+	"test": "echo 0"
+  }
+}
