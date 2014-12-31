@@ -25,13 +25,12 @@
     "jquery": "2.1.0",
 	"jszip":"*"
   },
-  "main":"dist/docx4js.js",
-  "browser":"browser.js",
+  "main":"main.js",
   "browserify":{
 	"transform":["deamdify"]
   },
   "scripts": {
-	"pretest": "browserify -t deamdify browser.js -d -o dist/docx4js.js",
+	"pretest": "browserify -t deamdify -r ./main.js:docx4js -o dist/docx4js.js",
 	"test": "echo 0",
 	"posttest": "uglifyjs dist/docx4js.js -o dist/docx4js.min.js"
   }

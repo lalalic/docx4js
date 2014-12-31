@@ -25,9 +25,11 @@ define(['../model','require', './field/hyperlink','./field/date','./field/ref'],
 			var index=instruct.indexOf(' '), 
 				type=index!=-1 ?  instruct.substring(0,index) : instruct
 			type=type.toLowerCase()		
-			var Model=require.defined('./field/'+type) ? require('./field/'+type) : null
-			if(Model)
-				return new Model(instruct.trim(), wDoc, mParent)
+			try{
+				return new (require('./field/'+type))(instruct.trim(), wDoc, mParent)
+			}catch(e){
+				
+			}
 		}
 	})
 })

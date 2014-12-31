@@ -118,5 +118,5 @@ define(['jquery'], function($){
 		}
 	})
 
-	return global.$=$
+	return $
 });
