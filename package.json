@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -28,10 +28,11 @@
   "main":"main.js",
   "browser":"browser.js",
   "browserify":{
-	"tranform":["deamdify"]
+	"transform":["deamdify"]
   },
   "scripts": {
-	"pretest": "browserify -t deamdify browser.js | uglifyjs > dist/docx4js.min.js",
-	"test": "echo 0"
+	"pretest": "browserify -t deamdify browser.js -o dist/docx4js.js",
+	"test": "echo 0",
+	"protest": "uglifyjs dist/docx4js.js > dist/docx4js.min.js"
   }
 }

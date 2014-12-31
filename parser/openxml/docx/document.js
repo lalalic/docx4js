@@ -1,10 +1,3 @@
-function define(){
-	switch(arguments.length){
-	case 1:
-		
-		break
-	}
-}
 define(['../document','./factory','./theme/font', './theme/color','./theme/format'],function(OfficeDocument,factory, FontTheme, ColorTheme, FormatTheme){
 	function ParseContext(current){
 		this.current=current
