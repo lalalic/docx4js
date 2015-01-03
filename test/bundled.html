@@ -29,12 +29,12 @@
 		})();
 		
 		function test(input){
-			Docx4JS.load(input.files[0])
+			require('docx4js').load(input.files[0])
 				.then(function(doc){
 					input.value=""
-					$('body>pre').empty()
+					document.$1('body>pre').innerHTML=""
 					doc.parse(Text)
-					$('body>pre').text(Text.asResult())
+					document.$1('body>pre').innerHTML=(Text.asResult())
 				})
 		}
 	</script>

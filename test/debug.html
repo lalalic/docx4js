@@ -8,7 +8,8 @@
 			paths: {
 				"jquery": "node_modules/jquery/dist/jquery",
 				"jszip": "test/jszip.min",
-				"tool": "parser/tool"
+				"tool": "parser/tool-nojquery",
+				"deferred": "node_modules/Deferred/index"
 			},
 			deps:['tool']
 		});
@@ -44,9 +45,9 @@
 				DOCX.load(input.files[0])
 					.then(function(doc){
 						input.value=""
-						$('body>pre').empty()
+						document.$1('body>pre').innerHTML=""
 						doc.parse(Text)
-						$('body>pre').text(Text.asResult())
+						document.$1('body>pre').innerHTML=(Text.asResult())
 					})
 			})
 		}

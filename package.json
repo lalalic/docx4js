@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -22,8 +22,8 @@
 	"deamdify": "*"
   },
   "dependencies": {
-    "jquery": "2.1.0",
-	"jszip":"*"
+	"jszip":"*",
+	"Deferred":"*"
   },
   "main":"main.js",
   "browserify":{

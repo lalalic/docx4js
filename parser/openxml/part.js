@@ -7,20 +7,19 @@ define([],function(){
 			
 			var folder="", 
 				relName="_rels/"+name+".rels",
-				i=name.lastIndexOf('/'),
-				me=this;
+				i=name.lastIndexOf('/');
 			if(i!==-1){
 				folder=name.substring(0,i)
 				relName=folder+"/_rels/"+name.substring(i+1)+".rels";
 			}
 			
 			if(!doc.parts[relName]) return;
-			$('Relationship',$.parseXML(doc.parts[relName].asText()).documentElement)
-			.each(function(){
-				me.rels[this.getAttribute('Id')]={
-					type:this.getAttribute('Type').split('/').pop(),
-					target:(folder ? (folder+"/") : '')+this.getAttribute('Target')}
-			})
+			$.parseXML(doc.parts[relName].asText()).documentElement.$('Relationship').asArray()
+			.forEach(function(a){
+				this.rels[a.getAttribute('Id')]={
+					type:a.getAttribute('Type').split('/').pop(),
+					target:(folder ? (folder+"/") : '')+a.getAttribute('Target')}
+			},this)
 		},{
 		getRel:function(id){
 			var rel=this.rels[id]
