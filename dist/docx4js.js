@@ -10924,1905 +10924,1980 @@ function ZStream() {
 
 module.exports = ZStream;
 },{}],45:[function(require,module,exports){
-var JSZip = require('jszip');
-module.exports = $.newClass(function (parts, raw, name) {
-    this.parts = parts;
-    this.raw = raw;
-    this.name = name;
-}, {
-    getPart: function (name) {
-        return this.parts[name];
-    },
-    parse: function () {
-    }
-}, {
-    load: function (inputFile) {
-        var reader = new FileReader(), p = new $.Deferred(), DocumentSelf = this;
-        reader.onload = function (e) {
-            var raw = new JSZip(e.target.result), parts = {};
-            raw.filter(function (path, file) {
-                parts[path] = file;
-            });
-            p.resolve(new DocumentSelf(parts, raw, inputFile.name));
-        };
-        reader.readAsArrayBuffer(inputFile);
-        return p;
-    }
-});
-},{"jszip":14}],46:[function(require,module,exports){
-var BaseDocument = require('../document'), Part = require('./part');
-module.exports = BaseDocument.extend(function () {
-    BaseDocument.apply(this, arguments);
-    var rels = this.rels = {};
-    $.each(new Part('', this).rels, function (id, rel) {
-        rels[rel.type] = rel.target;
-    });
-    this.partMain = new Part(this.rels['officeDocument'], this);
-}, {
-    vender: 'Microsoft',
-    product: 'Office 2010',
-    getPart: function (name) {
-        var part = this.parts[name] || (name = this.rels[name]) && this.parts[name];
-        if (!part)
-            return null;
-        if (Part.is(part))
-            return part;
-        return this.parts[name] = new Part(name, this);
-    },
-    getImageURL: function (name) {
-        return URL.createObjectURL(new Blob([this.parts[name].asArrayBuffer()], { type: 'image/*' }));
-    }
-});
-},{"../document":45,"./part":115}],47:[function(require,module,exports){
-var OfficeDocument = require('../document'), factory = require('./factory'), FontTheme = require('./theme/font'), ColorTheme = require('./theme/color'), FormatTheme = require('./theme/format');
-function ParseContext(current) {
-    this.current = current;
-}
-module.exports = OfficeDocument.extend(function () {
-    OfficeDocument.apply(this, arguments);
-    var rels = this.rels, builtIn = 'settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',');
-    $.each(this.partMain.rels, function (id, rel) {
-        builtIn.indexOf(rel.type) != -1 && (rels[rel.type] = rel.target);
-    });
-    this.style = new this.constructor.Style();
-    this.content = [];
-    this.parseContext = {
-        section: new ParseContext(),
-        part: new ParseContext(this.partMain),
-        bookmark: new ParseContext(),
-        field: function (ctx) {
-            ctx.instruct = function (t) {
-                this[this.length - 1].instruct(t);
-            };
-            ctx.seperate = function (model) {
-                this[this.length - 1].seperate(model);
-            };
-            ctx.end = function (model) {
-                this.pop().end(model);
-            };
-            return ctx;
-        }([])
-    };
-}, {
-    type: 'Word',
-    ext: 'docx',
-    parse: function (visitFactories) {
-        this.content = factory(this.partMain.root, this);
-        this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments));
-        this.release();
-    },
-    getRel: function (id) {
-        return this.parseContext.part.current.getRel(id);
-    },
-    getColorTheme: function () {
-        if (this.colorTheme)
-            return this.colorTheme;
-        return this.colorTheme = new ColorTheme(this.getPart('theme').root.$1('clrScheme'), this.getPart('settings').root.$1('clrSchemeMapping'));
-    },
-    getFontTheme: function () {
-        if (this.fontTheme)
-            return this.fontTheme;
-        return this.fontTheme = new FontTheme(this.getPart('theme').root.$1('fontScheme'), this.getPart('settings').root.$1('themeFontLang'));
-    },
-    getFormatTheme: function () {
-        if (this.formatTheme)
-            return this.formatTheme;
-        return this.formatTheme = new FormatTheme(this.getPart('theme').root.$1('fmtScheme'), this);
-    },
-    release: function () {
-        with (this.parseContext) {
-            delete section;
-            delete part;
-            delete bookmark;
+module.exports = function (JSZip) {
+    return $.newClass(function (parts, raw, name) {
+        this.parts = parts;
+        this.raw = raw;
+        this.name = name;
+    }, {
+        getPart: function (name) {
+            return this.parts[name];
+        },
+        parse: function () {
         }
-        delete this.parseContext;
-    }
-}, {
-    Style: function () {
-        var ids = {}, defaults = {};
-        $.extend(this, {
-            setDefault: function (style) {
-                defaults[style.type] = style;
-            },
-            getDefault: function (type) {
-                return defaults[type];
-            },
-            get: function (id) {
-                return ids[id];
-            },
-            set: function (style, id) {
-                ids[id || style.id] = style;
-            }
-        });
-    }
-});
-},{"../document":46,"./factory":48,"./theme/color":111,"./theme/font":112,"./theme/format":113}],48:[function(require,module,exports){
-var Model = require('./model'), __a2 = require('./model/document'), __a3 = require('./model/section'), __a4 = require('./model/body'), __a5 = require('./model/table'), __a6 = require('./model/row'), __a7 = require('./model/cell'), __a8 = require('./model/paragraph'), __a9 = require('./model/list'), __a10 = require('./model/heading'), __a11 = require('./model/inline'), __a12 = require('./model/headingInline'), __a13 = require('./model/text'), __a14 = require('./model/fieldBegin'), __a15 = require('./model/fieldInstruct'), __a16 = require('./model/fieldSeparate'), __a17 = require('./model/fieldEnd'), __a18 = require('./model/fieldSimple'), __a19 = require('./model/bookmarkStart'), __a20 = require('./model/bookmarkEnd'), __a21 = require('./model/tab'), __a22 = require('./model/softHyphen'), __a23 = require('./model/noBreakHyphen'), __a24 = require('./model/symbol'), __a25 = require('./model/br'), __a26 = require('./model/hyperlink'), __a27 = require('./model/drawingAnchor'), __a28 = require('./model/shape'), __a29 = require('./model/image'), __a30 = require('./model/chart'), __a31 = require('./model/diagram'), __a32 = require('./model/documentStyles'), __a33 = require('./model/style/document'), __a34 = require('./model/style/paragraph'), __a35 = require('./model/style/table'), __a36 = require('./model/style/inline'), __a37 = require('./model/style/numbering'), __a38 = require('./model/style/numberingDefinition'), __a39 = require('./model/style/list'), __a40 = require('./model/control/richtext'), __a41 = require('./model/control/text'), __a42 = require('./model/control/picture'), __a43 = require('./model/control/gallery'), __a44 = require('./model/control/combobox'), __a45 = require('./model/control/dropdown'), __a46 = require('./model/control/date'), __a47 = require('./model/control/checkbox'), __a48 = require('./model/equation'), __a49 = require('./model/OLE');
-module.exports = function factory(wXml, doc, parent, more) {
-    var tag = wXml.localName, swap;
-    function attr(node, name) {
-        return node ? node.attr(name) : undefined;
-    }
-    if ('document' == tag)
-        return new (require('./model/document'))(wXml, doc, parent);
-    else if ('styles' == tag)
-        return new (require('./model/documentStyles'))(wXml, doc);
-    else if ('abstractNum' == tag)
-        return new (require('./model/style/numberingDefinition'))(wXml, doc);
-    else if ('num' == tag)
-        return new (require('./model/style/list'))(wXml, doc);
-    else if ('style' == tag) {
-        switch (wXml.attr('w:type')) {
-        case 'paragraph':
-            return new (require('./model/style/paragraph'))(wXml, doc);
-        case 'character':
-            return new (require('./model/style/inline'))(wXml, doc);
-        case 'table':
-            return new (require('./model/style/table'))(wXml, doc);
-        case 'numbering':
-            return new (require('./model/style/numbering'))(wXml, doc);
-        }
-    } else if ('docDefaults' == tag)
-        return new (require('./model/style/document'))(wXml, doc);
-    else if ('body' == tag)
-        return new (require('./model/body'))(wXml, doc, parent);
-    else if ('p' == tag) {
-        var styleId = attr(wXml.$1('>pPr>pStyle'), 'w:val'), style = doc.style.get(styleId);
-        if (wXml.$1('>pPr>numPr') || style && style.getNumId() != -1)
-            return new (require('./model/list'))(wXml, doc, parent);
-        if (style && style.getOutlineLevel() != -1)
-            return new (require('./model/heading'))(wXml, doc, parent);
-        return new (require('./model/paragraph'))(wXml, doc, parent);
-    } else if ('r' == tag) {
-        var style = doc.style.get(attr(wXml.$1('>rPr>rStyle'), 'w:val'));
-        if (style && style.getOutlineLevel() != -1)
-            return new (require('./model/headingInline'))(wXml, doc, parent);
-        else if (wXml.childNodes.length == 1 || wXml.childNodes == 2 && wXml.firstChild.localName == 'rPr') {
-            switch (wXml.lastChild.localName) {
-            case 'fldChar':
-            case 'instrText':
-                return factory(wXml.lastChild, doc, parent);
-            }
-        }
-        return new (require('./model/inline'))(wXml, doc, parent);
-    } else if ('instrText' == tag)
-        return new (require('./model/fieldInstruct'))(wXml, doc, parent);
-    else if ('t' == tag)
-        return new (require('./model/text'))(wXml, doc, parent);
-    else if ('sym' == tag && wXml.parentNode.localName == 'r')
-        return new (require('./model/symbol'))(wXml, doc, parent);
-    else if ('softHyphen' == tag && wXml.parentNode.localName == 'r')
-        return new (require('./model/softHyphen'))(wXml, doc, parent);
-    else if ('noBreakHyphen' == tag && wXml.parentNode.localName == 'r')
-        return new (require('./model/noBreakHyphen'))(wXml, doc, parent);
-    else if ('tab' == tag && wXml.parentNode.localName == 'r')
-        return new (require('./model/tab'))(wXml, doc, parent);
-    else if ('fldSimple' == tag)
-        return new (require('./model/fieldSimple'))(wXml, doc, parent);
-    else if ('fldChar' == tag) {
-        switch (wXml.attr('w:fldCharType')) {
-        case 'begin':
-            return new (require('./model/fieldBegin'))(wXml, doc, parent);
-            break;
-        case 'end':
-            return new (require('./model/fieldEnd'))(wXml, doc, parent);
-            break;
-        case 'separate':
-            return new (require('./model/fieldSeparate'))(wXml, doc, parent);
-            break;
-        }
-    } else if ('tbl' == tag)
-        return new (require('./model/table'))(wXml, doc, parent);
-    else if ('tr' == tag)
-        return new (require('./model/row'))(wXml, doc, parent);
-    else if ('tc' == tag)
-        return new (require('./model/cell'))(wXml, doc, parent);
-    else if ('br' == tag)
-        return new (require('./model/br'))(wXml, doc, parent);
-    else if ('hyperlink' == tag && 'p' == wXml.parentNode.localName)
-        return new (require('./model/hyperlink'))(wXml, doc, parent);
-    else if ('AlternateContent' == tag)
-        return new (require('./model/drawingAnchor'))(wXml, doc, parent);
-    else if ('wsp' == tag)
-        return new (require('./model/shape'))(wXml, doc, parent);
-    else if ('inline' == tag) {
-        var type = wXml.$1('>graphic>graphicData').attr('uri').split('/').pop();
-        switch (type) {
-        case 'picture':
-            return new (require('./model/image'))(wXml, doc, parent);
-        case 'diagram':
-            return new (require('./model/diagram'))(wXml, doc, parent);
-        case 'chart':
-            return new (require('./model/chart'))(wXml, doc, parent);
-        default:
-            console.error('inline ' + type + ' is not suppored yet.');
-        }
-    } else if ('sdt' == tag) {
-        tag = wXml.firstChild.lastChild.localName;
-        if ('text' == tag)
-            return new (require('./model/control/text'))(wXml, doc, parent);
-        else if ('picture' == tag)
-            return new (require('./model/control/picture'))(wXml, doc, parent);
-        else if ('docPartList' == tag)
-            return new (require('./model/control/gallery'))(wXml, doc, parent);
-        else if ('comboBox' == tag)
-            return new (require('./model/control/combobox'))(wXml, doc, parent);
-        else if ('dropDownList' == tag)
-            return new (require('./model/control/dropdown'))(wXml, doc, parent);
-        else if ('date' == tag)
-            return new (require('./model/control/date'))(wXml, doc, parent);
-        else if ('checkbox' == tag)
-            return new (require('./model/control/checkbox'))(wXml, doc, parent);
-        else
-            return new (require('./model/control/richtext'))(wXml, doc, parent);
-    } else if ('bookmarkStart' == tag)
-        return new (require('./model/bookmarkStart'))(wXml, doc, parent);
-    else if ('bookmarkEnd' == tag)
-        return new (require('./model/bookmarkEnd'))(wXml, doc, parent);
-    else if ('oMathPara' == tag)
-        return new (require('./model/equation'))(wXml, doc, parent);
-    else if ('object' == tag)
-        return new (require('./model/OLE'))(wXml, doc, parent);
-    else if ('sectPr' == tag)
-        return new (require('./model/section'))(wXml, doc, parent);
-    return new Model(wXml, doc, parent);
-};
-},{"./model":49,"./model/OLE":50,"./model/body":51,"./model/bookmarkEnd":52,"./model/bookmarkStart":53,"./model/br":54,"./model/cell":55,"./model/chart":56,"./model/control/checkbox":58,"./model/control/combobox":59,"./model/control/date":60,"./model/control/dropdown":61,"./model/control/gallery":62,"./model/control/picture":63,"./model/control/richtext":64,"./model/control/text":65,"./model/diagram":66,"./model/document":67,"./model/documentStyles":68,"./model/drawingAnchor":70,"./model/equation":71,"./model/fieldBegin":72,"./model/fieldEnd":73,"./model/fieldInstruct":74,"./model/fieldSeparate":75,"./model/fieldSimple":76,"./model/heading":84,"./model/headingInline":85,"./model/hyperlink":86,"./model/image":87,"./model/inline":88,"./model/list":89,"./model/noBreakHyphen":90,"./model/paragraph":91,"./model/row":93,"./model/section":95,"./model/shape":96,"./model/softHyphen":97,"./model/style/document":99,"./model/style/inline":100,"./model/style/list":101,"./model/style/numbering":102,"./model/style/numberingDefinition":103,"./model/style/paragraph":104,"./model/style/table":106,"./model/symbol":107,"./model/tab":108,"./model/table":109,"./model/text":110}],49:[function(require,module,exports){
-var Parser = require('../parser');
-module.exports = Parser.extend(function (wXml, wDoc, mParent) {
-    Parser.apply(this, arguments);
-    this.mParent = mParent;
-    this.content = [];
-    if (mParent)
-        mParent.content.push(this);
-}, {
-    type: null,
-    parse: function (visitFactories) {
-        var visitors = [];
-        var paramizedVisitFactories = $.map(visitFactories, function (visitFactory) {
-                var visitor = visitFactory(this);
-                if (visitor) {
-                    visitors.push(visitor);
-                    visitor.visit();
-                    return visitFactory.with(visitor);
-                }
-            }.bind(this));
-        var factory = require('./factory');
-        this._iterate(function (wXml) {
-            factory(wXml, this.wDoc, this).parse(paramizedVisitFactories);
-        }.bind(this), paramizedVisitFactories, visitors);
-    },
-    _iterate: function (f, paramizedVisitFactories) {
-        for (var i = 0, children = this._getValidChildren(), l = children ? children.length : 0; i < l; i++)
-            !this._shouldIgnore(children[i]) && f(children[i]);
-    },
-    _getValidChildren: function () {
-        return this.wXml.childNodes;
-    },
-    _shouldIgnore: function (wXml) {
-        return false;
-    },
-    _attr: function (selector, key) {
-        var n = arguments.length == 1 ? (key = selector, this.wXml) : this.wXml.$1(selector);
-        return n ? n.attr(key) : null;
-    },
-    _val: function (selector) {
-        return this._attr(selector, 'w:val');
-    }
-});
-},{"../parser":114,"./factory":48}],50:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({ type: 'OLE' });
-},{"../model":49}],51:[function(require,module,exports){
-var Model = require('../model'), Section = require('./section');
-module.exports = Model.extend({
-    type: 'body',
-    _getValidChildren: function () {
-        return this.wXml.$('sectPr');
-    }
-});
-},{"../model":49,"./section":95}],52:[function(require,module,exports){
-var Range = require('./rangeBase');
-module.exports = Range.extend({
-    type: 'bookmarkEnd',
-    getName: function () {
-        this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')];
-    }
-});
-},{"./rangeBase":92}],53:[function(require,module,exports){
-var Super = require('../model');
-module.exports = Super.extend({
-    type: 'bookmarkStart',
-    parse: function () {
-        Super.prototype.parse.apply(this, arguments);
-        this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')] = this.wXml.attr('w:name');
-    },
-    getName: function () {
-        return this.wXml.attr('w:name');
-    }
-});
-},{"../model":49}],54:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({ type: 'br' });
-},{"../model":49}],55:[function(require,module,exports){
-var Model = require('../model'), Style = require('./style/table');
-module.exports = Model.extend({
-    type: 'cell',
-    getDirectStyle: function (pr) {
-        return (pr = this.wXml.$1('>tcPr')) && new Style.CellProperties(pr, this.wDoc, this);
-    }
-});
-},{"../model":49,"./style/table":106}],56:[function(require,module,exports){
-var Super = require('./graphic');
-module.exports = Super.extend({ type: 'chart' });
-},{"./graphic":82}],57:[function(require,module,exports){
-var SDT = require('./sdt');
-module.exports = SDT.extend({});
-},{"./sdt":94}],58:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.checkbox' });
-},{"../control":57}],59:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.combobox' });
-},{"../control":57}],60:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.date' });
-},{"../control":57}],61:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.dropdown' });
-},{"../control":57}],62:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.gallery' });
-},{"../control":57}],63:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.picture' });
-},{"../control":57}],64:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.richtext' });
-},{"../control":57}],65:[function(require,module,exports){
-var Control = require('../control');
-module.exports = Control.extend({ type: 'control.text' });
-},{"../control":57}],66:[function(require,module,exports){
-var Super = require('./graphic');
-module.exports = Super.extend({ type: 'diagram' });
-},{"./graphic":82}],67:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({
-    type: 'document',
-    _getValidChildren: function () {
-        var children = [
-                this.wDoc.getPart('styles').root,
-                this.wXml.$1('body')
-            ];
-        var numbering = this.wDoc.getPart('numbering');
-        if (numbering)
-            children.splice(1, 0, numbering.root);
-        return children;
-    }
-});
-},{"../model":49}],68:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({
-    type: 'documentStyles',
-    _getValidChildren: function () {
-        return this.wXml.$('docDefaults,style');
-    }
-});
-},{"../model":49}],69:[function(require,module,exports){
-var Super = require('../model'), Style = require('./style');
-module.exports = Super.extend(function (wXml) {
-    Super.apply(this, arguments);
-    this.wDrawing = null;
-}, {
-    getDirectStyle: function () {
-        return new this.constructor.Properties(this.wDrawing, this.wDoc, this);
-    },
-    _getValidChildren: function () {
-        return [];
-    }
-}, {
-    Properties: Style.Properties.extend({
-        _getValidChildren: function (t) {
-            return [
-                this.wXml.$1('extent'),
-                this.wXml.$1('effectExtent')
-            ];
-        },
-        extent: function (x) {
-            return {
-                width: this.asPt(x.attr('cx'), 'cm'),
-                height: this.asPt(x.attr('cy'), 'cm')
-            };
-        },
-        effectExtent: function (x) {
-            return this.asObject(x, function (x) {
-                return this.asPt(x, 'cm');
-            }.bind(this));
-        },
-        distT: function (x) {
-            if (x = parseInt(x.value))
-                return this.asPt(x, 'cm');
-            return this.EMPTY;
-        },
-        distB: function (x) {
-            return this.distT(x);
-        },
-        distR: function (x) {
-            return this.distT(x);
-        },
-        distL: function (x) {
-            return this.distT(x);
-        }
-    }),
-    SpProperties: Style.Properties.extend({
-        naming: {
-            custGeom: 'path',
-            prstGeom: 'path'
-        },
-        xfrm: function (x) {
-            var ext = x.$1('ext'), offset = x.$1('off');
-            return this.world = {
-                width: this.asPt(ext.attr('cx'), 'cm'),
-                height: this.asPt(ext.attr('cy'), 'cm'),
-                x: this.asPt(offset.attr('x'), 'cm'),
-                y: this.asPt(offset.attr('y'), 'cm')
-            };
-        },
-        solidFill: function (x) {
-            var elColor = x.firstChild, color = this.asColor(elColor.attr('val')), t;
-            switch (elColor.localName) {
-            case 'schemeClr':
-                color = this.wDoc.getColorTheme().get(color);
-                break;
-            }
-            if (t = elColor.$1('shade'))
-                color = this.shadeColor(color, -1 * parseInt(t.attr('val')) / 1000);
-            if (t = elColor.$1('lumOff'))
-                color = this.shadeColor(color, -1 * parseInt(t.attr('val')) / 1000);
-            return color;
-        },
-        noFill: function (x) {
-            return 1;
-        },
-        gradFill: function (x) {
-            var type = x.$1('lin,path'), o = this.asObject(type), stops = [];
-            for (var gs = x.$('gs'), a, i = 0, len = gs.length; i < len; i++)
-                stops.push({
-                    position: parseInt(gs[i].attr('pos')) / 1000,
-                    color: this.solidFill(gs[i])
+    }, {
+        load: function (inputFile) {
+            var reader = new FileReader(), p = new $.Deferred(), DocumentSelf = this;
+            reader.onload = function (e) {
+                var raw = new JSZip(e.target.result), parts = {};
+                raw.filter(function (path, file) {
+                    parts[path] = file;
                 });
-            o.ang && (o.angel = parseInt(o.ang) / 60000, delete o.ang);
-            o.path && (o.rect = this.asObject(type.firstChild, function (x) {
-                return parseInt(x) / 1000;
-            }));
-            o.path = type.localName == 'lin' ? 'linear' : o.path;
-            o.stops = stops;
-            return o;
-        },
-        ln: function (x) {
-            if (x.$1('noFill'))
-                return { width: 0 };
-            var o = this.asObject(x), t;
-            (t = x.$1('solidFill')) && (o.color = this.solidFill(t));
-            (t = o.w) && (o.width = this.asPt(t, 'cm')) && delete o.w;
-            (t = x.$1('prstDash')) && (o.dash = t.attr('val'));
-            return o;
-        },
-        effectLst: function (x) {
-        },
-        blipFill: function (x) {
-            return this.wDoc.getRel(x.$1('blip').attr('r:embed'));
-        },
-        prstGeom: function (x) {
-            var px = this.pt2Px, w = px(this.world.width), h = px(this.world.height);
-            switch (x.attr('prst')) {
-            case 'leftBrace':
-                return {
-                    shape: 'path',
-                    path: 'M ' + w + ' 0 L 0 ' + h / 2 + ' L ' + w + ' ' + h + ' Z'
-                };
-            default:
-                return { shape: x.attr('prst') };
-            }
-        },
-        custGeom: function (x) {
-            var path = [], px = function (x) {
-                    return this.pt2Px(this.asPt(x, 'cm'));
-                }.bind(this);
-            for (var a, children = x.$1('path').children, len = children.length, i = 0; i < len; i++) {
-                a = children[i];
-                switch (a.localName) {
-                case 'moveTo':
-                    path.push('M ' + px(a.firstChild.attr('x')) + ' ' + px(a.firstChild.attr('y')));
-                    break;
-                case 'lnTo':
-                    path.push('L ' + px(a.firstChild.attr('x')) + ' ' + px(a.firstChild.attr('y')));
-                    break;
-                    break;
-                case 'cubicBezTo':
-                    path.push('L ' + px(a.childNodes[0].attr('x')) + ' ' + px(a.childNodes[0].attr('y')));
-                    path.push('Q ' + px(a.childNodes[1].attr('x')) + ' ' + px(a.childNodes[1].attr('y')) + ' ' + px(a.childNodes[2].attr('x')) + ' ' + px(a.childNodes[2].attr('y')));
-                    break;
-                }
-            }
-            return {
-                shape: 'path',
-                path: path.join(' ')
+                p.resolve(new DocumentSelf(parts, raw, inputFile.name));
             };
+            reader.readAsArrayBuffer(inputFile);
+            return p;
         }
-    })
-});
-},{"../model":49,"./style":98}],70:[function(require,module,exports){
-var Super = require('./drawing');
-function refine(name) {
-    return name.replace(/-(\w)/, function (a, b) {
-        return b.toUpperCase();
     });
-}
-module.exports = Super.extend(function (wXml, wDoc, mParent) {
-    Super.apply(this, arguments);
-    this.wDrawing = wXml.$1('drawing>:first-child');
-}, {
-    type: 'drawing.anchor',
-    _getValidChildren: function () {
-        return this.wDrawing.$('wsp');
-    }
-}, {
-    Properties: Super.Properties.extend({
-        type: 'shape',
-        naming: $.extend(Super.Properties.prototype.naming, {
-            wrapNone: 'wrap',
-            wrapSquare: 'wrap',
-            wrapTopAndBottom: 'wrap',
-            wrapTight: 'wrap',
-            wrapThrough: 'wrap'
-        }),
-        _getValidChildren: function () {
-            var t, children = Super.Properties.prototype._getValidChildren.apply(this, arguments);
-            'positionH,positionV,wrapNone,wrapSquare,wrapTopAndBottom,wrapTight,wrapThrough'.split(',').forEach(function (a) {
-                (t = this.wXml.$1(a)) && children.push(t);
-            }, this);
-            return children;
+}(require('jszip'));
+},{"jszip":14}],46:[function(require,module,exports){
+module.exports = function (BaseDocument, Part) {
+    return BaseDocument.extend(function () {
+        BaseDocument.apply(this, arguments);
+        var rels = this.rels = {};
+        $.each(new Part('', this).rels, function (id, rel) {
+            rels[rel.type] = rel.target;
+        });
+        this.partMain = new Part(this.rels['officeDocument'], this);
+    }, {
+        vender: 'Microsoft',
+        product: 'Office 2010',
+        getPart: function (name) {
+            var part = this.parts[name] || (name = this.rels[name]) && this.parts[name];
+            if (!part)
+                return null;
+            if (Part.is(part))
+                return part;
+            return this.parts[name] = new Part(name, this);
         },
-        positionH: function (x) {
-            var o = { relativeFrom: x.attr('relativeFrom') };
-            o[x.firstChild.localName] = x.firstChild.localName == 'posOffset' ? this.asPt(x.firstChild.textContent, 'cm') : x.firstChild.textContent;
-            return o;
-        },
-        positionV: function (x) {
-            var o = { relativeFrom: x.attr('relativeFrom') };
-            o[x.firstChild.localName] = x.firstChild.localName == 'posOffset' ? this.asPt(x.firstChild.textContent, 'cm') : x.firstChild.textContent;
-            return o;
-        },
-        wrapNone: function () {
-            return 'none';
-        },
-        wrapSquare: function () {
-            return 'square';
-        },
-        wrapTopAndBottom: function () {
-            return 'topAndBottom';
-        },
-        wrapTight: function () {
-            return 'tight';
-        },
-        wrapThrough: function () {
-            return 'through';
-        },
-        behindDoc: function (x) {
-            return x.value == '0' ? this.EMPTY : true;
+        getImageURL: function (name) {
+            return URL.createObjectURL(new Blob([this.parts[name].asArrayBuffer()], { type: 'image/*' }));
         }
-    })
-});
-},{"./drawing":69}],71:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({ type: 'equation' });
-},{"../model":49}],72:[function(require,module,exports){
-var Super = require('../model'), __a2 = require('./field/hyperlink'), __a3 = require('./field/date'), __a4 = require('./field/ref');
-module.exports = Super.extend(function (wXml, wDoc, mParent) {
-    Super.apply(this, arguments);
-    this.commands = [];
-}, {
-    type: 'fieldBegin',
-    parse: function () {
-        this.wDoc.parseContext.field.push(this);
-        Super.prototype.parse.apply(this, arguments);
-    },
-    instruct: function (t) {
-        this.commands.push(t);
-    },
-    seperate: function (seperator) {
-    },
-    end: function (endVisitors) {
-    },
-    _iterate: function (f, factories, visitors) {
-        this.end = function (endVisitors) {
-            var model = this.constructor.factory(this.commands.join('').trim(), this.wDoc, this);
-            if (model)
-                model.parse(visitors, endVisitors);
+    });
+}(require('../document'), require('./part'));
+},{"../document":45,"./part":115}],47:[function(require,module,exports){
+module.exports = function (OfficeDocument, factory, FontTheme, ColorTheme, FormatTheme) {
+    function ParseContext(current) {
+        this.current = current;
+    }
+    return OfficeDocument.extend(function () {
+        OfficeDocument.apply(this, arguments);
+        var rels = this.rels, builtIn = 'settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',');
+        $.each(this.partMain.rels, function (id, rel) {
+            builtIn.indexOf(rel.type) != -1 && (rels[rel.type] = rel.target);
+        });
+        this.style = new this.constructor.Style();
+        this.content = [];
+        this.parseContext = {
+            section: new ParseContext(),
+            part: new ParseContext(this.partMain),
+            bookmark: new ParseContext(),
+            field: function (ctx) {
+                ctx.instruct = function (t) {
+                    this[this.length - 1].instruct(t);
+                };
+                ctx.seperate = function (model) {
+                    this[this.length - 1].seperate(model);
+                };
+                ctx.end = function (model) {
+                    this.pop().end(model);
+                };
+                return ctx;
+            }([])
         };
-    }
-}, {
-    factory: function (instruct, wDoc, mParent) {
-        var index = instruct.indexOf(' '), type = index != -1 ? instruct.substring(0, index) : instruct;
-        type = type.toLowerCase();
-        try {
-            return new (require('./field/' + type))(instruct.trim(), wDoc, mParent);
-        } catch (e) {
-        }
-    }
-});
-},{"../model":49,"./field/date":77,"./field/hyperlink":79,"./field/ref":80}],73:[function(require,module,exports){
-var Super = require('../model');
-module.exports = Super.extend({
-    type: 'fieldEnd',
-    _iterate: function (f, factories, visitors) {
-        this.wDoc.parseContext.field.end(visitors);
-    }
-});
-},{"../model":49}],74:[function(require,module,exports){
-var Super = require('../model');
-module.exports = Super.extend(function (wXml, wDoc, mParent) {
-    Super.apply(this, arguments);
-    wDoc.parseContext.field.instruct(wXml.textContent);
-}, {
-    type: 'fieldInstruct',
-    parse: function () {
-    }
-});
-},{"../model":49}],75:[function(require,module,exports){
-var Super = require('../model');
-module.exports = Super.extend({
-    type: 'fieldEnd',
-    parse: function (factories) {
-        this.wDoc.parseContext.field.seperate(this);
-    }
-});
-},{"../model":49}],76:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({ type: 'fieldSimple' });
-},{"../model":49}],77:[function(require,module,exports){
-var Super = require('./field');
-module.exports = Super.extend({ type: 'fied.date' }, {
-    FieldCode: Super.FieldCode.extend({
-        parse: function () {
-            var option = null;
-            while (option = this.nextSwitch()) {
-                switch (option.type) {
-                case '@':
-                    var i = option.data.indexOf('"');
-                    if (i != -1)
-                        this.format = option.data.substring(0, i);
-                    else
-                        this.format = option.data;
-                    break;
-                }
-            }
-        }
-    })
-});
-},{"./field":78}],78:[function(require,module,exports){
-var Super = require('../../model');
-var Command, FieldCode, Switch;
-module.exports = Super.extend(function (instruct, doc, parent) {
-    Super.apply(this, arguments);
-    this.command = new this.constructor.FieldCode(instruct);
-    this.command.parse();
-}, {
-    type: 'field',
-    parse: function (visitors, endVisitors) {
-        for (var i = 0, len = visitors.length; i < len; i++)
-            visitors[i].visit(this, endVisitors[i]);
-    },
-    getCommand: function () {
-        return this.command;
-    }
-}, {
-    Command: Command = $.newClass(function (instruct) {
-        this.data = instruct;
     }, {
-        nextUntil: function (seperators) {
-            if (this.data.length == 0)
-                return '';
-            var i = -1, len = this.data.length;
-            while (++i < len && seperators.indexOf(this.data.charAt(i)) == -1);
-            var node = this.data.substring(0, i).trim();
-            if (i < len)
-                while (++i < len && seperators.indexOf(this.data.charAt(i)) != -1);
-            this.data = this.data.substring(i).trim();
-            return node;
+        type: 'Word',
+        ext: 'docx',
+        parse: function (visitFactories) {
+            this.content = factory(this.partMain.root, this);
+            this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments));
+            this.release();
         },
-        nextNode: function () {
-            return this.nextUntil(' \\');
+        getRel: function (id) {
+            return this.parseContext.part.current.getRel(id);
         },
-        asInt: function (s, defaultValue) {
-            try {
-                return parseInt(s);
-            } catch (error) {
-                return defaultValue || 0;
+        getColorTheme: function () {
+            if (this.colorTheme)
+                return this.colorTheme;
+            return this.colorTheme = new ColorTheme(this.getPart('theme').root.$1('clrScheme'), this.getPart('settings').root.$1('clrSchemeMapping'));
+        },
+        getFontTheme: function () {
+            if (this.fontTheme)
+                return this.fontTheme;
+            return this.fontTheme = new FontTheme(this.getPart('theme').root.$1('fontScheme'), this.getPart('settings').root.$1('themeFontLang'));
+        },
+        getFormatTheme: function () {
+            if (this.formatTheme)
+                return this.formatTheme;
+            return this.formatTheme = new FormatTheme(this.getPart('theme').root.$1('fmtScheme'), this);
+        },
+        release: function () {
+            with (this.parseContext) {
+                delete section;
+                delete part;
+                delete bookmark;
             }
+            delete this.parseContext;
         }
-    }),
-    Switch: Switch = Command.extend(function (cmd) {
-        Command.apply(this, arguments);
-        this.withQuote = false;
-        this.type = cmd.charAt(0).toLowerCase;
-        if (cmd.length > 1 && this.type != '*' && cmd.charAt(1) != ' ') {
-            if (type.match(/\w/)) {
-                try {
-                    parseInt(cmd.substring(1).trim());
-                    this.data = cmd.substring(1).trim();
-                    return;
-                } catch (e) {
+    }, {
+        Style: function () {
+            var ids = {}, defaults = {};
+            $.extend(this, {
+                setDefault: function (style) {
+                    defaults[style.type] = style;
+                },
+                getDefault: function (type) {
+                    return defaults[type];
+                },
+                get: function (id) {
+                    return ids[id];
+                },
+                set: function (style, id) {
+                    ids[id || style.id] = style;
+                }
+            });
+        }
+    });
+}(require('../document'), require('./factory'), require('./theme/font'), require('./theme/color'), require('./theme/format'));
+},{"../document":46,"./factory":48,"./theme/color":111,"./theme/font":112,"./theme/format":113}],48:[function(require,module,exports){
+module.exports = function (require, Model) {
+    return function factory(wXml, doc, parent, more) {
+        var tag = wXml.localName, swap;
+        function attr(node, name) {
+            return node ? node.attr(name) : undefined;
+        }
+        if ('document' == tag)
+            return new (require('./model/document'))(wXml, doc, parent);
+        else if ('styles' == tag)
+            return new (require('./model/documentStyles'))(wXml, doc);
+        else if ('abstractNum' == tag)
+            return new (require('./model/style/numberingDefinition'))(wXml, doc);
+        else if ('num' == tag)
+            return new (require('./model/style/list'))(wXml, doc);
+        else if ('style' == tag) {
+            switch (wXml.attr('w:type')) {
+            case 'paragraph':
+                return new (require('./model/style/paragraph'))(wXml, doc);
+            case 'character':
+                return new (require('./model/style/inline'))(wXml, doc);
+            case 'table':
+                return new (require('./model/style/table'))(wXml, doc);
+            case 'numbering':
+                return new (require('./model/style/numbering'))(wXml, doc);
+            }
+        } else if ('docDefaults' == tag)
+            return new (require('./model/style/document'))(wXml, doc);
+        else if ('body' == tag)
+            return new (require('./model/body'))(wXml, doc, parent);
+        else if ('p' == tag) {
+            var styleId = attr(wXml.$1('>pPr>pStyle'), 'w:val'), style = doc.style.get(styleId);
+            if (wXml.$1('>pPr>numPr') || style && style.getNumId() != -1)
+                return new (require('./model/list'))(wXml, doc, parent);
+            if (style && style.getOutlineLevel() != -1)
+                return new (require('./model/heading'))(wXml, doc, parent);
+            return new (require('./model/paragraph'))(wXml, doc, parent);
+        } else if ('r' == tag) {
+            var style = doc.style.get(attr(wXml.$1('>rPr>rStyle'), 'w:val'));
+            if (style && style.getOutlineLevel() != -1)
+                return new (require('./model/headingInline'))(wXml, doc, parent);
+            else if (wXml.childNodes.length == 1 || wXml.childNodes == 2 && wXml.firstChild.localName == 'rPr') {
+                switch (wXml.lastChild.localName) {
+                case 'fldChar':
+                case 'instrText':
+                    return factory(wXml.lastChild, doc, parent);
                 }
             }
-            this.type = '!';
-        } else {
-            if (this.data.length > 1)
-                this.data = this.data.substring(1).trim();
+            return new (require('./model/inline'))(wXml, doc, parent);
+        } else if ('instrText' == tag)
+            return new (require('./model/fieldInstruct'))(wXml, doc, parent);
+        else if ('t' == tag)
+            return new (require('./model/text'))(wXml, doc, parent);
+        else if ('sym' == tag && wXml.parentNode.localName == 'r')
+            return new (require('./model/symbol'))(wXml, doc, parent);
+        else if ('softHyphen' == tag && wXml.parentNode.localName == 'r')
+            return new (require('./model/softHyphen'))(wXml, doc, parent);
+        else if ('noBreakHyphen' == tag && wXml.parentNode.localName == 'r')
+            return new (require('./model/noBreakHyphen'))(wXml, doc, parent);
+        else if ('tab' == tag && wXml.parentNode.localName == 'r')
+            return new (require('./model/tab'))(wXml, doc, parent);
+        else if ('fldSimple' == tag)
+            return new (require('./model/fieldSimple'))(wXml, doc, parent);
+        else if ('fldChar' == tag) {
+            switch (wXml.attr('w:fldCharType')) {
+            case 'begin':
+                return new (require('./model/fieldBegin'))(wXml, doc, parent);
+                break;
+            case 'end':
+                return new (require('./model/fieldEnd'))(wXml, doc, parent);
+                break;
+            case 'separate':
+                return new (require('./model/fieldSeparate'))(wXml, doc, parent);
+                break;
+            }
+        } else if ('tbl' == tag)
+            return new (require('./model/table'))(wXml, doc, parent);
+        else if ('tr' == tag)
+            return new (require('./model/row'))(wXml, doc, parent);
+        else if ('tc' == tag)
+            return new (require('./model/cell'))(wXml, doc, parent);
+        else if ('br' == tag)
+            return new (require('./model/br'))(wXml, doc, parent);
+        else if ('hyperlink' == tag && 'p' == wXml.parentNode.localName)
+            return new (require('./model/hyperlink'))(wXml, doc, parent);
+        else if ('AlternateContent' == tag)
+            return new (require('./model/drawingAnchor'))(wXml, doc, parent);
+        else if ('wsp' == tag)
+            return new (require('./model/shape'))(wXml, doc, parent);
+        else if ('inline' == tag) {
+            var type = wXml.$1('>graphic>graphicData').attr('uri').split('/').pop();
+            switch (type) {
+            case 'picture':
+                return new (require('./model/image'))(wXml, doc, parent);
+            case 'diagram':
+                return new (require('./model/diagram'))(wXml, doc, parent);
+            case 'chart':
+                return new (require('./model/chart'))(wXml, doc, parent);
+            default:
+                console.error('inline ' + type + ' is not suppored yet.');
+            }
+        } else if ('sdt' == tag) {
+            tag = wXml.firstChild.lastChild.localName;
+            if ('text' == tag)
+                return new (require('./model/control/text'))(wXml, doc, parent);
+            else if ('picture' == tag)
+                return new (require('./model/control/picture'))(wXml, doc, parent);
+            else if ('docPartList' == tag)
+                return new (require('./model/control/gallery'))(wXml, doc, parent);
+            else if ('comboBox' == tag)
+                return new (require('./model/control/combobox'))(wXml, doc, parent);
+            else if ('dropDownList' == tag)
+                return new (require('./model/control/dropdown'))(wXml, doc, parent);
+            else if ('date' == tag)
+                return new (require('./model/control/date'))(wXml, doc, parent);
+            else if ('checkbox' == tag)
+                return new (require('./model/control/checkbox'))(wXml, doc, parent);
             else
-                this.data = '';
-        }
-        this.__removeQuote();
+                return new (require('./model/control/richtext'))(wXml, doc, parent);
+        } else if ('bookmarkStart' == tag)
+            return new (require('./model/bookmarkStart'))(wXml, doc, parent);
+        else if ('bookmarkEnd' == tag)
+            return new (require('./model/bookmarkEnd'))(wXml, doc, parent);
+        else if ('oMathPara' == tag)
+            return new (require('./model/equation'))(wXml, doc, parent);
+        else if ('object' == tag)
+            return new (require('./model/OLE'))(wXml, doc, parent);
+        else if ('sectPr' == tag)
+            return new (require('./model/section'))(wXml, doc, parent);
+        return new Model(wXml, doc, parent);
+    };
+}(require, require('./model'), require('./model/document'), require('./model/section'), require('./model/body'), require('./model/table'), require('./model/row'), require('./model/cell'), require('./model/paragraph'), require('./model/list'), require('./model/heading'), require('./model/inline'), require('./model/headingInline'), require('./model/text'), require('./model/fieldBegin'), require('./model/fieldInstruct'), require('./model/fieldSeparate'), require('./model/fieldEnd'), require('./model/fieldSimple'), require('./model/bookmarkStart'), require('./model/bookmarkEnd'), require('./model/tab'), require('./model/softHyphen'), require('./model/noBreakHyphen'), require('./model/symbol'), require('./model/br'), require('./model/hyperlink'), require('./model/drawingAnchor'), require('./model/shape'), require('./model/image'), require('./model/chart'), require('./model/diagram'), require('./model/documentStyles'), require('./model/style/document'), require('./model/style/paragraph'), require('./model/style/table'), require('./model/style/inline'), require('./model/style/numbering'), require('./model/style/numberingDefinition'), require('./model/style/list'), require('./model/control/richtext'), require('./model/control/text'), require('./model/control/picture'), require('./model/control/gallery'), require('./model/control/combobox'), require('./model/control/dropdown'), require('./model/control/date'), require('./model/control/checkbox'), require('./model/equation'), require('./model/OLE'));
+},{"./model":49,"./model/OLE":50,"./model/body":51,"./model/bookmarkEnd":52,"./model/bookmarkStart":53,"./model/br":54,"./model/cell":55,"./model/chart":56,"./model/control/checkbox":58,"./model/control/combobox":59,"./model/control/date":60,"./model/control/dropdown":61,"./model/control/gallery":62,"./model/control/picture":63,"./model/control/richtext":64,"./model/control/text":65,"./model/diagram":66,"./model/document":67,"./model/documentStyles":68,"./model/drawingAnchor":70,"./model/equation":71,"./model/fieldBegin":72,"./model/fieldEnd":73,"./model/fieldInstruct":74,"./model/fieldSeparate":75,"./model/fieldSimple":76,"./model/heading":84,"./model/headingInline":85,"./model/hyperlink":86,"./model/image":87,"./model/inline":88,"./model/list":89,"./model/noBreakHyphen":90,"./model/paragraph":91,"./model/row":93,"./model/section":95,"./model/shape":96,"./model/softHyphen":97,"./model/style/document":99,"./model/style/inline":100,"./model/style/list":101,"./model/style/numbering":102,"./model/style/numberingDefinition":103,"./model/style/paragraph":104,"./model/style/table":106,"./model/symbol":107,"./model/tab":108,"./model/table":109,"./model/text":110}],49:[function(require,module,exports){
+module.exports = function (Parser, require) {
+    return Parser.extend(function (wXml, wDoc, mParent) {
+        Parser.apply(this, arguments);
+        this.mParent = mParent;
+        this.content = [];
+        if (mParent)
+            mParent.content.push(this);
     }, {
-        __removeQuote: function () {
-            if (this.data.length == 0)
-                return;
-            var a = this.data.charAt(0);
-            if (a == '"' || a == '\'') {
-                this.data = this.data.substring(1);
-                this.withQuote = true;
-            }
-            if (this.data.length == 0)
-                return;
-            a = this.data.charAt(this.data.length - 1);
-            if (a == '"' || a == '\'') {
-                this.data = this.data.substring(0, this.data.length - 1);
-                this.withQuote = true;
-            }
-        },
-        _split2Int: function () {
-            if (this.data == null || this.data.length == 0)
-                return null;
-            var a = data.split('-');
-            if (a.length == 0)
-                return null;
-            var b = [];
-            for (var i = 0, len = a.length; i < len; i++) {
-                try {
-                    b[i] = parseInt(a[i]);
-                } catch (e) {
-                    b[i] = 0;
-                }
-            }
-            return b;
-        }
-    }),
-    FieldCode: Command.extend(function (instruct) {
-        Command.apply(this, arguments);
-        this.mergeFormat = this.parseKeyWord('MERGEFORMAT');
-        this.type = this.nextNode();
-    }, {
-        parseKeyWord: function (key) {
-            if (this.data.length == 0)
-                return false;
-            var len = this.data.length;
-            this.data = this.data.replace(new RegExp('\\*\\s*' + key + '\\s*', 'ig'), '');
-            return this.data.length != len;
-        },
-        nextSwitch: function () {
-            var option = this.nextUntil('\\');
-            if (option == null || option.length == 0)
-                return null;
-            return new Switch(option);
-        },
-        parse: function () {
-        }
-    })
-});
-},{"../../model":49}],79:[function(require,module,exports){
-var Super = require('./field');
-module.exports = Super.extend(function (instruct) {
-    Super.apply(this, arguments);
-    this.link = instruct.split('"')[1];
-}, {
-    type: 'field.hyperlink',
-    getLink: function () {
-        return this.link;
-    }
-});
-},{"./field":78}],80:[function(require,module,exports){
-var Super = require('./hyperlink');
-module.exports = Super.extend(function (instruct) {
-    Super.apply(this, arguments);
-    this.link = '#' + instruct.split(/\s+/)[1];
-});
-},{"./hyperlink":79}],81:[function(require,module,exports){
-var Header = require('./header');
-module.exports = Header.extend({ type: 'footer' });
-},{"./header":83}],82:[function(require,module,exports){
-var Super = require('./drawing');
-module.exports = Super.extend(function (wXml) {
-    Super.apply(this, arguments);
-    this.wDrawing = wXml;
-}, {}, {
-    Properties: Super.Properties.extend($.extend({}, Super.SpProperties.prototype, {
-        naming: $.extend({}, Super.Properties.prototype.naming, Super.SpProperties.prototype.naming),
-        _getValidChildren: function (t) {
-            return Super.Properties.prototype._getValidChildren.apply(this, arguments).concat(this.wXml.$1('spPr').childNodes.asArray());
-        }
-    }))
-});
-},{"./drawing":69}],83:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend(function (wXml, wDoc, mParent, location) {
-    Model.apply(this, arguments);
-    this.location = location;
-}, { type: 'header' });
-},{"../model":49}],84:[function(require,module,exports){
-var Paragraph = require('./paragraph');
-module.exports = Paragraph.extend({
-    type: 'heading',
-    getOutlineLevel: function () {
-        return this.getNamedStyle().getOutlineLevel();
-    }
-});
-},{"./paragraph":91}],85:[function(require,module,exports){
-var Inline = require('./inline');
-module.exports = Inline.extend({ type: 'headingChar' });
-},{"./inline":88}],86:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({
-    type: 'hyperlink',
-    getLink: function (a) {
-        return (a = this._attr('r:id')) ? this._getLocalLink(a) : '#' + this._attr('w:anchor');
-    },
-    _getLocalLink: function (id) {
-    }
-});
-},{"../model":49}],87:[function(require,module,exports){
-var Super = require('./graphic');
-module.exports = Super.extend({
-    type: 'image',
-    asLink: function () {
-        var blip = this.wXml.$1('blip'), rid = blip.attr('r:embed');
-        return this.src = this.wDoc.getRel(rid);
-    }
-});
-},{"./graphic":82}],88:[function(require,module,exports){
-var Model = require('../model'), Style = require('./style/inline');
-module.exports = Model.extend({
-    type: 'inline',
-    getStyleId: function () {
-        return this._val('>rPr>rStyle');
-    },
-    getNamedStyle: function () {
-        return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type);
-    },
-    getDirectStyle: function (pr) {
-        return (pr = this.wXml.$1('>rPr')) && new Style.Properties(pr, this.wDoc, this);
-    },
-    _shouldIgnore: function (wXml) {
-        return wXml.localName == 'rPr';
-    },
-    isWebHidden: function () {
-        return this.wXml.$1('>rPr>webHidden');
-    },
-    isHidden: function () {
-        return this.wXml.$1('>rPr>vanish');
-    }
-});
-},{"../model":49,"./style/inline":100}],89:[function(require,module,exports){
-var Super = require('./paragraph'), Style = require('./style/list');
-module.exports = Super.extend({
-    type: 'list',
-    getLevel: function (numPr, t) {
-        return (t = this.wXml.$1('>pPr>numPr>ilvl')) ? t.attr('w:val') : '0';
-    },
-    getNumberingStyle: function (t) {
-        var numId = (t = this.wXml.$1('>pPr>numPr')) && (t = t.$1('numId')) && (t = t.attr('w:val'));
-        !numId && (t = this.getNamedStyle()) && (numId = t.getNumId());
-        return this.wDoc.style.get(Style.asStyleId(numId));
-    }
-});
-},{"./paragraph":91,"./style/list":101}],90:[function(require,module,exports){
-var Model = require('./text');
-module.exports = Model.extend({
-    type: 'noBreakHyphen',
-    getText: function () {
-        return String.fromCharCode(8209);
-    }
-});
-},{"./text":110}],91:[function(require,module,exports){
-var Model = require('../model'), Style = require('./style/paragraph');
-module.exports = Model.extend(function (wXml, wDoc, mParent) {
-    Model.apply(this, arguments);
-}, {
-    type: 'paragraph',
-    getStyleId: function (a) {
-        return this._val('>pPr>pStyle');
-    },
-    getNamedStyle: function () {
-        return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type);
-    },
-    getDirectStyle: function (pr) {
-        if (pr = this.wXml.$1('>pPr'))
-            return new Style.Properties(pr, this.wDoc, this);
-    },
-    _shouldIgnore: function (wXml) {
-        return wXml.localName == 'pPr';
-    }
-});
-},{"../model":49,"./style/paragraph":104}],92:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({
-    type: 'range',
-    iterate: function (visitor) {
-    },
-    first: function () {
-    },
-    last: function () {
-    }
-});
-},{"../model":49}],93:[function(require,module,exports){
-var Model = require('../model'), Style = require('./style/table');
-module.exports = Model.extend({
-    type: 'row',
-    getDirectStyle: function (pr) {
-        return (pr = this.wXml.$1('>trPr')) && new Style.RowProperties(pr, this.wDoc, this);
-    }
-});
-},{"../model":49,"./style/table":106}],94:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({ type: 'sdt' });
-},{"../model":49}],95:[function(require,module,exports){
-var Model = require('../model'), Header = require('./header'), Footer = require('./footer'), Style = require('./style/section');
-var empty = [];
-module.exports = Model.extend(function (wXml, wDoc, mParent) {
-    this.wFirst = mParent.content.length ? mParent.content[mParent.content.length - 1].wLast.nextSibling : mParent.wXml.firstChild;
-    this.wLast = wXml;
-    while (this.wLast.parentNode != mParent.wXml)
-        this.wLast = this.wLast.parentNode;
-    if (this.wLast == wXml)
-        this.wLast = wXml.previousSibling;
-    Model.apply(this, arguments);
-    wDoc.parseContext.section.current = this;
-}, {
-    type: 'section',
-    _iterate: function (f, visitorFactories) {
-        this._iterateHeaderFooter(visitorFactories, 'header');
-        var current = this.wFirst;
-        do {
-            f(current);
-            current = current == this.wLast ? null : current.nextSibling;
-        } while (current);
-        this._iterateHeaderFooter(visitorFactories, 'footer');
-    },
-    _iterateHeaderFooter: function (visitorFactories, refType) {
-        for (var refs = this.wXml.$(refType + 'Reference'), i = 0, len = refs.length; i < len; i++) {
-            var part = this.wDoc.parseContext.part.current = this.wDoc.getRel(refs[i].attr('r:id'));
-            var model = new (require('./' + refType))(part.root, this.wDoc, this, refs[i].attr('w:type'));
-            model.parse(visitorFactories);
-            this.wDoc.parseContext.part.current = this.wDoc.partMain;
-        }
-    },
-    getDirectStyle: function () {
-        return new Style(this.wXml, this.wDoc, this);
-    }
-});
-},{"../model":49,"./footer":81,"./header":83,"./style/section":105}],96:[function(require,module,exports){
-var Super = require('../model'), Style = require('./style'), Drawing = require('./drawing');
-module.exports = Super.extend({
-    type: 'shape',
-    getDirectStyle: function () {
-        return new this.constructor.Properties(this.wXml, this.wDoc, this);
-    },
-    _getValidChildren: function () {
-        return this.wXml.$('txbxContent');
-    }
-}, {
-    Properties: Style.Properties.extend($.extend({}, Drawing.SpProperties.prototype, {
-        _getValidChildren: function (t) {
-            return ((t = this.wXml.$('>style>*')) && t.asArray() || []).concat(this.wXml.$('>spPr>*').asArray());
-        },
-        lnRef: function (x, t) {
-            var o = this.wDoc.getFormatTheme().line(x.attr('idx'));
-            if (o.color == 'phClr')
-                o.color = this.solidFill(x);
-            return o;
-        },
-        fillRef: function (x, t) {
-            var o = this.wDoc.getFormatTheme().fill(x.attr('idx'));
-            switch (typeof o) {
-            case 'string':
-                if (o == 'phClr')
-                    o = this.solidFill(x);
-                break;
-            case 'object':
-                if (o.color == 'phClr')
-                    o.color = this.solidFill(x);
-                break;
-            }
-            return o;
-        },
-        fontRef: function (x) {
-            return {
-                color: this.solidFill(x),
-                family: this.wDoc.getFormatTheme().font(x.attr('idx'))
-            };
-        },
-        effectRef: function () {
-        }
-    }))
-});
-},{"../model":49,"./drawing":69,"./style":98}],97:[function(require,module,exports){
-var Model = require('./text');
-module.exports = Model.extend({
-    type: 'softHyphen',
-    getText: function () {
-        return String.fromCharCode(173);
-    }
-});
-},{"./text":110}],98:[function(require,module,exports){
-var Model = require('../model');
-var RGB = /([a-fA-F0-9]{2}?){3}?/;
-module.exports = Model.extend(function (wXml, wDoc, mParent) {
-    Model.apply(this, arguments);
-    if (wXml.attr('w:default') == '1')
-        wDoc.style.setDefault(this);
-    this.name = this._val('name');
-    if (this.id = this._attr('w:styleId'))
-        wDoc.style.set(this);
-}, {
-    getParentStyle: function () {
-        return this.wDoc.style.get(this._val('basedOn'));
-    },
-    isDefault: function () {
-        return this.wXml.attr('w:default') == '1';
-    },
-    getNumId: function () {
-        return -1;
-    },
-    getOutlineLevel: function () {
-        return -1;
-    }
-}, {
-    Properties: Model.extend({
-        EMPTY: -999,
         type: null,
-        naming: {},
-        parse: function (visitors) {
-            var values = {};
-            visitors.forEach(function (visitor) {
-                [
-                    this._getValidChildren(),
-                    this.wXml.attributes
-                ].forEach(function (children) {
-                    for (var len = children.length, i = 0; i < len; i++) {
-                        var node = children[i], name = node.localName;
-                        if (values[name] == undefined && $.isFunction(this[name]))
-                            values[name] = this[name](node);
-                        values[name] != this.EMPTY && visitor.visit(values[name], this.naming[name] || name, this.type);
+        parse: function (visitFactories) {
+            var visitors = [];
+            var paramizedVisitFactories = $.map(visitFactories, function (visitFactory) {
+                    var visitor = visitFactory(this);
+                    if (visitor) {
+                        visitors.push(visitor);
+                        visitor.visit();
+                        return visitFactory.with(visitor);
                     }
-                }, this);
-            }, this);
+                }.bind(this));
+            var factory = require('./factory');
+            this._iterate(function (wXml) {
+                factory(wXml, this.wDoc, this).parse(paramizedVisitFactories);
+            }.bind(this), paramizedVisitFactories, visitors);
+        },
+        _iterate: function (f, paramizedVisitFactories) {
+            for (var i = 0, children = this._getValidChildren(), l = children ? children.length : 0; i < l; i++)
+                !this._shouldIgnore(children[i]) && f(children[i]);
         },
         _getValidChildren: function () {
             return this.wXml.childNodes;
         },
-        basedOn: function (x) {
-            return x.attr('w:val');
+        _shouldIgnore: function (wXml) {
+            return false;
         },
-        asColor: function (v) {
-            if (!v || v.length == 0 || v == 'auto')
-                return '#000000';
-            v = v.split(' ')[0];
-            return v.charAt(0) == '#' ? v : RGB.test(v) ? '#' + v : v;
+        _attr: function (selector, key) {
+            var n = arguments.length == 1 ? (key = selector, this.wXml) : this.wXml.$1(selector);
+            return n ? n.attr(key) : null;
         },
-        shadeColor: function (color, percent) {
-            if (!RGB.test(color))
-                return color;
-            var R = parseInt(color.substring(1, 3), 16);
-            var G = parseInt(color.substring(3, 5), 16);
-            var B = parseInt(color.substring(5, 7), 16);
-            R = parseInt(R * (100 + percent) / 100);
-            G = parseInt(G * (100 + percent) / 100);
-            B = parseInt(B * (100 + percent) / 100);
-            R = R < 255 ? R : 255;
-            G = G < 255 ? G : 255;
-            B = B < 255 ? B : 255;
-            var RR = R.toString(16).length == 1 ? '0' + R.toString(16) : R.toString(16);
-            var GG = G.toString(16).length == 1 ? '0' + G.toString(16) : G.toString(16);
-            var BB = B.toString(16).length == 1 ? '0' + B.toString(16) : B.toString(16);
-            return '#' + RR + GG + BB;
-        },
-        asObject: function (x, f) {
-            var o = {};
-            for (var i = 0, attrs = x.attributes, len = attrs.length; i < len; i++)
-                o[attrs[i].localName] = f ? f(attrs[i].value) : attrs[i].value;
-            return o;
-        },
-        asPt: function (x, type) {
-            switch (type) {
-            case 'cm':
-                return parseInt(x) * 28.3464567 / 360000;
-            default:
-                return parseInt(x) / 20;
-            }
-        },
-        pt2Px: function (x) {
-            if (typeof x == 'string')
-                x = parseFloat(x.replace('pt', ''));
-            return Math.floor(x * 96 / 72);
+        _val: function (selector) {
+            return this._attr(selector, 'w:val');
         }
-    })
-});
-},{"../model":49}],99:[function(require,module,exports){
-var Style = require('./paragraph');
-module.exports = Style.extend(function (wXml, wDoc, mParent) {
-    Style.apply(this, arguments);
-    wDoc.style.setDefault(this);
-}, {
-    type: 'style.document',
-    isDefault: function () {
-        return true;
-    }
-});
-},{"./paragraph":104}],100:[function(require,module,exports){
-var Style = require('../style');
-module.exports = Style.extend({
-    type: 'style.inline',
-    _iterate: function (f, factories, visitors) {
-        var pr = this.wXml.$1('>rPr');
-        pr && new this.constructor.Properties(pr, this.wDoc, this).parse(visitors);
-    }
-}, {
-    Properties: Style.Properties.extend({
-        type: 'inline',
-        rFonts: function (x) {
-            var v = {}, t;
-            if (t = x.attr('w:ascii'))
-                v.ascii = t;
-            else if (t = x.attr('w:asciiTheme'))
-                v.ascii = this.wDoc.getFontTheme().get(t);
-            if (t = x.attr('w:eastAsia'))
-                v.asia = t;
-            else if (t = x.attr('w:eastAsiaTheme'))
-                v.asia = this.wDoc.getFontTheme().get(t);
-            return v;
-        },
-        b: function (x) {
-            return {};
-        },
-        sz: function (x) {
-            return parseFloat(x.attr('w:val')) / 2;
-        },
-        color: function (x) {
-            return this.asColor(x.attr('w:val') || this.wDoc.getColorTheme().get(x.attr('w:themeColor')));
-        },
-        i: function (x) {
-            return {};
-        },
-        u: function (x) {
-            return this.asObject(x);
-        },
-        bdr: function (x) {
-            var border = this.asObject(x);
-            border.sz && (border.sz = border.sz / 8);
-            border.color && (border.color = this.asColor(border.color));
-            return border;
-        },
-        lang: function (x) {
-            return x.attr('w:val');
-        },
-        vertAlign: function (x) {
-            return x.attr('w:val');
-        },
-        highlight: function (x) {
-            return this.asColor(x.attr('w:val'));
+    });
+}(require('../parser'), require);
+},{"../parser":114,"./factory":48}],50:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({ type: 'OLE' });
+}(require('../model'));
+},{"../model":49}],51:[function(require,module,exports){
+module.exports = function (Model, Section) {
+    return Model.extend({
+        type: 'body',
+        _getValidChildren: function () {
+            return this.wXml.$('sectPr');
         }
-    })
-});
-},{"../style":98}],101:[function(require,module,exports){
-var Style = require('../style'), Numbering = require('./numberingDefinition');
-function asStyleId(numId) {
-    return '_list' + numId;
-}
-module.exports = Style.extend(function (wXml, wDoc, mParent) {
-    Style.apply(this, arguments);
-    this.id = this.name = asStyleId(wXml.attr('w:numId'));
-    this.wDoc.style.set(this);
-}, {
-    type: 'style.list',
-    getParentStyle: function () {
-        var definition = this.wDoc.style.get(Numbering.asStyleId(this.wXml.$1('abstractNumId').attr('w:val')));
-        if (definition.link) {
-            return this.wDoc.style.get(definition.link).asNumberingStyle().getParentStyle();
-        } else
-            return definition;
-    },
-    getNumId: function () {
-        return this.wXml.attr('w:numId');
-    },
-    hasOverride: function () {
-        return this.wXml.childNodes.length != 1;
-    }
-}, { asStyleId: asStyleId });
-},{"../style":98,"./numberingDefinition":103}],102:[function(require,module,exports){
-var Super = require('../style'), List = require('./list');
-module.exports = Super.extend(function () {
-    Super.apply(this, arguments);
-}, {
-    type: 'style.numbering',
-    getNumId: function () {
-        return this.wXml.$1('numId').attr('w:val');
-    },
-    asNumberingStyle: function () {
-        return this.wDoc.style.get(List.asStyleId(this.getNumId()));
-    }
-});
-},{"../style":98,"./list":101}],103:[function(require,module,exports){
-var Style = require('../style'), Inline = require('./inline');
-function asStyleId(absNumId) {
-    return '_numberingDefinition' + absNumId;
-}
-module.exports = Style.extend(function (wXml) {
-    Style.apply(this, arguments);
-    this.levels = [];
-    this.name = this.id = asStyleId(wXml.attr('w:abstractNumId'));
-    this.wDoc.style.set(this);
-    var link = wXml.$1('numStyleLink');
-    if (link)
-        this.link = link.attr('w:val');
-}, {
-    type: 'style.numbering.definition',
-    _iterate: function (f, factories, visitors) {
-        for (var i = 0, children = this.wXml.$('lvl'), l = children.length, t; i < l; i++) {
-            this.levels.push(t = new this.constructor.Level(children[i], this.wDoc, this));
-            t.parse(visitors);
+    });
+}(require('../model'), require('./section'));
+},{"../model":49,"./section":95}],52:[function(require,module,exports){
+module.exports = function (Range) {
+    return Range.extend({
+        type: 'bookmarkEnd',
+        getName: function () {
+            this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')];
         }
-    },
-    getDefinitionId: function () {
-        return this.wXml.attr('w:abstractNumId');
-    }
-}, {
-    asStyleId: asStyleId,
-    Level: Style.Properties.extend(function (wXml) {
-        Style.Properties.apply(this, arguments);
-        this.type = wXml.attr('w:ilvl');
-    }, {
-        parse: function (visitors) {
-            Style.Properties.prototype.parse.apply(this, arguments);
-            var t, pr;
-            if (t = this.wXml.$1('>pPr')) {
-                pr = new (require('./paragraph')).Properties(t, this.wDoc, this);
-                pr.type = this.type + ' ' + pr.type;
-                pr.parse(visitors);
-            }
-            if (t = this.wXml.$1('>rPr')) {
-                pr = new Inline.Properties(t, this.wDoc, this);
-                pr.type = this.type + ' ' + pr.type;
-                pr.parse(visitors);
-            }
+    });
+}(require('./rangeBase'));
+},{"./rangeBase":92}],53:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend({
+        type: 'bookmarkStart',
+        parse: function () {
+            Super.prototype.parse.apply(this, arguments);
+            this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')] = this.wXml.attr('w:name');
         },
-        start: function (x) {
-            return parseInt(x.attr('w:val'));
-        },
-        numFmt: function (x) {
-            return x.attr('w:val');
-        },
-        lvlText: function (x) {
-            return x.attr('w:val');
-        },
-        lvlJc: function (x) {
-            return x.attr('w:val');
-        },
-        lvlPicBulletId: function (x) {
-            return x.attr('w:val');
+        getName: function () {
+            return this.wXml.attr('w:name');
         }
-    })
-});
-},{"../style":98,"./inline":100,"./paragraph":104}],104:[function(require,module,exports){
-var Style = require('../style'), Inline = require('./inline'), Numbering = require('./numbering');
-module.exports = Style.extend({
-    type: 'style.paragraph',
-    getOutlineLevel: function (v) {
-        if ((v = this._val('outlineLvl')) != null)
-            return parseInt(v);
-        if ((v = this.getParentStyle()) != null && v.getOutlineLevel)
-            return v.getOutlineLevel();
-        return -1;
-    },
-    getNumId: function () {
-        if ((v = this._val('numId')) != null)
-            return v;
-        if ((v = this.getParentStyle()) != null && v.getNumId)
-            return v.getNumId();
-        return -1;
-    },
-    asNumberingStyle: Numbering.prototype.asNumberingStyle,
-    _iterate: function (f, factories, visitors) {
-        var pr = this.wXml.$1('pPr');
-        pr && new this.constructor.Properties(pr, this.wDoc, this).parse(visitors);
-        (pr = this.wXml.$1('rPr')) && new Inline.Properties(pr, this.wDoc, this).parse(visitors);
-        (pr = this.wXml.$1('numPr')) && new Numbering.Properties(pr, this.wDoc, this).parse(visitors);
-        (pr = this.wXml.$1('framePr')) && new this.constructor.FrameProperties(pr, this.wDoc, this).parse(visitors);
-    }
-}, {
-    Properties: Style.Properties.extend({
-        type: 'paragraph',
-        jc: function (x) {
-            return x.attr('w:val');
-        },
-        ind: function (x) {
-            return this.asObject(x, this.asPt);
-        },
-        spacing: function (x) {
-            var r = this.asObject(x), o = {};
-            if (!r.beforeAutospacing && r.beforeLines)
-                o.top = this.asPt(r.beforeLines);
-            else
-                r.before;
-            o.top = this.asPt(r.before);
-            if (!r.afterAutospacing && r.afterLines)
-                o.bottom = this.asPt(r.afterLines);
-            else
-                r.after;
-            o.bottom = this.asPt(r.after);
-            if (!r.line)
-                return o;
-            switch (x.lineRule) {
-            case 'atLeast':
-            case 'exact':
-                o.lineHeight = this.asPt(x.line) + 'pt';
-                break;
-            case 'auto':
-            default:
-                o.lineHeight = parseInt(r.line) * 100 / 240 + '%';
-            }
-            o.lineRule = x.lineRule;
-            return o;
-        }
-    }),
-    FrameProperties: Style.Properties.extend({ type: 'frame' })
-});
-},{"../style":98,"./inline":100,"./numbering":102}],105:[function(require,module,exports){
-var Style = require('../style');
-module.exports = Style.Properties.extend({
-    type: 'section',
-    naming: $.extend(Style.Properties.prototype.naming, {
-        pgSz: 'size',
-        pgMar: 'margin'
-    }),
-    pgSz: function (x) {
-        return {
-            width: parseInt(x.attr('w:w')) / 20,
-            height: parseInt(x.attr('w:h') / 20)
-        };
-    },
-    pgMar: function (x) {
-        var value = this.asObject(x, function (v) {
-                return parseFloat(v) / 20;
-            });
-        if (value.gutter && this.wDoc.getPart('settings').root.$1('gutterAtTop'))
-            value.gutterAtRight = 1;
-        return value;
-    },
-    cols: function (x) {
-        var o = this.asObject(x, parseInt);
-        o.space && (o.space = o.space / 20);
-        return o;
-    }
-});
-},{"../style":98}],106:[function(require,module,exports){
-var Style = require('../style'), Paragraph = require('./paragraph'), Inline = require('./inline');
-module.exports = Style.extend({
-    type: 'style.table',
-    parse: function (factories) {
-        Style.prototype.parse.apply(this, arguments);
-        var TableStyle = this.constructor;
-        for (var styles = this.wXml.$('tblStylePr'), len = styles.length, i = 0; i < len; i++) {
-            var model = new TableStyle(styles[i], this.wDoc, this);
-            model.id = this.id;
-            model.parse(factories);
-        }
-    },
-    _iterate: function (f, factories, visitors) {
-        var pr = null;
-        (pr = this.wXml.$1('>tblPr:not(:empty)')) && new this.constructor.Properties(pr, this.wDoc, this).parse(visitors);
-        (pr = this.wXml.$1('>trPr:not(:empty)')) && new this.constructor.RowProperties(pr, this.wDoc, this).parse(visitors);
-        (pr = this.wXml.$1('>tcPr:not(:empty)')) && new this.constructor.CellProperties(pr, this.wDoc, this).parse(visitors);
-        (pr = this.wXml.$1('>pPr:not(:empty)')) && new Paragraph.Properties(pr, this.wDoc, this).parse(visitors);
-        (pr = this.wXml.$1('>rPr:not(:empty)')) && new Inline.Properties(pr, this.wDoc, this).parse(visitors);
-    },
-    getTarget: function () {
-        return this.wXml.attr('w:type');
-    }
-}, {
-    Properties: Style.Properties.extend({
-        type: 'table',
-        tblBorders: function (x) {
-            var value = {};
-            for (var borders = x.childNodes, border, i = 0, len = borders.length; i < len; i++) {
-                border = value[(border = borders[i]).localName] = this.asObject(border);
-                border.sz && (border.sz = border.sz / 8);
-                border.color && (border.color = this.asColor(border.color));
-            }
-            return value;
-        },
-        tblCellMar: function (x) {
-            var value = {};
-            for (var borders = x.childNodes, i = 0, len = borders.length, v; i < len; i++)
-                value[borders[i].localName] = parseInt(borders[i].attr('w:w')) / 20;
-            return value;
-        },
-        tblLook: function (x) {
-            return this.asObject(x, function (x) {
-                return parseInt(x);
-            });
-        },
-        tblStyleRowBandSize: function (x) {
-            return parseInt(x.attr('w:val'));
-        },
-        tblStyleColBandSize: function (x) {
-            return parseInt(x.attr('w:val'));
-        }
-    }),
-    RowProperties: Style.Properties.extend({
-        type: 'row',
-        cnfStyle: function (x) {
-            return x.attr('w:val');
-        }
-    }),
-    CellProperties: Style.Properties.extend({
+    });
+}(require('../model'));
+},{"../model":49}],54:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({ type: 'br' });
+}(require('../model'));
+},{"../model":49}],55:[function(require,module,exports){
+module.exports = function (Model, Style) {
+    return Model.extend({
         type: 'cell',
-        tcBorders: function (x) {
-            var value = {};
-            for (var borders = x.childNodes, border, i = 0, len = borders.length; i < len; i++) {
-                border = value[(border = borders[i]).localName] = this.asObject(border);
+        getDirectStyle: function (pr) {
+            return (pr = this.wXml.$1('>tcPr')) && new Style.CellProperties(pr, this.wDoc, this);
+        }
+    });
+}(require('../model'), require('./style/table'));
+},{"../model":49,"./style/table":106}],56:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend({ type: 'chart' });
+}(require('./graphic'));
+},{"./graphic":82}],57:[function(require,module,exports){
+module.exports = function (SDT) {
+    return SDT.extend({});
+}(require('./sdt'));
+},{"./sdt":94}],58:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.checkbox' });
+}(require('../control'));
+},{"../control":57}],59:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.combobox' });
+}(require('../control'));
+},{"../control":57}],60:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.date' });
+}(require('../control'));
+},{"../control":57}],61:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.dropdown' });
+}(require('../control'));
+},{"../control":57}],62:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.gallery' });
+}(require('../control'));
+},{"../control":57}],63:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.picture' });
+}(require('../control'));
+},{"../control":57}],64:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.richtext' });
+}(require('../control'));
+},{"../control":57}],65:[function(require,module,exports){
+module.exports = function (Control) {
+    return Control.extend({ type: 'control.text' });
+}(require('../control'));
+},{"../control":57}],66:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend({ type: 'diagram' });
+}(require('./graphic'));
+},{"./graphic":82}],67:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'document',
+        _getValidChildren: function () {
+            var children = [
+                    this.wDoc.getPart('styles').root,
+                    this.wXml.$1('body')
+                ];
+            var numbering = this.wDoc.getPart('numbering');
+            if (numbering)
+                children.splice(1, 0, numbering.root);
+            return children;
+        }
+    });
+}(require('../model'));
+},{"../model":49}],68:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'documentStyles',
+        _getValidChildren: function () {
+            return this.wXml.$('docDefaults,style');
+        }
+    });
+}(require('../model'));
+},{"../model":49}],69:[function(require,module,exports){
+module.exports = function (Super, Style) {
+    return Super.extend(function (wXml) {
+        Super.apply(this, arguments);
+        this.wDrawing = null;
+    }, {
+        getDirectStyle: function () {
+            return new this.constructor.Properties(this.wDrawing, this.wDoc, this);
+        },
+        _getValidChildren: function () {
+            return [];
+        }
+    }, {
+        Properties: Style.Properties.extend({
+            _getValidChildren: function (t) {
+                return [
+                    this.wXml.$1('extent'),
+                    this.wXml.$1('effectExtent')
+                ];
+            },
+            extent: function (x) {
+                return {
+                    width: this.asPt(x.attr('cx'), 'cm'),
+                    height: this.asPt(x.attr('cy'), 'cm')
+                };
+            },
+            effectExtent: function (x) {
+                return this.asObject(x, function (x) {
+                    return this.asPt(x, 'cm');
+                }.bind(this));
+            },
+            distT: function (x) {
+                if (x = parseInt(x.value))
+                    return this.asPt(x, 'cm');
+                return this.EMPTY;
+            },
+            distB: function (x) {
+                return this.distT(x);
+            },
+            distR: function (x) {
+                return this.distT(x);
+            },
+            distL: function (x) {
+                return this.distT(x);
+            }
+        }),
+        SpProperties: Style.Properties.extend({
+            naming: {
+                custGeom: 'path',
+                prstGeom: 'path'
+            },
+            xfrm: function (x) {
+                var ext = x.$1('ext'), offset = x.$1('off');
+                return this.world = {
+                    width: this.asPt(ext.attr('cx'), 'cm'),
+                    height: this.asPt(ext.attr('cy'), 'cm'),
+                    x: this.asPt(offset.attr('x'), 'cm'),
+                    y: this.asPt(offset.attr('y'), 'cm')
+                };
+            },
+            solidFill: function (x) {
+                var elColor = x.firstChild, color = this.asColor(elColor.attr('val')), t;
+                switch (elColor.localName) {
+                case 'schemeClr':
+                    color = this.wDoc.getColorTheme().get(color);
+                    break;
+                }
+                if (t = elColor.$1('shade'))
+                    color = this.shadeColor(color, -1 * parseInt(t.attr('val')) / 1000);
+                if (t = elColor.$1('lumOff'))
+                    color = this.shadeColor(color, -1 * parseInt(t.attr('val')) / 1000);
+                return color;
+            },
+            noFill: function (x) {
+                return 1;
+            },
+            gradFill: function (x) {
+                var type = x.$1('lin,path'), o = this.asObject(type), stops = [];
+                for (var gs = x.$('gs'), a, i = 0, len = gs.length; i < len; i++)
+                    stops.push({
+                        position: parseInt(gs[i].attr('pos')) / 1000,
+                        color: this.solidFill(gs[i])
+                    });
+                o.ang && (o.angel = parseInt(o.ang) / 60000, delete o.ang);
+                o.path && (o.rect = this.asObject(type.firstChild, function (x) {
+                    return parseInt(x) / 1000;
+                }));
+                o.path = type.localName == 'lin' ? 'linear' : o.path;
+                o.stops = stops;
+                return o;
+            },
+            ln: function (x) {
+                if (x.$1('noFill'))
+                    return { width: 0 };
+                var o = this.asObject(x), t;
+                (t = x.$1('solidFill')) && (o.color = this.solidFill(t));
+                (t = o.w) && (o.width = this.asPt(t, 'cm')) && delete o.w;
+                (t = x.$1('prstDash')) && (o.dash = t.attr('val'));
+                return o;
+            },
+            effectLst: function (x) {
+            },
+            blipFill: function (x) {
+                return this.wDoc.getRel(x.$1('blip').attr('r:embed'));
+            },
+            prstGeom: function (x) {
+                var px = this.pt2Px, w = px(this.world.width), h = px(this.world.height);
+                switch (x.attr('prst')) {
+                case 'leftBrace':
+                    return {
+                        shape: 'path',
+                        path: 'M ' + w + ' 0 L 0 ' + h / 2 + ' L ' + w + ' ' + h + ' Z'
+                    };
+                default:
+                    return { shape: x.attr('prst') };
+                }
+            },
+            custGeom: function (x) {
+                var path = [], px = function (x) {
+                        return this.pt2Px(this.asPt(x, 'cm'));
+                    }.bind(this);
+                for (var a, children = x.$1('path').children, len = children.length, i = 0; i < len; i++) {
+                    a = children[i];
+                    switch (a.localName) {
+                    case 'moveTo':
+                        path.push('M ' + px(a.firstChild.attr('x')) + ' ' + px(a.firstChild.attr('y')));
+                        break;
+                    case 'lnTo':
+                        path.push('L ' + px(a.firstChild.attr('x')) + ' ' + px(a.firstChild.attr('y')));
+                        break;
+                        break;
+                    case 'cubicBezTo':
+                        path.push('L ' + px(a.childNodes[0].attr('x')) + ' ' + px(a.childNodes[0].attr('y')));
+                        path.push('Q ' + px(a.childNodes[1].attr('x')) + ' ' + px(a.childNodes[1].attr('y')) + ' ' + px(a.childNodes[2].attr('x')) + ' ' + px(a.childNodes[2].attr('y')));
+                        break;
+                    }
+                }
+                return {
+                    shape: 'path',
+                    path: path.join(' ')
+                };
+            }
+        })
+    });
+}(require('../model'), require('./style'));
+},{"../model":49,"./style":98}],70:[function(require,module,exports){
+module.exports = function (Super) {
+    function refine(name) {
+        return name.replace(/-(\w)/, function (a, b) {
+            return b.toUpperCase();
+        });
+    }
+    return Super.extend(function (wXml, wDoc, mParent) {
+        Super.apply(this, arguments);
+        this.wDrawing = wXml.$1('drawing>:first-child');
+    }, {
+        type: 'drawing.anchor',
+        _getValidChildren: function () {
+            return this.wDrawing.$('wsp');
+        }
+    }, {
+        Properties: Super.Properties.extend({
+            type: 'shape',
+            naming: $.extend(Super.Properties.prototype.naming, {
+                wrapNone: 'wrap',
+                wrapSquare: 'wrap',
+                wrapTopAndBottom: 'wrap',
+                wrapTight: 'wrap',
+                wrapThrough: 'wrap'
+            }),
+            _getValidChildren: function () {
+                var t, children = Super.Properties.prototype._getValidChildren.apply(this, arguments);
+                'positionH,positionV,wrapNone,wrapSquare,wrapTopAndBottom,wrapTight,wrapThrough'.split(',').forEach(function (a) {
+                    (t = this.wXml.$1(a)) && children.push(t);
+                }, this);
+                return children;
+            },
+            positionH: function (x) {
+                var o = { relativeFrom: x.attr('relativeFrom') };
+                o[x.firstChild.localName] = x.firstChild.localName == 'posOffset' ? this.asPt(x.firstChild.textContent, 'cm') : x.firstChild.textContent;
+                return o;
+            },
+            positionV: function (x) {
+                var o = { relativeFrom: x.attr('relativeFrom') };
+                o[x.firstChild.localName] = x.firstChild.localName == 'posOffset' ? this.asPt(x.firstChild.textContent, 'cm') : x.firstChild.textContent;
+                return o;
+            },
+            wrapNone: function () {
+                return 'none';
+            },
+            wrapSquare: function () {
+                return 'square';
+            },
+            wrapTopAndBottom: function () {
+                return 'topAndBottom';
+            },
+            wrapTight: function () {
+                return 'tight';
+            },
+            wrapThrough: function () {
+                return 'through';
+            },
+            behindDoc: function (x) {
+                return x.value == '0' ? this.EMPTY : true;
+            }
+        })
+    });
+}(require('./drawing'));
+},{"./drawing":69}],71:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({ type: 'equation' });
+}(require('../model'));
+},{"../model":49}],72:[function(require,module,exports){
+module.exports = function (Super, require) {
+    return Super.extend(function (wXml, wDoc, mParent) {
+        Super.apply(this, arguments);
+        this.commands = [];
+    }, {
+        type: 'fieldBegin',
+        parse: function () {
+            this.wDoc.parseContext.field.push(this);
+            Super.prototype.parse.apply(this, arguments);
+        },
+        instruct: function (t) {
+            this.commands.push(t);
+        },
+        seperate: function (seperator) {
+        },
+        end: function (endVisitors) {
+        },
+        _iterate: function (f, factories, visitors) {
+            this.end = function (endVisitors) {
+                var model = this.constructor.factory(this.commands.join('').trim(), this.wDoc, this);
+                if (model)
+                    model.parse(visitors, endVisitors);
+            };
+        }
+    }, {
+        factory: function (instruct, wDoc, mParent) {
+            var index = instruct.indexOf(' '), type = index != -1 ? instruct.substring(0, index) : instruct;
+            type = type.toLowerCase();
+            try {
+                return new (require('./field/' + type))(instruct.trim(), wDoc, mParent);
+            } catch (e) {
+            }
+        }
+    });
+}(require('../model'), require, require('./field/hyperlink'), require('./field/date'), require('./field/ref'));
+},{"../model":49,"./field/date":77,"./field/hyperlink":79,"./field/ref":80}],73:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend({
+        type: 'fieldEnd',
+        _iterate: function (f, factories, visitors) {
+            this.wDoc.parseContext.field.end(visitors);
+        }
+    });
+}(require('../model'));
+},{"../model":49}],74:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend(function (wXml, wDoc, mParent) {
+        Super.apply(this, arguments);
+        wDoc.parseContext.field.instruct(wXml.textContent);
+    }, {
+        type: 'fieldInstruct',
+        parse: function () {
+        }
+    });
+}(require('../model'));
+},{"../model":49}],75:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend({
+        type: 'fieldEnd',
+        parse: function (factories) {
+            this.wDoc.parseContext.field.seperate(this);
+        }
+    });
+}(require('../model'));
+},{"../model":49}],76:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({ type: 'fieldSimple' });
+}(require('../model'));
+},{"../model":49}],77:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend({ type: 'fied.date' }, {
+        FieldCode: Super.FieldCode.extend({
+            parse: function () {
+                var option = null;
+                while (option = this.nextSwitch()) {
+                    switch (option.type) {
+                    case '@':
+                        var i = option.data.indexOf('"');
+                        if (i != -1)
+                            this.format = option.data.substring(0, i);
+                        else
+                            this.format = option.data;
+                        break;
+                    }
+                }
+            }
+        })
+    });
+}(require('./field'));
+},{"./field":78}],78:[function(require,module,exports){
+module.exports = function (Super) {
+    var Command, FieldCode, Switch;
+    return Super.extend(function (instruct, doc, parent) {
+        Super.apply(this, arguments);
+        this.command = new this.constructor.FieldCode(instruct);
+        this.command.parse();
+    }, {
+        type: 'field',
+        parse: function (visitors, endVisitors) {
+            for (var i = 0, len = visitors.length; i < len; i++)
+                visitors[i].visit(this, endVisitors[i]);
+        },
+        getCommand: function () {
+            return this.command;
+        }
+    }, {
+        Command: Command = $.newClass(function (instruct) {
+            this.data = instruct;
+        }, {
+            nextUntil: function (seperators) {
+                if (this.data.length == 0)
+                    return '';
+                var i = -1, len = this.data.length;
+                while (++i < len && seperators.indexOf(this.data.charAt(i)) == -1);
+                var node = this.data.substring(0, i).trim();
+                if (i < len)
+                    while (++i < len && seperators.indexOf(this.data.charAt(i)) != -1);
+                this.data = this.data.substring(i).trim();
+                return node;
+            },
+            nextNode: function () {
+                return this.nextUntil(' \\');
+            },
+            asInt: function (s, defaultValue) {
+                try {
+                    return parseInt(s);
+                } catch (error) {
+                    return defaultValue || 0;
+                }
+            }
+        }),
+        Switch: Switch = Command.extend(function (cmd) {
+            Command.apply(this, arguments);
+            this.withQuote = false;
+            this.type = cmd.charAt(0).toLowerCase;
+            if (cmd.length > 1 && this.type != '*' && cmd.charAt(1) != ' ') {
+                if (type.match(/\w/)) {
+                    try {
+                        parseInt(cmd.substring(1).trim());
+                        this.data = cmd.substring(1).trim();
+                        return;
+                    } catch (e) {
+                    }
+                }
+                this.type = '!';
+            } else {
+                if (this.data.length > 1)
+                    this.data = this.data.substring(1).trim();
+                else
+                    this.data = '';
+            }
+            this.__removeQuote();
+        }, {
+            __removeQuote: function () {
+                if (this.data.length == 0)
+                    return;
+                var a = this.data.charAt(0);
+                if (a == '"' || a == '\'') {
+                    this.data = this.data.substring(1);
+                    this.withQuote = true;
+                }
+                if (this.data.length == 0)
+                    return;
+                a = this.data.charAt(this.data.length - 1);
+                if (a == '"' || a == '\'') {
+                    this.data = this.data.substring(0, this.data.length - 1);
+                    this.withQuote = true;
+                }
+            },
+            _split2Int: function () {
+                if (this.data == null || this.data.length == 0)
+                    return null;
+                var a = data.split('-');
+                if (a.length == 0)
+                    return null;
+                var b = [];
+                for (var i = 0, len = a.length; i < len; i++) {
+                    try {
+                        b[i] = parseInt(a[i]);
+                    } catch (e) {
+                        b[i] = 0;
+                    }
+                }
+                return b;
+            }
+        }),
+        FieldCode: Command.extend(function (instruct) {
+            Command.apply(this, arguments);
+            this.mergeFormat = this.parseKeyWord('MERGEFORMAT');
+            this.type = this.nextNode();
+        }, {
+            parseKeyWord: function (key) {
+                if (this.data.length == 0)
+                    return false;
+                var len = this.data.length;
+                this.data = this.data.replace(new RegExp('\\*\\s*' + key + '\\s*', 'ig'), '');
+                return this.data.length != len;
+            },
+            nextSwitch: function () {
+                var option = this.nextUntil('\\');
+                if (option == null || option.length == 0)
+                    return null;
+                return new Switch(option);
+            },
+            parse: function () {
+            }
+        })
+    });
+}(require('../../model'));
+},{"../../model":49}],79:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend(function (instruct) {
+        Super.apply(this, arguments);
+        this.link = instruct.split('"')[1];
+    }, {
+        type: 'field.hyperlink',
+        getLink: function () {
+            return this.link;
+        }
+    });
+}(require('./field'));
+},{"./field":78}],80:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend(function (instruct) {
+        Super.apply(this, arguments);
+        this.link = '#' + instruct.split(/\s+/)[1];
+    });
+}(require('./hyperlink'));
+},{"./hyperlink":79}],81:[function(require,module,exports){
+module.exports = function (Header) {
+    return Header.extend({ type: 'footer' });
+}(require('./header'));
+},{"./header":83}],82:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend(function (wXml) {
+        Super.apply(this, arguments);
+        this.wDrawing = wXml;
+    }, {}, {
+        Properties: Super.Properties.extend($.extend({}, Super.SpProperties.prototype, {
+            naming: $.extend({}, Super.Properties.prototype.naming, Super.SpProperties.prototype.naming),
+            _getValidChildren: function (t) {
+                return Super.Properties.prototype._getValidChildren.apply(this, arguments).concat(this.wXml.$1('spPr').childNodes.asArray());
+            }
+        }))
+    });
+}(require('./drawing'));
+},{"./drawing":69}],83:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend(function (wXml, wDoc, mParent, location) {
+        Model.apply(this, arguments);
+        this.location = location;
+    }, { type: 'header' });
+}(require('../model'));
+},{"../model":49}],84:[function(require,module,exports){
+module.exports = function (Paragraph) {
+    return Paragraph.extend({
+        type: 'heading',
+        getOutlineLevel: function () {
+            return this.getNamedStyle().getOutlineLevel();
+        }
+    });
+}(require('./paragraph'));
+},{"./paragraph":91}],85:[function(require,module,exports){
+module.exports = function (Inline) {
+    return Inline.extend({ type: 'headingChar' });
+}(require('./inline'));
+},{"./inline":88}],86:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'hyperlink',
+        getLink: function (a) {
+            return (a = this._attr('r:id')) ? this._getLocalLink(a) : '#' + this._attr('w:anchor');
+        },
+        _getLocalLink: function (id) {
+        }
+    });
+}(require('../model'));
+},{"../model":49}],87:[function(require,module,exports){
+module.exports = function (Super) {
+    return Super.extend({
+        type: 'image',
+        asLink: function () {
+            var blip = this.wXml.$1('blip'), rid = blip.attr('r:embed');
+            return this.src = this.wDoc.getRel(rid);
+        }
+    });
+}(require('./graphic'));
+},{"./graphic":82}],88:[function(require,module,exports){
+module.exports = function (Model, Style) {
+    return Model.extend({
+        type: 'inline',
+        getStyleId: function () {
+            return this._val('>rPr>rStyle');
+        },
+        getNamedStyle: function () {
+            return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type);
+        },
+        getDirectStyle: function (pr) {
+            return (pr = this.wXml.$1('>rPr')) && new Style.Properties(pr, this.wDoc, this);
+        },
+        _shouldIgnore: function (wXml) {
+            return wXml.localName == 'rPr';
+        },
+        isWebHidden: function () {
+            return this.wXml.$1('>rPr>webHidden');
+        },
+        isHidden: function () {
+            return this.wXml.$1('>rPr>vanish');
+        }
+    });
+}(require('../model'), require('./style/inline'));
+},{"../model":49,"./style/inline":100}],89:[function(require,module,exports){
+module.exports = function (Super, Style) {
+    return Super.extend({
+        type: 'list',
+        getLevel: function (numPr, t) {
+            return (t = this.wXml.$1('>pPr>numPr>ilvl')) ? t.attr('w:val') : '0';
+        },
+        getNumberingStyle: function (t) {
+            var numId = (t = this.wXml.$1('>pPr>numPr')) && (t = t.$1('numId')) && (t = t.attr('w:val'));
+            !numId && (t = this.getNamedStyle()) && (numId = t.getNumId());
+            return this.wDoc.style.get(Style.asStyleId(numId));
+        }
+    });
+}(require('./paragraph'), require('./style/list'));
+},{"./paragraph":91,"./style/list":101}],90:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'noBreakHyphen',
+        getText: function () {
+            return String.fromCharCode(8209);
+        }
+    });
+}(require('./text'));
+},{"./text":110}],91:[function(require,module,exports){
+module.exports = function (Model, Style) {
+    return Model.extend(function (wXml, wDoc, mParent) {
+        Model.apply(this, arguments);
+    }, {
+        type: 'paragraph',
+        getStyleId: function (a) {
+            return this._val('>pPr>pStyle');
+        },
+        getNamedStyle: function () {
+            return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type);
+        },
+        getDirectStyle: function (pr) {
+            if (pr = this.wXml.$1('>pPr'))
+                return new Style.Properties(pr, this.wDoc, this);
+        },
+        _shouldIgnore: function (wXml) {
+            return wXml.localName == 'pPr';
+        }
+    });
+}(require('../model'), require('./style/paragraph'));
+},{"../model":49,"./style/paragraph":104}],92:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'range',
+        iterate: function (visitor) {
+        },
+        first: function () {
+        },
+        last: function () {
+        }
+    });
+}(require('../model'));
+},{"../model":49}],93:[function(require,module,exports){
+module.exports = function (Model, Style) {
+    return Model.extend({
+        type: 'row',
+        getDirectStyle: function (pr) {
+            return (pr = this.wXml.$1('>trPr')) && new Style.RowProperties(pr, this.wDoc, this);
+        }
+    });
+}(require('../model'), require('./style/table'));
+},{"../model":49,"./style/table":106}],94:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({ type: 'sdt' });
+}(require('../model'));
+},{"../model":49}],95:[function(require,module,exports){
+module.exports = function (require, Model, Header, Footer, Style) {
+    var empty = [];
+    return Model.extend(function (wXml, wDoc, mParent) {
+        this.wFirst = mParent.content.length ? mParent.content[mParent.content.length - 1].wLast.nextSibling : mParent.wXml.firstChild;
+        this.wLast = wXml;
+        while (this.wLast.parentNode != mParent.wXml)
+            this.wLast = this.wLast.parentNode;
+        if (this.wLast == wXml)
+            this.wLast = wXml.previousSibling;
+        Model.apply(this, arguments);
+        wDoc.parseContext.section.current = this;
+    }, {
+        type: 'section',
+        _iterate: function (f, visitorFactories) {
+            this._iterateHeaderFooter(visitorFactories, 'header');
+            var current = this.wFirst;
+            do {
+                f(current);
+                current = current == this.wLast ? null : current.nextSibling;
+            } while (current);
+            this._iterateHeaderFooter(visitorFactories, 'footer');
+        },
+        _iterateHeaderFooter: function (visitorFactories, refType) {
+            for (var refs = this.wXml.$(refType + 'Reference'), i = 0, len = refs.length; i < len; i++) {
+                var part = this.wDoc.parseContext.part.current = this.wDoc.getRel(refs[i].attr('r:id'));
+                var model = new (require('./' + refType))(part.root, this.wDoc, this, refs[i].attr('w:type'));
+                model.parse(visitorFactories);
+                this.wDoc.parseContext.part.current = this.wDoc.partMain;
+            }
+        },
+        getDirectStyle: function () {
+            return new Style(this.wXml, this.wDoc, this);
+        }
+    });
+}(require, require('../model'), require('./header'), require('./footer'), require('./style/section'));
+},{"../model":49,"./footer":81,"./header":83,"./style/section":105}],96:[function(require,module,exports){
+module.exports = function (Super, Style, Drawing) {
+    return Super.extend({
+        type: 'shape',
+        getDirectStyle: function () {
+            return new this.constructor.Properties(this.wXml, this.wDoc, this);
+        },
+        _getValidChildren: function () {
+            return this.wXml.$('txbxContent');
+        }
+    }, {
+        Properties: Style.Properties.extend($.extend({}, Drawing.SpProperties.prototype, {
+            _getValidChildren: function (t) {
+                return ((t = this.wXml.$('>style>*')) && t.asArray() || []).concat(this.wXml.$('>spPr>*').asArray());
+            },
+            lnRef: function (x, t) {
+                var o = this.wDoc.getFormatTheme().line(x.attr('idx'));
+                if (o.color == 'phClr')
+                    o.color = this.solidFill(x);
+                return o;
+            },
+            fillRef: function (x, t) {
+                var o = this.wDoc.getFormatTheme().fill(x.attr('idx'));
+                switch (typeof o) {
+                case 'string':
+                    if (o == 'phClr')
+                        o = this.solidFill(x);
+                    break;
+                case 'object':
+                    if (o.color == 'phClr')
+                        o.color = this.solidFill(x);
+                    break;
+                }
+                return o;
+            },
+            fontRef: function (x) {
+                return {
+                    color: this.solidFill(x),
+                    family: this.wDoc.getFormatTheme().font(x.attr('idx'))
+                };
+            },
+            effectRef: function () {
+            }
+        }))
+    });
+}(require('../model'), require('./style'), require('./drawing'));
+},{"../model":49,"./drawing":69,"./style":98}],97:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'softHyphen',
+        getText: function () {
+            return String.fromCharCode(173);
+        }
+    });
+}(require('./text'));
+},{"./text":110}],98:[function(require,module,exports){
+module.exports = function (Model) {
+    var RGB = /([a-fA-F0-9]{2}?){3}?/;
+    return Model.extend(function (wXml, wDoc, mParent) {
+        Model.apply(this, arguments);
+        if (wXml.attr('w:default') == '1')
+            wDoc.style.setDefault(this);
+        this.name = this._val('name');
+        if (this.id = this._attr('w:styleId'))
+            wDoc.style.set(this);
+    }, {
+        getParentStyle: function () {
+            return this.wDoc.style.get(this._val('basedOn'));
+        },
+        isDefault: function () {
+            return this.wXml.attr('w:default') == '1';
+        },
+        getNumId: function () {
+            return -1;
+        },
+        getOutlineLevel: function () {
+            return -1;
+        }
+    }, {
+        Properties: Model.extend({
+            EMPTY: -999,
+            type: null,
+            naming: {},
+            parse: function (visitors) {
+                var values = {};
+                visitors.forEach(function (visitor) {
+                    [
+                        this._getValidChildren(),
+                        this.wXml.attributes
+                    ].forEach(function (children) {
+                        for (var len = children.length, i = 0; i < len; i++) {
+                            var node = children[i], name = node.localName;
+                            if (values[name] == undefined && $.isFunction(this[name]))
+                                values[name] = this[name](node);
+                            values[name] != this.EMPTY && visitor.visit(values[name], this.naming[name] || name, this.type);
+                        }
+                    }, this);
+                }, this);
+            },
+            _getValidChildren: function () {
+                return this.wXml.childNodes;
+            },
+            basedOn: function (x) {
+                return x.attr('w:val');
+            },
+            asColor: function (v) {
+                if (!v || v.length == 0 || v == 'auto')
+                    return '#000000';
+                v = v.split(' ')[0];
+                return v.charAt(0) == '#' ? v : RGB.test(v) ? '#' + v : v;
+            },
+            shadeColor: function (color, percent) {
+                if (!RGB.test(color))
+                    return color;
+                var R = parseInt(color.substring(1, 3), 16);
+                var G = parseInt(color.substring(3, 5), 16);
+                var B = parseInt(color.substring(5, 7), 16);
+                R = parseInt(R * (100 + percent) / 100);
+                G = parseInt(G * (100 + percent) / 100);
+                B = parseInt(B * (100 + percent) / 100);
+                R = R < 255 ? R : 255;
+                G = G < 255 ? G : 255;
+                B = B < 255 ? B : 255;
+                var RR = R.toString(16).length == 1 ? '0' + R.toString(16) : R.toString(16);
+                var GG = G.toString(16).length == 1 ? '0' + G.toString(16) : G.toString(16);
+                var BB = B.toString(16).length == 1 ? '0' + B.toString(16) : B.toString(16);
+                return '#' + RR + GG + BB;
+            },
+            asObject: function (x, f) {
+                var o = {};
+                for (var i = 0, attrs = x.attributes, len = attrs.length; i < len; i++)
+                    o[attrs[i].localName] = f ? f(attrs[i].value) : attrs[i].value;
+                return o;
+            },
+            asPt: function (x, type) {
+                switch (type) {
+                case 'cm':
+                    return parseInt(x) * 28.3464567 / 360000;
+                default:
+                    return parseInt(x) / 20;
+                }
+            },
+            pt2Px: function (x) {
+                if (typeof x == 'string')
+                    x = parseFloat(x.replace('pt', ''));
+                return Math.floor(x * 96 / 72);
+            }
+        })
+    });
+}(require('../model'));
+},{"../model":49}],99:[function(require,module,exports){
+module.exports = function (Style) {
+    return Style.extend(function (wXml, wDoc, mParent) {
+        Style.apply(this, arguments);
+        wDoc.style.setDefault(this);
+    }, {
+        type: 'style.document',
+        isDefault: function () {
+            return true;
+        }
+    });
+}(require('./paragraph'));
+},{"./paragraph":104}],100:[function(require,module,exports){
+module.exports = function (Style) {
+    return Style.extend({
+        type: 'style.inline',
+        _iterate: function (f, factories, visitors) {
+            var pr = this.wXml.$1('>rPr');
+            pr && new this.constructor.Properties(pr, this.wDoc, this).parse(visitors);
+        }
+    }, {
+        Properties: Style.Properties.extend({
+            type: 'inline',
+            rFonts: function (x) {
+                var v = {}, t;
+                if (t = x.attr('w:ascii'))
+                    v.ascii = t;
+                else if (t = x.attr('w:asciiTheme'))
+                    v.ascii = this.wDoc.getFontTheme().get(t);
+                if (t = x.attr('w:eastAsia'))
+                    v.asia = t;
+                else if (t = x.attr('w:eastAsiaTheme'))
+                    v.asia = this.wDoc.getFontTheme().get(t);
+                return v;
+            },
+            b: function (x) {
+                return {};
+            },
+            sz: function (x) {
+                return parseFloat(x.attr('w:val')) / 2;
+            },
+            color: function (x) {
+                return this.asColor(x.attr('w:val') || this.wDoc.getColorTheme().get(x.attr('w:themeColor')));
+            },
+            i: function (x) {
+                return {};
+            },
+            u: function (x) {
+                return this.asObject(x);
+            },
+            bdr: function (x) {
+                var border = this.asObject(x);
                 border.sz && (border.sz = border.sz / 8);
                 border.color && (border.color = this.asColor(border.color));
+                return border;
+            },
+            lang: function (x) {
+                return x.attr('w:val');
+            },
+            vertAlign: function (x) {
+                return x.attr('w:val');
+            },
+            highlight: function (x) {
+                return this.asColor(x.attr('w:val'));
             }
+        })
+    });
+}(require('../style'));
+},{"../style":98}],101:[function(require,module,exports){
+module.exports = function (Style, Numbering) {
+    function asStyleId(numId) {
+        return '_list' + numId;
+    }
+    return Style.extend(function (wXml, wDoc, mParent) {
+        Style.apply(this, arguments);
+        this.id = this.name = asStyleId(wXml.attr('w:numId'));
+        this.wDoc.style.set(this);
+    }, {
+        type: 'style.list',
+        getParentStyle: function () {
+            var definition = this.wDoc.style.get(Numbering.asStyleId(this.wXml.$1('abstractNumId').attr('w:val')));
+            if (definition.link) {
+                return this.wDoc.style.get(definition.link).asNumberingStyle().getParentStyle();
+            } else
+                return definition;
+        },
+        getNumId: function () {
+            return this.wXml.attr('w:numId');
+        },
+        hasOverride: function () {
+            return this.wXml.childNodes.length != 1;
+        }
+    }, { asStyleId: asStyleId });
+}(require('../style'), require('./numberingDefinition'));
+},{"../style":98,"./numberingDefinition":103}],102:[function(require,module,exports){
+module.exports = function (Super, List) {
+    return Super.extend(function () {
+        Super.apply(this, arguments);
+    }, {
+        type: 'style.numbering',
+        getNumId: function () {
+            return this.wXml.$1('numId').attr('w:val');
+        },
+        asNumberingStyle: function () {
+            return this.wDoc.style.get(List.asStyleId(this.getNumId()));
+        }
+    });
+}(require('../style'), require('./list'));
+},{"../style":98,"./list":101}],103:[function(require,module,exports){
+module.exports = function (Style, Inline, require) {
+    function asStyleId(absNumId) {
+        return '_numberingDefinition' + absNumId;
+    }
+    return Style.extend(function (wXml) {
+        Style.apply(this, arguments);
+        this.levels = [];
+        this.name = this.id = asStyleId(wXml.attr('w:abstractNumId'));
+        this.wDoc.style.set(this);
+        var link = wXml.$1('numStyleLink');
+        if (link)
+            this.link = link.attr('w:val');
+    }, {
+        type: 'style.numbering.definition',
+        _iterate: function (f, factories, visitors) {
+            for (var i = 0, children = this.wXml.$('lvl'), l = children.length, t; i < l; i++) {
+                this.levels.push(t = new this.constructor.Level(children[i], this.wDoc, this));
+                t.parse(visitors);
+            }
+        },
+        getDefinitionId: function () {
+            return this.wXml.attr('w:abstractNumId');
+        }
+    }, {
+        asStyleId: asStyleId,
+        Level: Style.Properties.extend(function (wXml) {
+            Style.Properties.apply(this, arguments);
+            this.type = wXml.attr('w:ilvl');
+        }, {
+            parse: function (visitors) {
+                Style.Properties.prototype.parse.apply(this, arguments);
+                var t, pr;
+                if (t = this.wXml.$1('>pPr')) {
+                    pr = new (require('./paragraph')).Properties(t, this.wDoc, this);
+                    pr.type = this.type + ' ' + pr.type;
+                    pr.parse(visitors);
+                }
+                if (t = this.wXml.$1('>rPr')) {
+                    pr = new Inline.Properties(t, this.wDoc, this);
+                    pr.type = this.type + ' ' + pr.type;
+                    pr.parse(visitors);
+                }
+            },
+            start: function (x) {
+                return parseInt(x.attr('w:val'));
+            },
+            numFmt: function (x) {
+                return x.attr('w:val');
+            },
+            lvlText: function (x) {
+                return x.attr('w:val');
+            },
+            lvlJc: function (x) {
+                return x.attr('w:val');
+            },
+            lvlPicBulletId: function (x) {
+                return x.attr('w:val');
+            }
+        })
+    });
+}(require('../style'), require('./inline'), require);
+},{"../style":98,"./inline":100,"./paragraph":104}],104:[function(require,module,exports){
+module.exports = function (Style, Inline, Numbering) {
+    return Style.extend({
+        type: 'style.paragraph',
+        getOutlineLevel: function (v) {
+            if ((v = this._val('outlineLvl')) != null)
+                return parseInt(v);
+            if ((v = this.getParentStyle()) != null && v.getOutlineLevel)
+                return v.getOutlineLevel();
+            return -1;
+        },
+        getNumId: function () {
+            if ((v = this._val('numId')) != null)
+                return v;
+            if ((v = this.getParentStyle()) != null && v.getNumId)
+                return v.getNumId();
+            return -1;
+        },
+        asNumberingStyle: Numbering.prototype.asNumberingStyle,
+        _iterate: function (f, factories, visitors) {
+            var pr = this.wXml.$1('pPr');
+            pr && new this.constructor.Properties(pr, this.wDoc, this).parse(visitors);
+            (pr = this.wXml.$1('rPr')) && new Inline.Properties(pr, this.wDoc, this).parse(visitors);
+            (pr = this.wXml.$1('numPr')) && new Numbering.Properties(pr, this.wDoc, this).parse(visitors);
+            (pr = this.wXml.$1('framePr')) && new this.constructor.FrameProperties(pr, this.wDoc, this).parse(visitors);
+        }
+    }, {
+        Properties: Style.Properties.extend({
+            type: 'paragraph',
+            jc: function (x) {
+                return x.attr('w:val');
+            },
+            ind: function (x) {
+                return this.asObject(x, this.asPt);
+            },
+            spacing: function (x) {
+                var r = this.asObject(x), o = {};
+                if (!r.beforeAutospacing && r.beforeLines)
+                    o.top = this.asPt(r.beforeLines);
+                else
+                    r.before;
+                o.top = this.asPt(r.before);
+                if (!r.afterAutospacing && r.afterLines)
+                    o.bottom = this.asPt(r.afterLines);
+                else
+                    r.after;
+                o.bottom = this.asPt(r.after);
+                if (!r.line)
+                    return o;
+                switch (x.lineRule) {
+                case 'atLeast':
+                case 'exact':
+                    o.lineHeight = this.asPt(x.line) + 'pt';
+                    break;
+                case 'auto':
+                default:
+                    o.lineHeight = parseInt(r.line) * 100 / 240 + '%';
+                }
+                o.lineRule = x.lineRule;
+                return o;
+            }
+        }),
+        FrameProperties: Style.Properties.extend({ type: 'frame' })
+    });
+}(require('../style'), require('./inline'), require('./numbering'));
+},{"../style":98,"./inline":100,"./numbering":102}],105:[function(require,module,exports){
+module.exports = function (Style) {
+    return Style.Properties.extend({
+        type: 'section',
+        naming: $.extend(Style.Properties.prototype.naming, {
+            pgSz: 'size',
+            pgMar: 'margin'
+        }),
+        pgSz: function (x) {
+            return {
+                width: parseInt(x.attr('w:w')) / 20,
+                height: parseInt(x.attr('w:h') / 20)
+            };
+        },
+        pgMar: function (x) {
+            var value = this.asObject(x, function (v) {
+                    return parseFloat(v) / 20;
+                });
+            if (value.gutter && this.wDoc.getPart('settings').root.$1('gutterAtTop'))
+                value.gutterAtRight = 1;
             return value;
         },
-        shd: function (x) {
-            return this.asColor(x.attr('w:fill'));
-        },
-        cnfStyle: function (x) {
-            return x.attr('w:val');
-        },
-        gridSpan: function (x) {
-            return x.attr('w:val');
+        cols: function (x) {
+            var o = this.asObject(x, parseInt);
+            o.space && (o.space = o.space / 20);
+            return o;
         }
-    })
-});
-},{"../style":98,"./inline":100,"./paragraph":104}],107:[function(require,module,exports){
-var Model = require('./text');
-module.exports = Model.extend({
-    type: 'symbol',
-    getText: function () {
-        return String.fromCharCode(ParseInt('0x' + this._attr('w:char')));
-    },
-    getFont: function () {
-        return this._attr('w:font');
-    }
-});
-},{"./text":110}],108:[function(require,module,exports){
-var Model = require('./text');
-module.exports = Model.extend({
-    type: 'tab',
-    getText: function () {
-        return String.fromCharCode(9);
-    }
-});
-},{"./text":110}],109:[function(require,module,exports){
-var Model = require('../model'), Style = require('./style/table');
-module.exports = Model.extend({
-    type: 'table',
-    getStyleId: function (a) {
-        return this._val('>tblPr>tblStyle');
-    },
-    getNamedStyle: function () {
-        return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type);
-    },
-    getDirectStyle: function (pr) {
-        return (pr = this.wXml.$1('>tblPr')) && new Style.Properties(pr, this.wDoc, this);
-    },
-    getColWidth: function () {
-        var widths = [], sum = 0;
-        for (var cols = this.wXml.$('>tblGrid>gridCol'), len = cols.length, i = 0, a; i < len; i++) {
-            widths.push(a = parseInt(cols[i].attr('w:w')));
-            sum += a;
-        }
-        return {
-            sum: sum,
-            cols: widths
-        };
-    },
-    _shouldIgnore: function (wXml) {
-        return wXml.localName == 'tblPr' || wXml.localName == 'tblGrid';
-    }
-});
-},{"../model":49,"./style/table":106}],110:[function(require,module,exports){
-var Model = require('../model');
-module.exports = Model.extend({
-    type: 'text',
-    getText: function () {
-        return this.wXml.textContent;
-    }
-});
-},{"../model":49}],111:[function(require,module,exports){
-var RGB = /([a-fA-F0-9]{2}?){3}?/;
-module.exports = $.newClass(function (wXml, xMapping) {
-    this.wXml = wXml;
-    this.map = {};
-    for (var i = 0, map = xMapping.attributes, len = map.length, attr; i < len; i++)
-        this.map[(attr = xMapping.attributes[i]).localName] = attr.value;
-}, {
-    get: function (name, t) {
-        if (name == 'phClr')
-            return name;
-        name = this.map[name] || name;
-        if (t = this.wXml.$1(name)) {
-            switch (t.firstChild.localName) {
-            case 'sysClr':
-                return '#' + t.firstChild.attr('lastClr');
-            default:
-                return '#' + t.firstChild.attr('val');
+    });
+}(require('../style'));
+},{"../style":98}],106:[function(require,module,exports){
+module.exports = function (Style, Paragraph, Inline) {
+    return Style.extend({
+        type: 'style.table',
+        parse: function (factories) {
+            Style.prototype.parse.apply(this, arguments);
+            var TableStyle = this.constructor;
+            for (var styles = this.wXml.$('tblStylePr'), len = styles.length, i = 0; i < len; i++) {
+                var model = new TableStyle(styles[i], this.wDoc, this);
+                model.id = this.id;
+                model.parse(factories);
             }
-        } else
-            return 'black';
-    }
-});
-},{}],112:[function(require,module,exports){
-module.exports = $.newClass(function (wXml, xLang) {
-    this.wXml = wXml;
-    this.xLang = xLang;
-}, {
-    get: function (name) {
-        switch (name) {
-        case 'minorHAnsi':
-        case 'minorAscii':
-            return this.minorHAnsi || (this.minorHAnsi = this.minorAscii = this.wXml.$1('minorFont>latin').attr('typeface'));
-        case 'majorHAnsi':
-        case 'majorAscii':
-            return this.majorHAnsi || (this.majorHAnsi = this.majorAscii = this.wXml.$1('majorFont>latin').attr('typeface'));
-        case 'majorEastAsia':
-            if (this.majorEastAsia)
-                return this.majorEastAsia;
-            var t = this.wXml.$1('majorFont>ea').attr('typeface');
-            if (t.length == 0)
-                t = this.wXml.$1('majorFont>font[script=' + this.xLang.attr('w:eastAsia') + ']');
-            return this.majorEastAsia = t;
-        case 'majorEastAsia':
-            if (this.majorEastAsia)
-                return this.majorEastAsia;
-            var t = this.wXml.$1('minorFont>ea').attr('typeface');
-            if (t.length == 0)
-                t = this.wXml.$1('minorFont>font[script=' + this.xLang.attr('w:eastAsia') + ']');
-            return this.majorEastAsia = t;
-        case 'majorBidi':
-            if (this.majorBidi)
-                return this.majorBidi;
-            var t = this.wXml.$1('majorFont>cs').attr('typeface');
-            if (t.length == 0)
-                t = this.wXml.$1('majorFont>font[script=' + this.xLang.attr('w:bidi') + ']');
-            return this.majorBidi = t;
-        case 'majorBidi':
-            if (this.majorBidi)
-                return this.majorBidi;
-            var t = this.wXml.$1('minorFont>cs').attr('typeface');
-            if (t.length == 0)
-                t = this.wXml.$1('minorFont>font[script=' + this.xLang.attr('w:bidi') + ']');
-            return this.majorBidi = t;
-        }
-    }
-});
-},{}],113:[function(require,module,exports){
-var Shape = require('../model/shape');
-var asObject = Shape.Properties.prototype.asObject;
-module.exports = $.newClass(function (wXml, wDoc) {
-    this.wXml = wXml;
-    this.wDoc = wDoc;
-    this._converter = new Shape.Properties(null, wDoc, null);
-    this._line = {};
-    this._fill = {
-        0: {},
-        1000: {}
-    };
-    this._bgFill = {};
-    this._effect = {};
-    this._font = {};
-}, {
-    line: function (idx, t) {
-        if (t = this._line[idx])
-            return t;
-        return (t = this.wXml.$1('ln:nth-child(' + idx + ')')) && (this._line[idx] = this._converter.ln(t));
-    },
-    fill: function (idx, t) {
-        idx = parseInt(idx);
-        if (idx > 1000)
-            return this.bgFill(idx - 1000);
-        if (t = this._fill[idx])
-            return t;
-        return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._fill[idx] = this._converter[t.localName](t));
-    },
-    bgFill: function (idx) {
-        if (t = this._bgFill[idx])
-            return t;
-        return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._bgFill[idx] = this._converter[t.localName](t));
-    },
-    effect: function (idx) {
-        if (t = this._effect[idx])
-            return t;
-        return (t = this.wXml.$1('effectStyle:nth-child(' + idx + ')>effectLst')) && (this._effect[idx] = this._converter.effectLst(t));
-    },
-    font: function (idx) {
-        if (t = this._font[idx])
-            return t;
-        return (t = this.wXml.$1('fontScheme>' + idx + 'Font>latin')) && (this._effect[idx] = t.attr('typeface'));
-    }
-});
-},{"../model/shape":96}],114:[function(require,module,exports){
-module.exports = $.newClass(function (wXml, wDoc) {
-    this.wXml = wXml;
-    this.wDoc = wDoc;
-}, {
-    parse: function (visitFactories) {
-    }
-});
-},{}],115:[function(require,module,exports){
-module.exports = $.newClass(function (name, doc) {
-    this.name = name;
-    this.doc = doc;
-    this.root = doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement;
-    this.rels = {};
-    var folder = '', relName = '_rels/' + name + '.rels', i = name.lastIndexOf('/');
-    if (i !== -1) {
-        folder = name.substring(0, i);
-        relName = folder + '/_rels/' + name.substring(i + 1) + '.rels';
-    }
-    if (!doc.parts[relName])
-        return;
-    $.parseXML(doc.parts[relName].asText()).documentElement.$('Relationship').asArray().forEach(function (a) {
-        this.rels[a.getAttribute('Id')] = {
-            type: a.getAttribute('Type').split('/').pop(),
-            target: (folder ? folder + '/' : '') + a.getAttribute('Target')
-        };
-    }, this);
-}, {
-    getRel: function (id) {
-        var rel = this.rels[id];
-        switch (rel.type) {
-        case 'image':
-            return this.doc.getImageURL(rel.target);
-        default:
-            return this.doc.getPart(rel.target);
-        }
-    }
-}, {
-    is: function (o) {
-        return o && o.getRel;
-    }
-});
-},{}],116:[function(require,module,exports){
-var Deferred = require('deferred');
-var $ = window.$ = {
-        Deferred: Deferred,
-        parseXML: DOMParser ? function (x) {
-            return new DOMParser().parseFromString(x, 'text/xml');
-        } : function (x) {
-            var xmlDoc = new ActiveXObject('Microsoft.XMLDOM');
-            xmlDoc.async = 'false';
-            xmlDoc.loadXML(x);
-            return xmlDoc;
         },
-        extend: function () {
-            var hasOwn = Object.prototype.hasOwnProperty;
-            var toString = Object.prototype.toString;
-            var undefined;
-            var isPlainObject = function isPlainObject(obj) {
-                'use strict';
-                if (!obj || toString.call(obj) !== '[object Object]') {
-                    return false;
+        _iterate: function (f, factories, visitors) {
+            var pr = null;
+            (pr = this.wXml.$1('>tblPr:not(:empty)')) && new this.constructor.Properties(pr, this.wDoc, this).parse(visitors);
+            (pr = this.wXml.$1('>trPr:not(:empty)')) && new this.constructor.RowProperties(pr, this.wDoc, this).parse(visitors);
+            (pr = this.wXml.$1('>tcPr:not(:empty)')) && new this.constructor.CellProperties(pr, this.wDoc, this).parse(visitors);
+            (pr = this.wXml.$1('>pPr:not(:empty)')) && new Paragraph.Properties(pr, this.wDoc, this).parse(visitors);
+            (pr = this.wXml.$1('>rPr:not(:empty)')) && new Inline.Properties(pr, this.wDoc, this).parse(visitors);
+        },
+        getTarget: function () {
+            return this.wXml.attr('w:type');
+        }
+    }, {
+        Properties: Style.Properties.extend({
+            type: 'table',
+            tblBorders: function (x) {
+                var value = {};
+                for (var borders = x.childNodes, border, i = 0, len = borders.length; i < len; i++) {
+                    border = value[(border = borders[i]).localName] = this.asObject(border);
+                    border.sz && (border.sz = border.sz / 8);
+                    border.color && (border.color = this.asColor(border.color));
                 }
-                var has_own_constructor = hasOwn.call(obj, 'constructor');
-                var has_is_property_of_method = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
-                if (obj.constructor && !has_own_constructor && !has_is_property_of_method) {
-                    return false;
+                return value;
+            },
+            tblCellMar: function (x) {
+                var value = {};
+                for (var borders = x.childNodes, i = 0, len = borders.length, v; i < len; i++)
+                    value[borders[i].localName] = parseInt(borders[i].attr('w:w')) / 20;
+                return value;
+            },
+            tblLook: function (x) {
+                return this.asObject(x, function (x) {
+                    return parseInt(x);
+                });
+            },
+            tblStyleRowBandSize: function (x) {
+                return parseInt(x.attr('w:val'));
+            },
+            tblStyleColBandSize: function (x) {
+                return parseInt(x.attr('w:val'));
+            }
+        }),
+        RowProperties: Style.Properties.extend({
+            type: 'row',
+            cnfStyle: function (x) {
+                return x.attr('w:val');
+            }
+        }),
+        CellProperties: Style.Properties.extend({
+            type: 'cell',
+            tcBorders: function (x) {
+                var value = {};
+                for (var borders = x.childNodes, border, i = 0, len = borders.length; i < len; i++) {
+                    border = value[(border = borders[i]).localName] = this.asObject(border);
+                    border.sz && (border.sz = border.sz / 8);
+                    border.color && (border.color = this.asColor(border.color));
                 }
-                var key;
-                for (key in obj) {
-                }
-                return key === undefined || hasOwn.call(obj, key);
+                return value;
+            },
+            shd: function (x) {
+                return this.asColor(x.attr('w:fill'));
+            },
+            cnfStyle: function (x) {
+                return x.attr('w:val');
+            },
+            gridSpan: function (x) {
+                return x.attr('w:val');
+            }
+        })
+    });
+}(require('../style'), require('./paragraph'), require('./inline'));
+},{"../style":98,"./inline":100,"./paragraph":104}],107:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'symbol',
+        getText: function () {
+            return String.fromCharCode(ParseInt('0x' + this._attr('w:char')));
+        },
+        getFont: function () {
+            return this._attr('w:font');
+        }
+    });
+}(require('./text'));
+},{"./text":110}],108:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'tab',
+        getText: function () {
+            return String.fromCharCode(9);
+        }
+    });
+}(require('./text'));
+},{"./text":110}],109:[function(require,module,exports){
+module.exports = function (Model, Style) {
+    return Model.extend({
+        type: 'table',
+        getStyleId: function (a) {
+            return this._val('>tblPr>tblStyle');
+        },
+        getNamedStyle: function () {
+            return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type);
+        },
+        getDirectStyle: function (pr) {
+            return (pr = this.wXml.$1('>tblPr')) && new Style.Properties(pr, this.wDoc, this);
+        },
+        getColWidth: function () {
+            var widths = [], sum = 0;
+            for (var cols = this.wXml.$('>tblGrid>gridCol'), len = cols.length, i = 0, a; i < len; i++) {
+                widths.push(a = parseInt(cols[i].attr('w:w')));
+                sum += a;
+            }
+            return {
+                sum: sum,
+                cols: widths
             };
-            return function extend() {
-                'use strict';
-                var options, name, src, copy, copyIsArray, clone, target = arguments[0], i = 1, length = arguments.length, deep = false;
-                if (typeof target === 'boolean') {
-                    deep = target;
-                    target = arguments[1] || {};
-                    i = 2;
-                } else if (typeof target !== 'object' && typeof target !== 'function' || target == null) {
-                    target = {};
+        },
+        _shouldIgnore: function (wXml) {
+            return wXml.localName == 'tblPr' || wXml.localName == 'tblGrid';
+        }
+    });
+}(require('../model'), require('./style/table'));
+},{"../model":49,"./style/table":106}],110:[function(require,module,exports){
+module.exports = function (Model) {
+    return Model.extend({
+        type: 'text',
+        getText: function () {
+            return this.wXml.textContent;
+        }
+    });
+}(require('../model'));
+},{"../model":49}],111:[function(require,module,exports){
+module.exports = function () {
+    var RGB = /([a-fA-F0-9]{2}?){3}?/;
+    return $.newClass(function (wXml, xMapping) {
+        this.wXml = wXml;
+        this.map = {};
+        for (var i = 0, map = xMapping.attributes, len = map.length, attr; i < len; i++)
+            this.map[(attr = xMapping.attributes[i]).localName] = attr.value;
+    }, {
+        get: function (name, t) {
+            if (name == 'phClr')
+                return name;
+            name = this.map[name] || name;
+            if (t = this.wXml.$1(name)) {
+                switch (t.firstChild.localName) {
+                case 'sysClr':
+                    return '#' + t.firstChild.attr('lastClr');
+                default:
+                    return '#' + t.firstChild.attr('val');
                 }
-                for (; i < length; ++i) {
-                    options = arguments[i];
-                    if (options != null) {
-                        for (name in options) {
-                            src = target[name];
-                            copy = options[name];
-                            if (target === copy) {
-                                continue;
-                            }
-                            if (deep && copy && (isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))) {
-                                if (copyIsArray) {
-                                    copyIsArray = false;
-                                    clone = src && Array.isArray(src) ? src : [];
-                                } else {
-                                    clone = src && isPlainObject(src) ? src : {};
+            } else
+                return 'black';
+        }
+    });
+}();
+},{}],112:[function(require,module,exports){
+module.exports = function () {
+    return $.newClass(function (wXml, xLang) {
+        this.wXml = wXml;
+        this.xLang = xLang;
+    }, {
+        get: function (name) {
+            switch (name) {
+            case 'minorHAnsi':
+            case 'minorAscii':
+                return this.minorHAnsi || (this.minorHAnsi = this.minorAscii = this.wXml.$1('minorFont>latin').attr('typeface'));
+            case 'majorHAnsi':
+            case 'majorAscii':
+                return this.majorHAnsi || (this.majorHAnsi = this.majorAscii = this.wXml.$1('majorFont>latin').attr('typeface'));
+            case 'majorEastAsia':
+                if (this.majorEastAsia)
+                    return this.majorEastAsia;
+                var t = this.wXml.$1('majorFont>ea').attr('typeface');
+                if (t.length == 0)
+                    t = this.wXml.$1('majorFont>font[script=' + this.xLang.attr('w:eastAsia') + ']');
+                return this.majorEastAsia = t;
+            case 'majorEastAsia':
+                if (this.majorEastAsia)
+                    return this.majorEastAsia;
+                var t = this.wXml.$1('minorFont>ea').attr('typeface');
+                if (t.length == 0)
+                    t = this.wXml.$1('minorFont>font[script=' + this.xLang.attr('w:eastAsia') + ']');
+                return this.majorEastAsia = t;
+            case 'majorBidi':
+                if (this.majorBidi)
+                    return this.majorBidi;
+                var t = this.wXml.$1('majorFont>cs').attr('typeface');
+                if (t.length == 0)
+                    t = this.wXml.$1('majorFont>font[script=' + this.xLang.attr('w:bidi') + ']');
+                return this.majorBidi = t;
+            case 'majorBidi':
+                if (this.majorBidi)
+                    return this.majorBidi;
+                var t = this.wXml.$1('minorFont>cs').attr('typeface');
+                if (t.length == 0)
+                    t = this.wXml.$1('minorFont>font[script=' + this.xLang.attr('w:bidi') + ']');
+                return this.majorBidi = t;
+            }
+        }
+    });
+}();
+},{}],113:[function(require,module,exports){
+module.exports = function (Shape) {
+    var asObject = Shape.Properties.prototype.asObject;
+    return $.newClass(function (wXml, wDoc) {
+        this.wXml = wXml;
+        this.wDoc = wDoc;
+        this._converter = new Shape.Properties(null, wDoc, null);
+        this._line = {};
+        this._fill = {
+            0: {},
+            1000: {}
+        };
+        this._bgFill = {};
+        this._effect = {};
+        this._font = {};
+    }, {
+        line: function (idx, t) {
+            if (t = this._line[idx])
+                return t;
+            return (t = this.wXml.$1('ln:nth-child(' + idx + ')')) && (this._line[idx] = this._converter.ln(t));
+        },
+        fill: function (idx, t) {
+            idx = parseInt(idx);
+            if (idx > 1000)
+                return this.bgFill(idx - 1000);
+            if (t = this._fill[idx])
+                return t;
+            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._fill[idx] = this._converter[t.localName](t));
+        },
+        bgFill: function (idx) {
+            if (t = this._bgFill[idx])
+                return t;
+            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._bgFill[idx] = this._converter[t.localName](t));
+        },
+        effect: function (idx) {
+            if (t = this._effect[idx])
+                return t;
+            return (t = this.wXml.$1('effectStyle:nth-child(' + idx + ')>effectLst')) && (this._effect[idx] = this._converter.effectLst(t));
+        },
+        font: function (idx) {
+            if (t = this._font[idx])
+                return t;
+            return (t = this.wXml.$1('fontScheme>' + idx + 'Font>latin')) && (this._effect[idx] = t.attr('typeface'));
+        }
+    });
+}(require('../model/shape'));
+},{"../model/shape":96}],114:[function(require,module,exports){
+module.exports = function () {
+    return $.newClass(function (wXml, wDoc) {
+        this.wXml = wXml;
+        this.wDoc = wDoc;
+    }, {
+        parse: function (visitFactories) {
+        }
+    });
+}();
+},{}],115:[function(require,module,exports){
+module.exports = function () {
+    return $.newClass(function (name, doc) {
+        this.name = name;
+        this.doc = doc;
+        this.root = doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement;
+        this.rels = {};
+        var folder = '', relName = '_rels/' + name + '.rels', i = name.lastIndexOf('/');
+        if (i !== -1) {
+            folder = name.substring(0, i);
+            relName = folder + '/_rels/' + name.substring(i + 1) + '.rels';
+        }
+        if (!doc.parts[relName])
+            return;
+        $.parseXML(doc.parts[relName].asText()).documentElement.$('Relationship').asArray().forEach(function (a) {
+            this.rels[a.getAttribute('Id')] = {
+                type: a.getAttribute('Type').split('/').pop(),
+                target: (folder ? folder + '/' : '') + a.getAttribute('Target')
+            };
+        }, this);
+    }, {
+        getRel: function (id) {
+            var rel = this.rels[id];
+            switch (rel.type) {
+            case 'image':
+                return this.doc.getImageURL(rel.target);
+            default:
+                return this.doc.getPart(rel.target);
+            }
+        }
+    }, {
+        is: function (o) {
+            return o && o.getRel;
+        }
+    });
+}();
+},{}],116:[function(require,module,exports){
+module.exports = function (Deferred) {
+    var $ = window.$ = {
+            Deferred: Deferred,
+            parseXML: DOMParser ? function (x) {
+                return new DOMParser().parseFromString(x, 'text/xml');
+            } : function (x) {
+                var xmlDoc = new ActiveXObject('Microsoft.XMLDOM');
+                xmlDoc.async = 'false';
+                xmlDoc.loadXML(x);
+                return xmlDoc;
+            },
+            extend: function () {
+                var hasOwn = Object.prototype.hasOwnProperty;
+                var toString = Object.prototype.toString;
+                var undefined;
+                var isPlainObject = function isPlainObject(obj) {
+                    'use strict';
+                    if (!obj || toString.call(obj) !== '[object Object]') {
+                        return false;
+                    }
+                    var has_own_constructor = hasOwn.call(obj, 'constructor');
+                    var has_is_property_of_method = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+                    if (obj.constructor && !has_own_constructor && !has_is_property_of_method) {
+                        return false;
+                    }
+                    var key;
+                    for (key in obj) {
+                    }
+                    return key === undefined || hasOwn.call(obj, key);
+                };
+                return function extend() {
+                    'use strict';
+                    var options, name, src, copy, copyIsArray, clone, target = arguments[0], i = 1, length = arguments.length, deep = false;
+                    if (typeof target === 'boolean') {
+                        deep = target;
+                        target = arguments[1] || {};
+                        i = 2;
+                    } else if (typeof target !== 'object' && typeof target !== 'function' || target == null) {
+                        target = {};
+                    }
+                    for (; i < length; ++i) {
+                        options = arguments[i];
+                        if (options != null) {
+                            for (name in options) {
+                                src = target[name];
+                                copy = options[name];
+                                if (target === copy) {
+                                    continue;
                                 }
-                                target[name] = extend(deep, clone, copy);
-                            } else if (copy !== undefined) {
-                                target[name] = copy;
+                                if (deep && copy && (isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))) {
+                                    if (copyIsArray) {
+                                        copyIsArray = false;
+                                        clone = src && Array.isArray(src) ? src : [];
+                                    } else {
+                                        clone = src && isPlainObject(src) ? src : {};
+                                    }
+                                    target[name] = extend(deep, clone, copy);
+                                } else if (copy !== undefined) {
+                                    target[name] = copy;
+                                }
                             }
                         }
                     }
+                    return target;
+                };
+            }(),
+            isFunction: function (a) {
+                return typeof a === 'function';
+            },
+            isArray: function (a) {
+                return Array.isArray(a);
+            },
+            each: function (a, f, ctx) {
+                if (Array.isArray(a)) {
+                    a.forEach(f, ctx);
+                } else if (typeof a === 'object') {
+                    Object.keys(a).forEach(function (k) {
+                        f.call(ctx, k, a[k]);
+                    });
                 }
-                return target;
-            };
-        }(),
-        isFunction: function (a) {
-            return typeof a === 'function';
-        },
-        isArray: function (a) {
-            return Array.isArray(a);
-        },
-        each: function (a, f, ctx) {
-            if (Array.isArray(a)) {
-                a.forEach(f, ctx);
-            } else if (typeof a === 'object') {
-                Object.keys(a).forEach(function (k) {
-                    f.call(ctx, k, a[k]);
-                });
+            },
+            map: function (a, f, ctx) {
+                return a.map(f, ctx);
             }
+        };
+    $.extend($, {
+        toArray: function (args) {
+            var a = [];
+            for (var i = 0, len = args.length; i < len; i++)
+                a.push(args[i]);
+            return a;
         },
-        map: function (a, f, ctx) {
-            return a.map(f, ctx);
+        newClass: function (constructor, properties, classProperties) {
+            if (!$.isFunction(constructor)) {
+                classProperties = properties;
+                properties = constructor;
+                constructor = function () {
+                };
+            }
+            $.extend(constructor.prototype, properties || {});
+            classProperties && $.extend(constructor, classProperties);
+            constructor.extend = extend;
+            return constructor;
         }
-    };
-$.extend($, {
-    toArray: function (args) {
-        var a = [];
-        for (var i = 0, len = args.length; i < len; i++)
-            a.push(args[i]);
-        return a;
-    },
-    newClass: function (constructor, properties, classProperties) {
+    });
+    function extend(constructor, properties, classProperties) {
+        var me = this;
         if (!$.isFunction(constructor)) {
             classProperties = properties;
             properties = constructor;
             constructor = function () {
+                me.apply(this, arguments);
             };
         }
-        $.extend(constructor.prototype, properties || {});
-        classProperties && $.extend(constructor, classProperties);
-        constructor.extend = extend;
+        $.extend(constructor.prototype, me.prototype, properties || {});
+        $.extend(constructor, me, classProperties || {});
         return constructor;
     }
-});
-function extend(constructor, properties, classProperties) {
-    var me = this;
-    if (!$.isFunction(constructor)) {
-        classProperties = properties;
-        properties = constructor;
-        constructor = function () {
-            me.apply(this, arguments);
-        };
+    var scopable = true, directChildSelector = /((^|,)\s*>)/, id = 'sxxx';
+    try {
+        document.body.querySelector(':scope>div');
+    } catch (e) {
+        scopable = false;
     }
-    $.extend(constructor.prototype, me.prototype, properties || {});
-    $.extend(constructor, me, classProperties || {});
-    return constructor;
-}
-var scopable = true, directChildSelector = /((^|,)\s*>)/, id = 'sxxx';
-try {
-    document.body.querySelector(':scope>div');
-} catch (e) {
-    scopable = false;
-}
-$.extend(Node.prototype, {
-    $: function (selector) {
-        if (!directChildSelector.test(selector))
-            return this.querySelectorAll(selector);
-        else if (scopable)
-            return this.querySelectorAll(selector.split(',').map(function (a) {
-                return a.trim().charAt(0) == '>' ? ':scope' + a : a;
-            }).join(','));
-        else if (this.id) {
-            return this.querySelectorAll(selector.split(',').map(function (a) {
-                return (a = a.trim()).charAt(0) == '>' ? a.substring(1) : a;
-            }, this).join(','));
-        } else {
-            this.id = id;
-            var nodes = this.querySelectorAll(selector.split(',').map(function (a) {
+    $.extend(Node.prototype, {
+        $: function (selector) {
+            if (!directChildSelector.test(selector))
+                return this.querySelectorAll(selector);
+            else if (scopable)
+                return this.querySelectorAll(selector.split(',').map(function (a) {
+                    return a.trim().charAt(0) == '>' ? ':scope' + a : a;
+                }).join(','));
+            else if (this.id) {
+                return this.querySelectorAll(selector.split(',').map(function (a) {
                     return (a = a.trim()).charAt(0) == '>' ? a.substring(1) : a;
                 }, this).join(','));
-            delete this.id;
-            return nodes;
-        }
-    },
-    $1: function (selector) {
-        if (!directChildSelector.test(selector))
-            return this.querySelector(selector);
-        else if (scopable)
-            return this.querySelector(selector.split(',').map(function (a) {
-                return (a = a.trim()).charAt(0) == '>' ? ':scope' + a : a;
-            }).join(','));
-        else if (this.id) {
-            return this.querySelector(selector.split(',').map(function (a) {
-                return (a = a.trim()).charAt(0) == '>' ? a.substring(1) : a;
-            }, this).join(','));
-        } else {
-            this.id = id;
-            var nodes = this.querySelector(selector.split(',').map(function (a) {
+            } else {
+                this.id = id;
+                var nodes = this.querySelectorAll(selector.split(',').map(function (a) {
+                        return (a = a.trim()).charAt(0) == '>' ? a.substring(1) : a;
+                    }, this).join(','));
+                delete this.id;
+                return nodes;
+            }
+        },
+        $1: function (selector) {
+            if (!directChildSelector.test(selector))
+                return this.querySelector(selector);
+            else if (scopable)
+                return this.querySelector(selector.split(',').map(function (a) {
+                    return (a = a.trim()).charAt(0) == '>' ? ':scope' + a : a;
+                }).join(','));
+            else if (this.id) {
+                return this.querySelector(selector.split(',').map(function (a) {
                     return (a = a.trim()).charAt(0) == '>' ? a.substring(1) : a;
                 }, this).join(','));
-            delete this.id;
-            return nodes;
+            } else {
+                this.id = id;
+                var nodes = this.querySelector(selector.split(',').map(function (a) {
+                        return (a = a.trim()).charAt(0) == '>' ? a.substring(1) : a;
+                    }, this).join(','));
+                delete this.id;
+                return nodes;
+            }
+        },
+        attr: function (name, value) {
+            if (arguments.length == 1) {
+                var attr = this.attributes.getNamedItem(name);
+                return attr ? attr.value : undefined;
+            } else if (value == null)
+                this.removeAttribute(name);
+            else
+                this.setAttribute(name, value);
+        },
+        remove: Node.prototype.remove || function () {
+            this.parentNode.removeChild(this);
+        },
+        uptrim: function () {
+            var parent = this.parentNode;
+            this.remove();
+            if (parent.childNodes.length == 0)
+                parent.uptrim();
         }
-    },
-    attr: function (name, value) {
-        if (arguments.length == 1) {
-            var attr = this.attributes.getNamedItem(name);
-            return attr ? attr.value : undefined;
-        } else if (value == null)
-            this.removeAttribute(name);
-        else
-            this.setAttribute(name, value);
-    },
-    remove: Node.prototype.remove || function () {
-        this.parentNode.removeChild(this);
-    },
-    uptrim: function () {
-        var parent = this.parentNode;
-        this.remove();
-        if (parent.childNodes.length == 0)
-            parent.uptrim();
-    }
-});
-$.extend(NodeList.prototype, {
-    asArray: function (o) {
-        o = o || [];
-        for (var i = 0, len = this.length; i < len; i++)
-            o.push(this[i]);
-        return o;
-    }
-});
-module.exports = $;
+    });
+    $.extend(NodeList.prototype, {
+        asArray: function (o) {
+            o = o || [];
+            for (var i = 0, len = this.length; i < len; i++)
+                o.push(this[i]);
+            return o;
+        }
+    });
+    return $;
+}(require('deferred'));
 },{"deferred":5}],"docx4js":[function(require,module,exports){
 (function (global){
 global.$=require("./parser/tool-nojquery")
 module.exports=require("./parser/openxml/docx/document")
-global.Docx4JS=module.exports
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./parser/openxml/docx/document":47,"./parser/tool-nojquery":116}]},{},[]);
