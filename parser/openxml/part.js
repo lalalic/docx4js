@@ -2,7 +2,7 @@ define([],function(){
 	return $.newClass(function(name,doc){
 			this.name=name
 			this.doc=doc
-			this.root=doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement
+			this.documentElement=doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement
 			this.rels={}
 			
 			var folder="", 

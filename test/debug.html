@@ -7,46 +7,33 @@
 			baseUrl: "../",
 			paths: {
 				"jszip": "test/jszip.min",
-				"tool": "parser/tool-nojquery",
+				"tool": "parser/tool-browser",
 				"deferred": "node_modules/Deferred/index"
 			},
 			deps:['tool']
 		});
 	</script>
 	<script>
-		var Text=(function(){
-			var converter=[]
-			converter.visit=function(){
-				if(this.model.type=='paragraph')
-					return this.push("\n\r")
-				if(this.model.type=='text')
-					return this.push(this.model.getText())
-			}
-			
-			function factory(model, doc, parent){
-				converter.model=model
-				return converter
-			}
-			
-			factory.with=function(parent){
-				return factory
-			}
-			
-			factory.asResult=function(){
-				return converter.join('')
-			}
-			
-			return factory
-		})();
+		var converter=[]
+		converter.visit=function(){
+			if(this.model.type=='paragraph')
+				return this.push("\n\r")
+			if(this.model.type=='text')
+				return this.push(this.model.getText())
+		}
 		
 		function test(input){
 			require(['parser/openxml/docx/document'],function(DOCX){
+				converter.splice(0,converter.length)
 				DOCX.load(input.files[0])
 					.then(function(doc){
 						input.value=""
 						document.$1('body>pre').innerHTML=""
-						doc.parse(Text)
-						document.$1('body>pre').innerHTML=(Text.asResult())
+						doc.parse(DOCX.createVisitorFactory(), DOCX.createVisitorFactory(function(srcModel){
+							converter.model=srcModel
+							return converter;
+						}))
+						document.$1('body>pre').innerHTML=converter.join('')
 					})
 			})
 		}

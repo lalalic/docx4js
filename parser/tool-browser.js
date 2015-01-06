@@ -1,6 +1,6 @@
 
 /**
- *  some utils extended on jquery
+ *  some utils
  */
 define(['deferred'], function(Deferred){
 	var $=window.$={

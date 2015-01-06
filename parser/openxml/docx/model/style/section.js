@@ -10,7 +10,7 @@ define(['../style'],function(Style){
 		},
 		pgMar: function(x){
 			var value=this.asObject(x, function(v){return parseFloat(v)/20})
-			if(value.gutter && this.wDoc.getPart('settings').root.$1('gutterAtTop'))
+			if(value.gutter && this.wDoc.getPart('settings').documentElement.$1('gutterAtTop'))
 				value.gutterAtRight=1;
 			return value;
 		},

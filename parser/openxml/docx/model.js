@@ -6,24 +6,24 @@ define(['../parser','require'],function(Parser,require){
 			this.content=[]
 			if(mParent)
 				mParent.content.push(this)
-			//this.type && (console.debug(this.type), FOUND_MODELS[this.type.replace('.','/')]=1)
 		},{
-			type: null,
 			parse: function(visitFactories){
 				var visitors=[]
-				var paramizedVisitFactories=$.map(visitFactories, function(visitFactory){
+				var paramizedVisitFactories=[];
+				$.map(visitFactories, function(visitFactory){
 					var visitor=visitFactory(this)
 					if(visitor){
 						visitors.push(visitor)
 						visitor.visit()
-						return visitFactory.with(visitor)
+						paramizedVisitFactories.push(visitFactory.with(visitor))
 					}
 				}.bind(this));
-				
+					
 				var factory=require('./factory')
 				this._iterate(function(wXml){
 					factory(wXml,this.wDoc,this).parse(paramizedVisitFactories)
 				}.bind(this),paramizedVisitFactories, visitors)
+				return visitors
 			},
 			_iterate: function(f,paramizedVisitFactories){
 				for(var i=0,children=this._getValidChildren(),l=children?children.length:0; i<l; i++)

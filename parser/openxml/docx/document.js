@@ -1,17 +1,16 @@
-define(['../document','./factory','./theme/font', './theme/color','./theme/format'],function(OfficeDocument,factory, FontTheme, ColorTheme, FormatTheme){
+define(['../document','./factory','./theme/font', './theme/color','./theme/format'],function(Super,factory, FontTheme, ColorTheme, FormatTheme){
 	function ParseContext(current){
 		this.current=current
 	}
 
-	return OfficeDocument.extend(function(){
-			OfficeDocument.apply(this,arguments)
+	return Super.extend(function(){
+			Super.apply(this,arguments)
 			var rels=this.rels,
 				builtIn='settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',')
 			$.each(this.partMain.rels,function(id,rel){
 				builtIn.indexOf(rel.type)!=-1 && (rels[rel.type]=rel.target)
 			})
 			this.style=new this.constructor.Style()
-			this.content=[]
 			this.parseContext={
 				section: new ParseContext(),
 				part:new ParseContext(this.partMain),
@@ -33,9 +32,10 @@ define(['../document','./factory','./theme/font', './theme/color','./theme/forma
 		type:"Word",
 		ext:'docx',
 		parse: function(visitFactories){
-			this.content=factory(this.partMain.root, this)
-			this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments))
+			this.content=factory(this.partMain.documentElement, this)
+			var roots=this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments))
 			this.release()
+			return roots
 		},
 		getRel: function(id){
 			return this.parseContext.part.current.getRel(id)
@@ -43,19 +43,20 @@ define(['../document','./factory','./theme/font', './theme/color','./theme/forma
 		getColorTheme: function(){
 			if(this.colorTheme)
 				return this.colorTheme
-			return this.colorTheme=new ColorTheme(this.getPart('theme').root.$1('clrScheme'), this.getPart('settings').root.$1('clrSchemeMapping'))
+			return this.colorTheme=new ColorTheme(this.getPart('theme').documentElement.$1('clrScheme'), this.getPart('settings').documentElement.$1('clrSchemeMapping'))
 		},
 		getFontTheme: function(){
 			if(this.fontTheme)
 				return this.fontTheme
-			return this.fontTheme=new FontTheme(this.getPart('theme').root.$1('fontScheme'), this.getPart('settings').root.$1('themeFontLang'))
+			return this.fontTheme=new FontTheme(this.getPart('theme').documentElement.$1('fontScheme'), this.getPart('settings').documentElement.$1('themeFontLang'))
 		},
 		getFormatTheme: function(){
 			if(this.formatTheme)
 				return this.formatTheme
-			return this.formatTheme=new FormatTheme(this.getPart('theme').root.$1('fmtScheme'), this)
+			return this.formatTheme=new FormatTheme(this.getPart('theme').documentElement.$1('fmtScheme'), this)
 		},
 		release: function(){
+			Super.prototype.release.call(this)
 			with(this.parseContext){
 				delete section
 				delete part

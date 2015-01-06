@@ -3,6 +3,7 @@ define([],function(){
 		this.wXml=wXml
 		this.wDoc=wDoc
 	},{
+		type: null,
 		parse:function(visitFactories){}
 	})
 })

@@ -25,7 +25,7 @@ define(['require','../model','./header','./footer','./style/section'], function(
 		_iterateHeaderFooter: function(visitorFactories,refType){
 			for(var refs=this.wXml.$(refType+'Reference'),i=0,len=refs.length;i<len;i++){
 				var part=this.wDoc.parseContext.part.current=this.wDoc.getRel(refs[i].attr('r:id'))
-				var model=new (require('./'+refType))(part.root, this.wDoc, this, refs[i].attr('w:type'))
+				var model=new (require('./'+refType))(part.documentElement, this.wDoc, this, refs[i].attr('w:type'))
 				model.parse(visitorFactories)
 				this.wDoc.parseContext.part.current=this.wDoc.partMain
 			}

@@ -12,7 +12,8 @@ define(['jszip'],function(JSZip){
 		getPart:function(name){
 			return this.parts[name]
 		},
-		parse: function(){}
+		parse: function(){},
+		release: function(){}
 	},{
 		load: function(inputFile){
 			var reader=new FileReader(),

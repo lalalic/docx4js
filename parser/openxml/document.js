@@ -1,11 +1,12 @@
-define(['../document','./part'],function(BaseDocument,Part){
-	return BaseDocument.extend(function(){
-			BaseDocument.apply(this,arguments)
+define(['../document','./part'],function(Super,Part){
+	return Super.extend(function(){
+			Super.apply(this,arguments)
 			var rels=this.rels={}
 			$.each(new Part("",this).rels,function(id,rel){
 				rels[rel.type]=rel.target
 			})
 			this.partMain=new Part(this.rels['officeDocument'],this)
+			this.content=[]
 		},{
 		vender:"Microsoft",
 		product:'Office 2010',
@@ -21,6 +22,70 @@ define(['../document','./part'],function(BaseDocument,Part){
 		},
 		getImageURL:function(name){
 			return URL.createObjectURL(new Blob([this.parts[name].asArrayBuffer()],{type:"image/*"}))
+		}
+	},{
+		Visitor: $.newClass(function Any(srcModel, targetParent){
+				this.srcModel=srcModel
+				this.parent=parent
+			},{
+				visit: function(){
+					console.info(this.srcModel.type)
+				},
+				_shouldIgnore: function(){
+					return false
+				}
+			}),
+		createVisitorFactory: function(factory){
+			var Any=this.Visitor
+			switch(typeof factory){
+			case 'function':
+				break
+			case 'object':
+				var map=factory;
+				if(map['*'])
+					Any=map['*'];
+					
+				factory=function(srcModel, targetParent){
+					var Visitor=map[srcModel.type], visitor, t;
+					if(!srcModel.type)
+						;
+					else if(Visitor)
+						visitor=new Visitor(srcModel, targetParent)
+					else if((t=srcModel.type.split('.')).length>1){
+						do{
+							t.pop()
+							if((Visitor=map[t.join('.')])){
+								visitor=new Visitor(srcModel, targetParent)
+								break
+							}
+						}while(t.length>1)
+					}
+					
+					if(!visitor)
+						visitor=new Any(srcModel, targetParent);
+						
+					if(!visitor._shouldIgnore())
+						return visitor
+				}
+				break
+			case 'undefined':
+				factory=function(srcModel, targetParent){ 
+					return new Any(srcModel, targetParent)
+				}
+				break
+			default:
+				throw 'unsupported factory'
+			}
+			
+			factory.with=function(targetParent){
+				function paramizedFactory(srcModel){
+					return factory(srcModel, targetParent)
+				}
+				paramizedFactory.with=factory.with
+				return paramizedFactory
+			}
+			
+			return factory
 		}
 	})
 })

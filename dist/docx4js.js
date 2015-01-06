@@ -10934,6 +10934,8 @@ module.exports = function (JSZip) {
             return this.parts[name];
         },
         parse: function () {
+        },
+        release: function () {
         }
     }, {
         load: function (inputFile) {
@@ -10951,14 +10953,15 @@ module.exports = function (JSZip) {
     });
 }(require('jszip'));
 },{"jszip":14}],46:[function(require,module,exports){
-module.exports = function (BaseDocument, Part) {
-    return BaseDocument.extend(function () {
-        BaseDocument.apply(this, arguments);
+module.exports = function (Super, Part) {
+    return Super.extend(function () {
+        Super.apply(this, arguments);
         var rels = this.rels = {};
         $.each(new Part('', this).rels, function (id, rel) {
             rels[rel.type] = rel.target;
         });
         this.partMain = new Part(this.rels['officeDocument'], this);
+        this.content = [];
     }, {
         vender: 'Microsoft',
         product: 'Office 2010',
@@ -10973,21 +10976,78 @@ module.exports = function (BaseDocument, Part) {
         getImageURL: function (name) {
             return URL.createObjectURL(new Blob([this.parts[name].asArrayBuffer()], { type: 'image/*' }));
         }
+    }, {
+        Visitor: $.newClass(function Any(srcModel, targetParent) {
+            this.srcModel = srcModel;
+            this.parent = parent;
+        }, {
+            visit: function () {
+                console.info(this.srcModel.type);
+            },
+            _shouldIgnore: function () {
+                return false;
+            }
+        }),
+        createVisitorFactory: function (factory) {
+            var Any = this.Visitor;
+            switch (typeof factory) {
+            case 'function':
+                break;
+            case 'object':
+                var map = factory;
+                if (map['*'])
+                    Any = map['*'];
+                factory = function (srcModel, targetParent) {
+                    var Visitor = map[srcModel.type], visitor, t;
+                    if (!srcModel.type);
+                    else if (Visitor)
+                        visitor = new Visitor(srcModel, targetParent);
+                    else if ((t = srcModel.type.split('.')).length > 1) {
+                        do {
+                            t.pop();
+                            if (Visitor = map[t.join('.')]) {
+                                visitor = new Visitor(srcModel, targetParent);
+                                break;
+                            }
+                        } while (t.length > 1);
+                    }
+                    if (!visitor)
+                        visitor = new Any(srcModel, targetParent);
+                    if (!visitor._shouldIgnore())
+                        return visitor;
+                };
+                break;
+            case 'undefined':
+                factory = function (srcModel, targetParent) {
+                    return new Any(srcModel, targetParent);
+                };
+                break;
+            default:
+                throw 'unsupported factory';
+            }
+            factory.with = function (targetParent) {
+                function paramizedFactory(srcModel) {
+                    return factory(srcModel, targetParent);
+                }
+                paramizedFactory.with = factory.with;
+                return paramizedFactory;
+            };
+            return factory;
+        }
     });
 }(require('../document'), require('./part'));
 },{"../document":45,"./part":115}],47:[function(require,module,exports){
-module.exports = function (OfficeDocument, factory, FontTheme, ColorTheme, FormatTheme) {
+module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
     function ParseContext(current) {
         this.current = current;
     }
-    return OfficeDocument.extend(function () {
-        OfficeDocument.apply(this, arguments);
+    return Super.extend(function () {
+        Super.apply(this, arguments);
         var rels = this.rels, builtIn = 'settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',');
         $.each(this.partMain.rels, function (id, rel) {
             builtIn.indexOf(rel.type) != -1 && (rels[rel.type] = rel.target);
         });
         this.style = new this.constructor.Style();
-        this.content = [];
         this.parseContext = {
             section: new ParseContext(),
             part: new ParseContext(this.partMain),
@@ -11009,9 +11069,10 @@ module.exports = function (OfficeDocument, factory, FontTheme, ColorTheme, Forma
         type: 'Word',
         ext: 'docx',
         parse: function (visitFactories) {
-            this.content = factory(this.partMain.root, this);
-            this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments));
+            this.content = factory(this.partMain.documentElement, this);
+            var roots = this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments));
             this.release();
+            return roots;
         },
         getRel: function (id) {
             return this.parseContext.part.current.getRel(id);
@@ -11019,19 +11080,20 @@ module.exports = function (OfficeDocument, factory, FontTheme, ColorTheme, Forma
         getColorTheme: function () {
             if (this.colorTheme)
                 return this.colorTheme;
-            return this.colorTheme = new ColorTheme(this.getPart('theme').root.$1('clrScheme'), this.getPart('settings').root.$1('clrSchemeMapping'));
+            return this.colorTheme = new ColorTheme(this.getPart('theme').documentElement.$1('clrScheme'), this.getPart('settings').documentElement.$1('clrSchemeMapping'));
         },
         getFontTheme: function () {
             if (this.fontTheme)
                 return this.fontTheme;
-            return this.fontTheme = new FontTheme(this.getPart('theme').root.$1('fontScheme'), this.getPart('settings').root.$1('themeFontLang'));
+            return this.fontTheme = new FontTheme(this.getPart('theme').documentElement.$1('fontScheme'), this.getPart('settings').documentElement.$1('themeFontLang'));
         },
         getFormatTheme: function () {
             if (this.formatTheme)
                 return this.formatTheme;
-            return this.formatTheme = new FormatTheme(this.getPart('theme').root.$1('fmtScheme'), this);
+            return this.formatTheme = new FormatTheme(this.getPart('theme').documentElement.$1('fmtScheme'), this);
         },
         release: function () {
+            Super.prototype.release.call(this);
             with (this.parseContext) {
                 delete section;
                 delete part;
@@ -11200,21 +11262,22 @@ module.exports = function (Parser, require) {
         if (mParent)
             mParent.content.push(this);
     }, {
-        type: null,
         parse: function (visitFactories) {
             var visitors = [];
-            var paramizedVisitFactories = $.map(visitFactories, function (visitFactory) {
-                    var visitor = visitFactory(this);
-                    if (visitor) {
-                        visitors.push(visitor);
-                        visitor.visit();
-                        return visitFactory.with(visitor);
-                    }
-                }.bind(this));
+            var paramizedVisitFactories = [];
+            $.map(visitFactories, function (visitFactory) {
+                var visitor = visitFactory(this);
+                if (visitor) {
+                    visitors.push(visitor);
+                    visitor.visit();
+                    paramizedVisitFactories.push(visitFactory.with(visitor));
+                }
+            }.bind(this));
             var factory = require('./factory');
             this._iterate(function (wXml) {
                 factory(wXml, this.wDoc, this).parse(paramizedVisitFactories);
             }.bind(this), paramizedVisitFactories, visitors);
+            return visitors;
         },
         _iterate: function (f, paramizedVisitFactories) {
             for (var i = 0, children = this._getValidChildren(), l = children ? children.length : 0; i < l; i++)
@@ -11333,12 +11396,12 @@ module.exports = function (Model) {
         type: 'document',
         _getValidChildren: function () {
             var children = [
-                    this.wDoc.getPart('styles').root,
+                    this.wDoc.getPart('styles').documentElement,
                     this.wXml.$1('body')
                 ];
             var numbering = this.wDoc.getPart('numbering');
             if (numbering)
-                children.splice(1, 0, numbering.root);
+                children.splice(1, 0, numbering.documentElement);
             return children;
         }
     });
@@ -11971,7 +12034,7 @@ module.exports = function (require, Model, Header, Footer, Style) {
         _iterateHeaderFooter: function (visitorFactories, refType) {
             for (var refs = this.wXml.$(refType + 'Reference'), i = 0, len = refs.length; i < len; i++) {
                 var part = this.wDoc.parseContext.part.current = this.wDoc.getRel(refs[i].attr('r:id'));
-                var model = new (require('./' + refType))(part.root, this.wDoc, this, refs[i].attr('w:type'));
+                var model = new (require('./' + refType))(part.documentElement, this.wDoc, this, refs[i].attr('w:type'));
                 model.parse(visitorFactories);
                 this.wDoc.parseContext.part.current = this.wDoc.partMain;
             }
@@ -12384,7 +12447,7 @@ module.exports = function (Style) {
             var value = this.asObject(x, function (v) {
                     return parseFloat(v) / 20;
                 });
-            if (value.gutter && this.wDoc.getPart('settings').root.$1('gutterAtTop'))
+            if (value.gutter && this.wDoc.getPart('settings').documentElement.$1('gutterAtTop'))
                 value.gutterAtRight = 1;
             return value;
         },
@@ -12660,6 +12723,7 @@ module.exports = function () {
         this.wXml = wXml;
         this.wDoc = wDoc;
     }, {
+        type: null,
         parse: function (visitFactories) {
         }
     });
@@ -12669,7 +12733,7 @@ module.exports = function () {
     return $.newClass(function (name, doc) {
         this.name = name;
         this.doc = doc;
-        this.root = doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement;
+        this.documentElement = doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement;
         this.rels = {};
         var folder = '', relName = '_rels/' + name + '.rels', i = name.lastIndexOf('/');
         if (i !== -1) {
@@ -12897,7 +12961,7 @@ module.exports = function (Deferred) {
 }(require('deferred'));
 },{"deferred":5}],"docx4js":[function(require,module,exports){
 (function (global){
-global.$=require("./parser/tool-nojquery")
+global.$=require("./parser/tool")
 module.exports=require("./parser/openxml/docx/document")
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./parser/openxml/docx/document":47,"./parser/tool-nojquery":116}]},{},[]);
+},{"./parser/openxml/docx/document":47,"./parser/tool":116}]},{},[]);

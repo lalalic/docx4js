@@ -1,2 +1,2 @@
-global.$=require("./parser/tool-nojquery")
+global.$=require("./parser/tool")
 module.exports=require("./parser/openxml/docx/document")
