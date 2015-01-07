@@ -35,7 +35,7 @@ define(['../document','./factory','./theme/font', './theme/color','./theme/forma
 			this.content=factory(this.partMain.documentElement, this)
 			var roots=this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments))
 			this.release()
-			return roots
+			return roots.length==1 ? roots[0] : roots
 		},
 		getRel: function(id){
 			return this.parseContext.part.current.getRel(id)
