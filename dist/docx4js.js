@@ -10925,13 +10925,16 @@ function ZStream() {
 module.exports = ZStream;
 },{}],45:[function(require,module,exports){
 module.exports = function (JSZip) {
-    return $.newClass(function (parts, raw, name) {
+    return $.newClass(function (parts, raw, props) {
         this.parts = parts;
         this.raw = raw;
-        this.name = name;
+        this.props = props;
     }, {
         getPart: function (name) {
             return this.parts[name];
+        },
+        getImagePart: function (name) {
+            return this.parts[name].asArrayBuffer();
         },
         parse: function () {
         },
@@ -10945,7 +10948,11 @@ module.exports = function (JSZip) {
                 raw.filter(function (path, file) {
                     parts[path] = file;
                 });
-                p.resolve(new DocumentSelf(parts, raw, inputFile.name));
+                p.resolve(new DocumentSelf(parts, raw, {
+                    name: inputFile.name,
+                    lastModified: inputFile.lastModified,
+                    size: inputFile.size
+                }));
             };
             reader.readAsArrayBuffer(inputFile);
             return p;
@@ -10972,9 +10979,6 @@ module.exports = function (Super, Part) {
             if (Part.is(part))
                 return part;
             return this.parts[name] = new Part(name, this);
-        },
-        getImageURL: function (name) {
-            return URL.createObjectURL(new Blob([this.parts[name].asArrayBuffer()], { type: 'image/*' }));
         }
     }, {
         Visitor: $.newClass(function Any(srcModel, targetParent) {
@@ -10988,7 +10992,7 @@ module.exports = function (Super, Part) {
                 return false;
             }
         }),
-        createVisitorFactory: function (factory) {
+        createVisitorFactory: function (factory, opt) {
             var Any = this.Visitor;
             switch (typeof factory) {
             case 'function':
@@ -11024,6 +11028,14 @@ module.exports = function (Super, Part) {
                 break;
             default:
                 throw 'unsupported factory';
+            }
+            if (opt) {
+                var _raw = factory;
+                factory = function () {
+                    var converter = _raw.call(null, arguments);
+                    converter && (converter.options = opt);
+                    return converter;
+                };
             }
             factory.with = function (targetParent) {
                 function paramizedFactory(srcModel) {
@@ -11093,13 +11105,13 @@ module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
             return this.formatTheme = new FormatTheme(this.getPart('theme').documentElement.$1('fmtScheme'), this);
         },
         release: function () {
-            Super.prototype.release.call(this);
             with (this.parseContext) {
                 delete section;
                 delete part;
                 delete bookmark;
             }
             delete this.parseContext;
+            Super.prototype.release.call(this);
         }
     }, {
         Style: function () {
@@ -11391,9 +11403,16 @@ module.exports = function (Super) {
     return Super.extend({ type: 'diagram' });
 }(require('./graphic'));
 },{"./graphic":82}],67:[function(require,module,exports){
-module.exports = function (Model) {
-    return Model.extend({
+module.exports = function (Super) {
+    return Super.extend({
         type: 'document',
+        parse: function () {
+            var visitors = Super.prototype.parse.apply(this, arguments);
+            visitors.forEach(function (a) {
+                a.props = this.wDoc.props;
+            }.bind(this));
+            return visitors;
+        },
         _getValidChildren: function () {
             var children = [
                     this.wDoc.getPart('styles').documentElement,
@@ -11909,9 +11928,9 @@ module.exports = function (Model) {
 module.exports = function (Super) {
     return Super.extend({
         type: 'image',
-        asLink: function () {
+        getImage: function () {
             var blip = this.wXml.$1('blip'), rid = blip.attr('r:embed');
-            return this.src = this.wDoc.getRel(rid);
+            return this.wDoc.getRel(rid);
         }
     });
 }(require('./graphic'));
@@ -12753,7 +12772,7 @@ module.exports = function () {
             var rel = this.rels[id];
             switch (rel.type) {
             case 'image':
-                return this.doc.getImageURL(rel.target);
+                return this.doc.getImagePart(rel.target);
             default:
                 return this.doc.getPart(rel.target);
             }

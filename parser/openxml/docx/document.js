@@ -56,13 +56,13 @@ define(['../document','./factory','./theme/font', './theme/color','./theme/forma
 			return this.formatTheme=new FormatTheme(this.getPart('theme').documentElement.$1('fmtScheme'), this)
 		},
 		release: function(){
-			Super.prototype.release.call(this)
 			with(this.parseContext){
 				delete section
 				delete part
 				delete bookmark
 			}
 			delete this.parseContext
+			Super.prototype.release.call(this)
 		}
 	},{
 		Style: function(){

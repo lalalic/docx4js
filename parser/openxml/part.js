@@ -25,11 +25,12 @@ define([],function(){
 			var rel=this.rels[id]
 			switch(rel.type){
 			case 'image':
-				return this.doc.getImageURL(rel.target)
+				return this.doc.getImagePart(rel.target)
 			default:
 				return this.doc.getPart(rel.target)	
 			}		
-		}
+		},
+		
 	},{
 		is:function(o){
 			return o && o.getRel

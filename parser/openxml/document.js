@@ -19,9 +19,6 @@ define(['../document','./part'],function(Super,Part){
 				return part
 				
 			return this.parts[name]=new Part(name,this)
-		},
-		getImageURL:function(name){
-			return URL.createObjectURL(new Blob([this.parts[name].asArrayBuffer()],{type:"image/*"}))
 		}
 	},{
 		Visitor: $.newClass(function Any(srcModel, targetParent){
@@ -35,7 +32,7 @@ define(['../document','./part'],function(Super,Part){
 					return false
 				}
 			}),
-		createVisitorFactory: function(factory){
+		createVisitorFactory: function(factory, opt){
 			var Any=this.Visitor
 			switch(typeof factory){
 			case 'function':
@@ -75,6 +72,14 @@ define(['../document','./part'],function(Super,Part){
 				break
 			default:
 				throw 'unsupported factory'
+			}
+			if(opt){
+				var _raw=factory
+				factory=function(){
+					var converter=_raw.call(null,arguments)
+					converter && (converter.options=opt);
+					return converter
+				}
 			}
 			
 			factory.with=function(targetParent){

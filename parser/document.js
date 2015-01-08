@@ -4,13 +4,16 @@
  *  @requires module:JSZip
  */
 define(['jszip'],function(JSZip){
-	return $.newClass(function(parts,raw,name){
+	return $.newClass(function(parts,raw,props){
 		this.parts=parts
 		this.raw=raw
-		this.name=name
+		this.props=props
 	},{
 		getPart:function(name){
 			return this.parts[name]
+		},
+		getImagePart:function(name){
+			return this.parts[name].asArrayBuffer()
 		},
 		parse: function(){},
 		release: function(){}
@@ -24,7 +27,7 @@ define(['jszip'],function(JSZip){
 				raw.filter(function(path,file){
 					parts[path]=file
 				})
-				p.resolve(new DocumentSelf(parts,raw,inputFile.name))
+				p.resolve(new DocumentSelf(parts,raw,{name:inputFile.name,lastModified:inputFile.lastModified,size:inputFile.size}))
 			}
 			reader.readAsArrayBuffer(inputFile);
 			return p
