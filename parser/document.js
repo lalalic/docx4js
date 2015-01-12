@@ -13,7 +13,11 @@ define(['jszip'],function(JSZip){
 			return this.parts[name]
 		},
 		getImagePart:function(name){
-			return this.parts[name].asArrayBuffer()
+			var part=this.parts[name]
+			var crc32=part._data.crc32
+			var buffer=part.asArrayBuffer()
+			buffer.crc32=part._data.crc32=crc32
+			return buffer
 		},
 		parse: function(){},
 		release: function(){}
