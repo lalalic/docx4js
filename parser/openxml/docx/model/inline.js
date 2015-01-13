@@ -10,6 +10,27 @@ define(['../model','./style/inline'], function(Model, Style){
 		getDirectStyle: function(pr){
 			return (pr=this.wXml.$1('>rPr')) && new Style.Properties(pr,this.wDoc,this)
 		},
+		getAppliedStyles: function() {
+			var pr = this.wXml.$1('>rPr');
+			if (!pr) {
+				return {};
+			}
+			var styleObj = new Style.Properties(pr, this.wDoc, this);
+			var styles = styleObj.appliedStyles();
+			if (styles.b) {
+				styles.b = true;
+			}
+			if (styles.i) {
+				styles.i = true;
+			}
+			if (styles.u) {
+				styles.u = true;
+			}
+			if (styles.strike) {
+				styles.strike = true;
+			}
+			return styles;
+		},
 		_shouldIgnore: function(wXml){
 			return wXml.localName=='rPr'
 		},

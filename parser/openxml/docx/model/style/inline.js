@@ -14,7 +14,7 @@ define(['../style'],function(Style){
 					v.ascii=t
 				else if(t=x.attr('w:asciiTheme'))
 					v.ascii=this.wDoc.getFontTheme().get(t)
-				
+
 				if(t=x.attr('w:eastAsia'))
 					v.asia=t
 				else if(t=x.attr('w:eastAsiaTheme'))
@@ -35,6 +35,9 @@ define(['../style'],function(Style){
 			},
 			u: function(x){
 				return this.asObject(x)
+			},
+			strike:function(x){
+				return {}
 			},
 			bdr: function(x){
 				var border=this.asObject(x)
