@@ -1,398 +1,420 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function(define){
-	define([], function(){
+	define(['extend'], function(Extend){
+		var _={
+			extend: Extend,
+			isFunction: function(a){return typeof a == 'function' || false;},
+			isUndefined: function(a){return a === void 0;},
+			clone: function(a){return this.extend(true,{},a)},
+			arrayEach: function(a,f){
+				for(var i=0, len=a.length; i<len; i++)
+					f(a[i]);
+			},
+			isNullOrUndefined: function(a){return a===null || this.isUndefined()}
+		};
+		/**
+		* A Promise is returned by async methods as a hook to provide callbacks to be
+		* called when the async task is fulfilled.
+		*
+		* <p>Typical usage would be like:<pre>
+		*    query.find().then(function(results) {
+		*      results[0].set("foo", "bar");
+		*      return results[0].saveAsync();
+		*    }).then(function(result) {
+		*      console.log("Updated " + result.id);
+		*    });
+		* </pre></p>
+		*
+		* @see Promise.prototype.next
+		* @class
+		*/
+		var Promise = function() {
+		this._resolved = false;
+		this._rejected = false;
+		this._resolvedCallbacks = [];
+		this._rejectedCallbacks = [];
+		};
 
-        var forEach = Array.prototype.forEach;
-        var hasOwn = Object.prototype.hasOwnProperty;
-        var breaker = {};
-        var isArray = function( elem ) {
-            return typeof elem === "object" && elem instanceof Array;
-        };
-        var isFunction = function ( fn ) {
-            return typeof fn === "function";
-        };
+		_.extend(Promise, /** @lends Promise */ {
 
-        var // Static reference to slice
-            sliceDeferred = [].slice;
+			/**
+			 * Returns true iff the given object fulfils the Promise interface.
+			 * @return {Boolean}
+			 */
+			is: function(promise) {
+			  return promise && promise.then && _.isFunction(promise.then);
+			},
 
-        // String to Object flags format cache
-        var flagsCache = {};
+			/**
+			 * Returns a new promise that is resolved with a given value.
+			 * @return {Promise} the new promise.
+			 */
+			as: function() {
+			  var promise = new Promise();
+			  promise.resolve.apply(promise, arguments);
+			  return promise;
+			},
 
-        // Convert String-formatted flags into Object-formatted ones and store in cache
-        function createFlags( flags ) {
-            var object = flagsCache[ flags ] = {},
-                i, length;
-            flags = flags.split( /\s+/ );
-            for ( i = 0, length = flags.length; i < length; i++ ) {
-                object[ flags[i] ] = true;
-            }
-            return object;
-        }
+			/**
+			 * Returns a new promise that is rejected with a given error.
+			 * @return {Promise} the new promise.
+			 */
+			error: function() {
+			  var promise = new Promise();
+			  promise.reject.apply(promise, arguments);
+			  return promise;
+			},
 
-        // Borrowed shamelessly from https://github.com/wookiehangover/underscore.Deferred
-        var _each = function( obj, iterator, context ) {
-            var key, i, l;
+			/**
+			 * Returns a new promise that is fulfilled when all of the input promises
+			 * are resolved. If any promise in the list fails, then the returned promise
+			 * will fail with the last error. If they all succeed, then the returned
+			 * promise will succeed, with the result being an array with the results of
+			 * all the input promises.
+			 * @param {Array} promises a list of promises to wait for.
+			 * @return {Promise} the new promise.
+			 */
+			when: function(promises) {
+			  // Allow passing in Promises as separate arguments instead of an Array.
+			  var objects;
+			  if (promises && _.isNullOrUndefined(promises.length)) {
+				objects = arguments;
+			  } else {
+				objects = promises;
+			  }
 
-            if ( !obj ) {
-                return;
-            }
-            if ( forEach && obj.forEach === forEach ) {
-                obj.forEach( iterator, context );
-            } else if ( obj.length === +obj.length ) {
-                for ( i = 0, l = obj.length; i < l; i++ ) {
-                    if ( i in obj && iterator.call( context, obj[i], i, obj ) === breaker ) {
-                        return;
-                    }
-                }
-            } else {
-                for ( key in obj ) {
-                    if ( hasOwn.call( obj, key ) ) {
-                        if ( iterator.call( context, obj[key], key, obj) === breaker ) {
-                            return;
-                        }
-                    }
-                }
-            }
-        };
+			  var total = objects.length;
+			  var hadError = false;
+			  var results = [];
+			  var errors = [];
+			  results.length = objects.length;
+			  errors.length = objects.length;
 
-        var Callbacks = function( flags ) {
+			  if (total === 0) {
+				return Promise.as.apply(this, results);
+			  }
 
-            // Convert flags from String-formatted to Object-formatted
-            // (we check in cache first)
-            flags = flags ? ( flagsCache[ flags ] || createFlags( flags ) ) : {};
+			  var promise = new Promise();
 
-            var // Actual callback list
-                list = [],
-                // Stack of fire calls for repeatable lists
-                stack = [],
-                // Last fire value (for non-forgettable lists)
-                memory,
-                // Flag to know if list is currently firing
-                firing,
-                // First callback to fire (used internally by add and fireWith)
-                firingStart,
-                // End of the loop when firing
-                firingLength,
-                // Index of currently firing callback (modified by remove if needed)
-                firingIndex,
-                // Add one or several callbacks to the list
-                add = function( args ) {
-                    var i,
-                        length,
-                        elem,
-                        type,
-                        actual;
-                    for ( i = 0, length = args.length; i < length; i++ ) {
-                        elem = args[ i ];
-                        if ( isArray(elem) ) {
-                            // Inspect recursively
-                            add( elem );
-                        } else if ( isFunction(elem) ) {
-                            // Add if not in unique mode and callback is not in
-                            if ( !flags.unique || !self.has( elem ) ) {
-                                list.push( elem );
-                            }
-                        }
-                    }
-                },
-                // Fire callbacks
-                fire = function( context, args ) {
-                    args = args || [];
-                    memory = !flags.memory || [ context, args ];
-                    firing = true;
-                    firingIndex = firingStart || 0;
-                    firingStart = 0;
-                    firingLength = list.length;
-                    for ( ; list && firingIndex < firingLength; firingIndex++ ) {
-                        if ( list[ firingIndex ].apply( context, args ) === false && flags.stopOnFalse ) {
-                            memory = true; // Mark as halted
-                            break;
-                        }
-                    }
-                    firing = false;
-                    if ( list ) {
-                        if ( !flags.once ) {
-                            if ( stack && stack.length ) {
-                                memory = stack.shift();
-                                self.fireWith( memory[ 0 ], memory[ 1 ] );
-                            }
-                        } else if ( memory === true ) {
-                            self.disable();
-                        } else {
-                            list = [];
-                        }
-                    }
-                },
-                // Actual Callbacks object
-                self = {
-                    // Add a callback or a collection of callbacks to the list
-                    add: function() {
-                        if ( list ) {
-                            var length = list.length;
-                            add( arguments );
-                            // Do we need to add the callbacks to the
-                            // current firing batch?
-                            if ( firing ) {
-                                firingLength = list.length;
-                            // With memory, if we're not firing then
-                            // we should call right away, unless previous
-                            // firing was halted (stopOnFalse)
-                            } else if ( memory && memory !== true ) {
-                                firingStart = length;
-                                fire( memory[ 0 ], memory[ 1 ] );
-                            }
-                        }
-                        return this;
-                    },
-                    // Remove a callback from the list
-                    remove: function() {
-                        if ( list ) {
-                            var args = arguments,
-                                argIndex = 0,
-                                argLength = args.length;
-                            for ( ; argIndex < argLength ; argIndex++ ) {
-                                for ( var i = 0; i < list.length; i++ ) {
-                                    if ( args[ argIndex ] === list[ i ] ) {
-                                        // Handle firingIndex and firingLength
-                                        if ( firing ) {
-                                            if ( i <= firingLength ) {
-                                                firingLength--;
-                                                if ( i <= firingIndex ) {
-                                                    firingIndex--;
-                                                }
-                                            }
-                                        }
-                                        // Remove the element
-                                        list.splice( i--, 1 );
-                                        // If we have some unicity property then
-                                        // we only need to do this once
-                                        if ( flags.unique ) {
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        return this;
-                    },
-                    // Control if a given callback is in the list
-                    has: function( fn ) {
-                        if ( list ) {
-                            var i = 0,
-                                length = list.length;
-                            for ( ; i < length; i++ ) {
-                                if ( fn === list[ i ] ) {
-                                    return true;
-                                }
-                            }
-                        }
-                        return false;
-                    },
-                    // Remove all callbacks from the list
-                    empty: function() {
-                        list = [];
-                        return this;
-                    },
-                    // Have the list do nothing anymore
-                    disable: function() {
-                        list = stack = memory = undefined;
-                        return this;
-                    },
-                    // Is it disabled?
-                    disabled: function() {
-                        return !list;
-                    },
-                    // Lock the list in its current state
-                    lock: function() {
-                        stack = undefined;
-                        if ( !memory || memory === true ) {
-                            self.disable();
-                        }
-                        return this;
-                    },
-                    // Is it locked?
-                    locked: function() {
-                        return !stack;
-                    },
-                    // Call all callbacks with the given context and arguments
-                    fireWith: function( context, args ) {
-                        if ( stack ) {
-                            if ( firing ) {
-                                if ( !flags.once ) {
-                                    stack.push( [ context, args ] );
-                                }
-                            } else if ( !( flags.once && memory ) ) {
-                                fire( context, args );
-                            }
-                        }
-                        return this;
-                    },
-                    // Call all the callbacks with the given arguments
-                    fire: function() {
-                        self.fireWith( this, arguments );
-                        return this;
-                    },
-                    // To know if the callbacks have already been called at least once
-                    fired: function() {
-                        return !!memory;
-                    }
-                };
+			  var resolveOne = function() {
+				total = total - 1;
+				if (total === 0) {
+				  if (hadError) {
+					promise.reject(errors);
+				  } else {
+					promise.resolve.apply(promise, results);
+				  }
+				}
+			  };
 
-            return self;
-        };
+			  _.arrayEach(objects, function(object, i) {
+				if (Promise.is(object)) {
+				  object.then(function(result) {
+					results[i] = result;
+					resolveOne();
+				  }, function(error) {
+					errors[i] = error;
+					hadError = true;
+					resolveOne();
+				  });
+				} else {
+				  results[i] = object;
+				  resolveOne();
+				}
+			  });
 
-        var Deferred = function( func ) {
-            var doneList = Callbacks( "once memory" ),
-                failList = Callbacks( "once memory" ),
-                progressList = Callbacks( "memory" ),
-                state = "pending",
-                lists = {
-                    resolve: doneList,
-                    reject: failList,
-                    notify: progressList
-                },
-                promise = {
-                    done: doneList.add,
-                    fail: failList.add,
-                    progress: progressList.add,
+			  return promise;
+			},
 
-                    state: function() {
-                        return state;
-                    },
+			/**
+			 * Runs the given asyncFunction repeatedly, as long as the predicate
+			 * function returns a truthy value. Stops repeating if asyncFunction returns
+			 * a rejected promise.
+			 * @param {Function} predicate should return false when ready to stop.
+			 * @param {Function} asyncFunction should return a Promise.
+			 */
+			_continueWhile: function(predicate, asyncFunction) {
+			  if (predicate()) {
+				return asyncFunction().then(function() {
+				  return Promise._continueWhile(predicate, asyncFunction);
+				});
+			  }
+			  return Promise.as();
+			}
+		});
 
-                    // Deprecated
-                    isResolved: doneList.fired,
-                    isRejected: failList.fired,
+		_.extend(Promise.prototype, /** @lends Promise.prototype */ {
+			/**
+			 * Marks this promise as fulfilled, firing any callbacks waiting on it.
+			 * @param {Object} result the result to pass to the callbacks.
+			 */
+			resolve: function(result) {
+			  if (this._resolved || this._rejected) {
+				throw "A promise was resolved even though it had already been " +
+				  (this._resolved ? "resolved" : "rejected") + ".";
+			  }
+			  this._resolved = true;
+			  this._result = arguments;
+			  var results = arguments;
+			  _.arrayEach(this._resolvedCallbacks, function(resolvedCallback) {
+				resolvedCallback.apply(this, results);
+			  });
+			  this._resolvedCallbacks = [];
+			  this._rejectedCallbacks = [];
+			},
 
-                    then: function( doneCallbacks, failCallbacks, progressCallbacks ) {
-                        deferred.done( doneCallbacks ).fail( failCallbacks ).progress( progressCallbacks );
-                        return this;
-                    },
-                    always: function() {
-                        deferred.done.apply( deferred, arguments ).fail.apply( deferred, arguments );
-                        return this;
-                    },
-                    pipe: function( fnDone, fnFail, fnProgress ) {
-                        return Deferred(function( newDefer ) {
-                            _each( {
-                                done: [ fnDone, "resolve" ],
-                                fail: [ fnFail, "reject" ],
-                                progress: [ fnProgress, "notify" ]
-                            }, function( data, handler ) {
-                                var fn = data[ 0 ],
-                                    action = data[ 1 ],
-                                    returned;
-                                if ( isFunction( fn ) ) {
-                                    deferred[ handler ](function() {
-                                        returned = fn.apply( this, arguments );
-                                        if ( returned && isFunction( returned.promise ) ) {
-                                            returned.promise().then( newDefer.resolve, newDefer.reject, newDefer.notify );
-                                        } else {
-                                            newDefer[ action + "With" ]( this === deferred ? newDefer : this, [ returned ] );
-                                        }
-                                    });
-                                } else {
-                                    deferred[ handler ]( newDefer[ action ] );
-                                }
-                            });
-                        }).promise();
-                    },
-                    // Get a promise for this deferred
-                    // If obj is provided, the promise aspect is added to the object
-                    promise: function( obj ) {
-                        if ( !obj ) {
-                            obj = promise;
-                        } else {
-                            for ( var key in promise ) {
-                                obj[ key ] = promise[ key ];
-                            }
-                        }
-                        return obj;
-                    }
-                },
-                deferred = promise.promise({}),
-                key;
+			/**
+			 * Marks this promise as fulfilled, firing any callbacks waiting on it.
+			 * @param {Object} error the error to pass to the callbacks.
+			 */
+			reject: function(error) {
+			  if (this._resolved || this._rejected) {
+				throw "A promise was rejected even though it had already been " +
+				  (this._resolved ? "resolved" : "rejected") + ".";
+			  }
+			  this._rejected = true;
+			  this._error = error;
+			  _.arrayEach(this._rejectedCallbacks, function(rejectedCallback) {
+				rejectedCallback(error);
+			  });
+			  this._resolvedCallbacks = [];
+			  this._rejectedCallbacks = [];
+			},
 
-            for ( key in lists ) {
-                deferred[ key ] = lists[ key ].fire;
-                deferred[ key + "With" ] = lists[ key ].fireWith;
-            }
+			/**
+			 * Adds callbacks to be called when this promise is fulfilled. Returns a new
+			 * Promise that will be fulfilled when the callback is complete. It allows
+			 * chaining. If the callback itself returns a Promise, then the one returned
+			 * by "then" will not be fulfilled until that one returned by the callback
+			 * is fulfilled.
+			 * @param {Function} resolvedCallback Function that is called when this
+			 * Promise is resolved. Once the callback is complete, then the Promise
+			 * returned by "then" will also be fulfilled.
+			 * @param {Function} rejectedCallback Function that is called when this
+			 * Promise is rejected with an error. Once the callback is complete, then
+			 * the promise returned by "then" with be resolved successfully. If
+			 * rejectedCallback is null, or it returns a rejected Promise, then the
+			 * Promise returned by "then" will be rejected with that error.
+			 * @return {Promise} A new Promise that will be fulfilled after this
+			 * Promise is fulfilled and either callback has completed. If the callback
+			 * returned a Promise, then this Promise will not be fulfilled until that
+			 * one is.
+			 */
+			then: function(resolvedCallback, rejectedCallback) {
+			  var promise = new Promise();
 
-            // Handle state
-            deferred.done( function() {
-                state = "resolved";
-            }, failList.disable, progressList.lock ).fail( function() {
-                state = "rejected";
-            }, doneList.disable, progressList.lock );
+			  var wrappedResolvedCallback = function() {
+				var result = arguments;
+				if (resolvedCallback) {
+				  result = [resolvedCallback.apply(this, result)];
+				}
+				if (result.length === 1 && Promise.is(result[0])) {
+				  result[0].then(function() {
+					promise.resolve.apply(promise, arguments);
+				  }, function(error) {
+					promise.reject(error);
+				  });
+				} else {
+				  promise.resolve.apply(promise, result);
+				}
+			  };
 
-            // Call given func if any
-            if ( func ) {
-                func.call( deferred, deferred );
-            }
+			  var wrappedRejectedCallback = function(error) {
+				var result = [];
+				if (rejectedCallback) {
+				  result = [rejectedCallback(error)];
+				  if (result.length === 1 && Promise.is(result[0])) {
+					result[0].then(function() {
+					  promise.resolve.apply(promise, arguments);
+					}, function(error) {
+					  promise.reject(error);
+					});
+				  } else {
+					// A Promises/A+ compliant implementation would call:
+					// promise.resolve.apply(promise, result);
+					promise.reject(result[0]);
+				  }
+				} else {
+				  promise.reject(error);
+				}
+			  };
 
-            // All done!
-            return deferred;
-        };
+			  if (this._resolved) {
+				wrappedResolvedCallback.apply(this, this._result);
+			  } else if (this._rejected) {
+				wrappedRejectedCallback(this._error);
+			  } else {
+				this._resolvedCallbacks.push(wrappedResolvedCallback);
+				this._rejectedCallbacks.push(wrappedRejectedCallback);
+			  }
 
-        // Deferred helper
-        var when = function( firstParam ) {
-            var args = sliceDeferred.call( arguments, 0 ),
-                i = 0,
-                length = args.length,
-                pValues = new Array( length ),
-                count = length,
-                pCount = length,
-                deferred = length <= 1 && firstParam && isFunction( firstParam.promise ) ?
-                    firstParam :
-                    Deferred(),
-                promise = deferred.promise();
-            function resolveFunc( i ) {
-                return function( value ) {
-                    args[ i ] = arguments.length > 1 ? sliceDeferred.call( arguments, 0 ) : value;
-                    if ( !( --count ) ) {
-                        deferred.resolveWith( deferred, args );
-                    }
-                };
-            }
-            function progressFunc( i ) {
-                return function( value ) {
-                    pValues[ i ] = arguments.length > 1 ? sliceDeferred.call( arguments, 0 ) : value;
-                    deferred.notifyWith( promise, pValues );
-                };
-            }
-            if ( length > 1 ) {
-                for ( ; i < length; i++ ) {
-                    if ( args[ i ] && args[ i ].promise && isFunction( args[ i ].promise ) ) {
-                        args[ i ].promise().then( resolveFunc(i), deferred.reject, progressFunc(i) );
-                    } else {
-                        --count;
-                    }
-                }
-                if ( !count ) {
-                    deferred.resolveWith( deferred, args );
-                }
-            } else if ( deferred !== firstParam ) {
-                deferred.resolveWith( deferred, length ? [ firstParam ] : [] );
-            }
-            return promise;
-        };
+			  return promise;
+			},
 
-        Deferred.when = when;
-        Deferred.Callbacks = Callbacks;
+			/**
+			 * Run the given callbacks after this promise is fulfilled.
+			 * @param optionsOrCallback {} A Backbone-style options callback, or a
+			 * callback function. If this is an options object and contains a "model"
+			 * attributes, that will be passed to error callbacks as the first argument.
+			 * @param model {} If truthy, this will be passed as the first result of
+			 * error callbacks. This is for Backbone-compatability.
+			 * @return {Promise} A promise that will be resolved after the
+			 * callbacks are run, with the same result as this.
+			 */
+			_thenRunCallbacks: function(optionsOrCallback, model) {
+			  var options;
+			  if (_.isFunction(optionsOrCallback)) {
+				var callback = optionsOrCallback;
+				options = {
+				  success: function(result) {
+					callback(result, null);
+				  },
+				  error: function(error) {
+					callback(null, error);
+				  }
+				};
+			  } else {
+				options = _.clone(optionsOrCallback);
+			  }
+			  options = options || {};
 
-		return Deferred;
-	}); // define for AMD if available
+			  return this.then(function(result) {
+				if (options.success) {
+				  options.success.apply(this, arguments);
+				} else if (model) {
+				  // When there's no callback, a sync event should be triggered.
+				  model.trigger('sync', model, result, options);
+				}
+				return Promise.as.apply(Promise, arguments);
+			  }, function(error) {
+				if (options.error) {
+				  if (!_.isUndefined(model)) {
+					options.error(model, error);
+				  } else {
+					options.error(error);
+				  }
+				} else if (model) {
+				  // When there's no error callback, an error event should be triggered.
+				  model.trigger('error', model, error, options);
+				}
+				// By explicitly returning a rejected Promise, this will work with
+				// either jQuery or Promises/A semantics.
+				return Promise.error(error);
+			  });
+			},
+
+			/**
+			 * Adds a callback function that should be called regardless of whether
+			 * this promise failed or succeeded. The callback will be given either the
+			 * array of results for its first argument, or the error as its second,
+			 * depending on whether this Promise was rejected or resolved. Returns a
+			 * new Promise, like "then" would.
+			 * @param {Function} continuation the callback.
+			 */
+			_continueWith: function(continuation) {
+			  return this.then(function() {
+				return continuation(arguments, null);
+			  }, function(error) {
+				return continuation(null, error);
+			  });
+			}
+
+		});
+
+		return Promise;
+	})
 })(typeof define !== "undefined" ? define
 	// try to define as a CommonJS module instead
 	: typeof module !== "undefined" ? function(deps, factory) {
-		module.exports = factory();
+		module.exports = factory(require('extend'));
 	}
 	// nothing good exists, just define on current context (ie window)
-	: function(deps, factory) { this.Deferred = factory(); }
+	: function(deps, factory) { this.Promise = factory(); }
 );
+},{"extend":2}],2:[function(require,module,exports){
+var hasOwn = Object.prototype.hasOwnProperty;
+var toString = Object.prototype.toString;
+var undefined;
+
+var isPlainObject = function isPlainObject(obj) {
+	'use strict';
+	if (!obj || toString.call(obj) !== '[object Object]') {
+		return false;
+	}
+
+	var has_own_constructor = hasOwn.call(obj, 'constructor');
+	var has_is_property_of_method = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+	// Not own constructor property must be Object
+	if (obj.constructor && !has_own_constructor && !has_is_property_of_method) {
+		return false;
+	}
+
+	// Own properties are enumerated firstly, so to speed up,
+	// if last one is own, then all properties are own.
+	var key;
+	for (key in obj) {}
+
+	return key === undefined || hasOwn.call(obj, key);
+};
+
+module.exports = function extend() {
+	'use strict';
+	var options, name, src, copy, copyIsArray, clone,
+		target = arguments[0],
+		i = 1,
+		length = arguments.length,
+		deep = false;
+
+	// Handle a deep copy situation
+	if (typeof target === 'boolean') {
+		deep = target;
+		target = arguments[1] || {};
+		// skip the boolean and the target
+		i = 2;
+	} else if ((typeof target !== 'object' && typeof target !== 'function') || target == null) {
+		target = {};
+	}
+
+	for (; i < length; ++i) {
+		options = arguments[i];
+		// Only deal with non-null/undefined values
+		if (options != null) {
+			// Extend the base object
+			for (name in options) {
+				src = target[name];
+				copy = options[name];
+
+				// Prevent never-ending loop
+				if (target === copy) {
+					continue;
+				}
+
+				// Recurse if we're merging plain objects or arrays
+				if (deep && copy && (isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))) {
+					if (copyIsArray) {
+						copyIsArray = false;
+						clone = src && Array.isArray(src) ? src : [];
+					} else {
+						clone = src && isPlainObject(src) ? src : {};
+					}
+
+					// Never move original objects, clone them
+					target[name] = extend(deep, clone, copy);
+
+				// Don't bring in undefined values
+				} else if (copy !== undefined) {
+					target[name] = copy;
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
 
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 'use strict';
 // private property
 var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -464,7 +486,7 @@ exports.decode = function(input, utf8) {
 
 };
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 function CompressedObject() {
     this.compressedSize = 0;
@@ -494,7 +516,7 @@ CompressedObject.prototype = {
 };
 module.exports = CompressedObject;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 exports.STORE = {
     magic: "\x00\x00",
@@ -509,7 +531,7 @@ exports.STORE = {
 };
 exports.DEFLATE = require('./flate');
 
-},{"./flate":9}],5:[function(require,module,exports){
+},{"./flate":10}],6:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -613,7 +635,7 @@ module.exports = function crc32(input, crc) {
 };
 // vim: set shiftwidth=4 softtabstop=4:
 
-},{"./utils":22}],6:[function(require,module,exports){
+},{"./utils":23}],7:[function(require,module,exports){
 'use strict';
 var utils = require('./utils');
 
@@ -722,7 +744,7 @@ DataReader.prototype = {
 };
 module.exports = DataReader;
 
-},{"./utils":22}],7:[function(require,module,exports){
+},{"./utils":23}],8:[function(require,module,exports){
 'use strict';
 exports.base64 = false;
 exports.binary = false;
@@ -732,7 +754,7 @@ exports.date = null;
 exports.compression = null;
 exports.comment = null;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 var utils = require('./utils');
 
@@ -839,7 +861,7 @@ exports.isRegExp = function (object) {
 };
 
 
-},{"./utils":22}],9:[function(require,module,exports){
+},{"./utils":23}],10:[function(require,module,exports){
 'use strict';
 var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
 
@@ -855,7 +877,7 @@ exports.uncompress =  function(input) {
     return pako.inflateRaw(input);
 };
 
-},{"pako":25}],10:[function(require,module,exports){
+},{"pako":26}],11:[function(require,module,exports){
 'use strict';
 
 var base64 = require('./base64');
@@ -936,7 +958,7 @@ JSZip.base64 = {
 JSZip.compressions = require('./compressions');
 module.exports = JSZip;
 
-},{"./base64":2,"./compressions":4,"./defaults":7,"./deprecatedPublicUtils":8,"./load":11,"./object":14,"./support":18}],11:[function(require,module,exports){
+},{"./base64":3,"./compressions":5,"./defaults":8,"./deprecatedPublicUtils":9,"./load":12,"./object":15,"./support":19}],12:[function(require,module,exports){
 'use strict';
 var base64 = require('./base64');
 var ZipEntries = require('./zipEntries');
@@ -967,7 +989,7 @@ module.exports = function(data, options) {
     return this;
 };
 
-},{"./base64":2,"./zipEntries":23}],12:[function(require,module,exports){
+},{"./base64":3,"./zipEntries":24}],13:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 module.exports = function(data, encoding){
@@ -977,7 +999,7 @@ module.exports.test = function(b){
     return Buffer.isBuffer(b);
 };
 }).call(this,require("buffer").Buffer)
-},{"buffer":113}],13:[function(require,module,exports){
+},{"buffer":114}],14:[function(require,module,exports){
 'use strict';
 var Uint8ArrayReader = require('./uint8ArrayReader');
 
@@ -999,7 +1021,7 @@ NodeBufferReader.prototype.readData = function(size) {
 };
 module.exports = NodeBufferReader;
 
-},{"./uint8ArrayReader":19}],14:[function(require,module,exports){
+},{"./uint8ArrayReader":20}],15:[function(require,module,exports){
 'use strict';
 var support = require('./support');
 var utils = require('./utils');
@@ -1769,7 +1791,7 @@ var out = {
 };
 module.exports = out;
 
-},{"./base64":2,"./compressedObject":3,"./compressions":4,"./crc32":5,"./defaults":7,"./nodeBuffer":12,"./signature":15,"./stringWriter":17,"./support":18,"./uint8ArrayWriter":20,"./utf8":21,"./utils":22}],15:[function(require,module,exports){
+},{"./base64":3,"./compressedObject":4,"./compressions":5,"./crc32":6,"./defaults":8,"./nodeBuffer":13,"./signature":16,"./stringWriter":18,"./support":19,"./uint8ArrayWriter":21,"./utf8":22,"./utils":23}],16:[function(require,module,exports){
 'use strict';
 exports.LOCAL_FILE_HEADER = "PK\x03\x04";
 exports.CENTRAL_FILE_HEADER = "PK\x01\x02";
@@ -1778,7 +1800,7 @@ exports.ZIP64_CENTRAL_DIRECTORY_LOCATOR = "PK\x06\x07";
 exports.ZIP64_CENTRAL_DIRECTORY_END = "PK\x06\x06";
 exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 'use strict';
 var DataReader = require('./dataReader');
 var utils = require('./utils');
@@ -1816,7 +1838,7 @@ StringReader.prototype.readData = function(size) {
 };
 module.exports = StringReader;
 
-},{"./dataReader":6,"./utils":22}],17:[function(require,module,exports){
+},{"./dataReader":7,"./utils":23}],18:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -1848,7 +1870,7 @@ StringWriter.prototype = {
 
 module.exports = StringWriter;
 
-},{"./utils":22}],18:[function(require,module,exports){
+},{"./utils":23}],19:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 exports.base64 = true;
@@ -1886,7 +1908,7 @@ else {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":113}],19:[function(require,module,exports){
+},{"buffer":114}],20:[function(require,module,exports){
 'use strict';
 var DataReader = require('./dataReader');
 
@@ -1935,7 +1957,7 @@ Uint8ArrayReader.prototype.readData = function(size) {
 };
 module.exports = Uint8ArrayReader;
 
-},{"./dataReader":6}],20:[function(require,module,exports){
+},{"./dataReader":7}],21:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -1973,7 +1995,7 @@ Uint8ArrayWriter.prototype = {
 
 module.exports = Uint8ArrayWriter;
 
-},{"./utils":22}],21:[function(require,module,exports){
+},{"./utils":23}],22:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -2182,7 +2204,7 @@ exports.utf8decode = function utf8decode(buf) {
 };
 // vim: set shiftwidth=4 softtabstop=4:
 
-},{"./nodeBuffer":12,"./support":18,"./utils":22}],22:[function(require,module,exports){
+},{"./nodeBuffer":13,"./support":19,"./utils":23}],23:[function(require,module,exports){
 'use strict';
 var support = require('./support');
 var compressions = require('./compressions');
@@ -2509,7 +2531,7 @@ exports.isRegExp = function (object) {
 };
 
 
-},{"./compressions":4,"./nodeBuffer":12,"./support":18}],23:[function(require,module,exports){
+},{"./compressions":5,"./nodeBuffer":13,"./support":19}],24:[function(require,module,exports){
 'use strict';
 var StringReader = require('./stringReader');
 var NodeBufferReader = require('./nodeBufferReader');
@@ -2714,7 +2736,7 @@ ZipEntries.prototype = {
 // }}} end of ZipEntries
 module.exports = ZipEntries;
 
-},{"./nodeBufferReader":13,"./object":14,"./signature":15,"./stringReader":16,"./support":18,"./uint8ArrayReader":19,"./utils":22,"./zipEntry":24}],24:[function(require,module,exports){
+},{"./nodeBufferReader":14,"./object":15,"./signature":16,"./stringReader":17,"./support":19,"./uint8ArrayReader":20,"./utils":23,"./zipEntry":25}],25:[function(require,module,exports){
 'use strict';
 var StringReader = require('./stringReader');
 var utils = require('./utils');
@@ -2995,7 +3017,7 @@ ZipEntry.prototype = {
 };
 module.exports = ZipEntry;
 
-},{"./compressedObject":3,"./object":14,"./stringReader":16,"./utils":22}],25:[function(require,module,exports){
+},{"./compressedObject":4,"./object":15,"./stringReader":17,"./utils":23}],26:[function(require,module,exports){
 // Top level file is just a mixin of submodules & constants
 'use strict';
 
@@ -3010,7 +3032,7 @@ var pako = {};
 assign(pako, deflate, inflate, constants);
 
 module.exports = pako;
-},{"./lib/deflate":26,"./lib/inflate":27,"./lib/utils/common":28,"./lib/zlib/constants":31}],26:[function(require,module,exports){
+},{"./lib/deflate":27,"./lib/inflate":28,"./lib/utils/common":29,"./lib/zlib/constants":32}],27:[function(require,module,exports){
 'use strict';
 
 
@@ -3372,7 +3394,7 @@ exports.Deflate = Deflate;
 exports.deflate = deflate;
 exports.deflateRaw = deflateRaw;
 exports.gzip = gzip;
-},{"./utils/common":28,"./utils/strings":29,"./zlib/deflate.js":33,"./zlib/messages":38,"./zlib/zstream":40}],27:[function(require,module,exports){
+},{"./utils/common":29,"./utils/strings":30,"./zlib/deflate.js":34,"./zlib/messages":39,"./zlib/zstream":41}],28:[function(require,module,exports){
 'use strict';
 
 
@@ -3738,7 +3760,7 @@ exports.inflate = inflate;
 exports.inflateRaw = inflateRaw;
 exports.ungzip  = inflate;
 
-},{"./utils/common":28,"./utils/strings":29,"./zlib/constants":31,"./zlib/gzheader":34,"./zlib/inflate.js":36,"./zlib/messages":38,"./zlib/zstream":40}],28:[function(require,module,exports){
+},{"./utils/common":29,"./utils/strings":30,"./zlib/constants":32,"./zlib/gzheader":35,"./zlib/inflate.js":37,"./zlib/messages":39,"./zlib/zstream":41}],29:[function(require,module,exports){
 'use strict';
 
 
@@ -3841,7 +3863,7 @@ exports.setTyped = function (on) {
 };
 
 exports.setTyped(TYPED_OK);
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 // String encode/decode helpers
 'use strict';
 
@@ -4028,7 +4050,7 @@ exports.utf8border = function(buf, max) {
   return (pos + _utf8len[buf[pos]] > max) ? pos : max;
 };
 
-},{"./common":28}],30:[function(require,module,exports){
+},{"./common":29}],31:[function(require,module,exports){
 'use strict';
 
 // Note: adler32 takes 12% for level 0 and 2% for level 6.
@@ -4061,7 +4083,7 @@ function adler32(adler, buf, len, pos) {
 
 
 module.exports = adler32;
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 module.exports = {
 
   /* Allowed flush values; see deflate() and inflate() below for details */
@@ -4109,7 +4131,7 @@ module.exports = {
   Z_DEFLATED:               8
   //Z_NULL:                 null // Use -1 or null inline, depending on var type
 };
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 'use strict';
 
 // Note: we can't get significant speed boost here.
@@ -4151,7 +4173,7 @@ function crc32(crc, buf, len, pos) {
 
 
 module.exports = crc32;
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 'use strict';
 
 var utils   = require('../utils/common');
@@ -5917,7 +5939,7 @@ exports.deflatePending = deflatePending;
 exports.deflatePrime = deflatePrime;
 exports.deflateTune = deflateTune;
 */
-},{"../utils/common":28,"./adler32":30,"./crc32":32,"./messages":38,"./trees":39}],34:[function(require,module,exports){
+},{"../utils/common":29,"./adler32":31,"./crc32":33,"./messages":39,"./trees":40}],35:[function(require,module,exports){
 'use strict';
 
 
@@ -5958,7 +5980,7 @@ function GZheader() {
 }
 
 module.exports = GZheader;
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 // See state defs from inflate.js
@@ -6285,7 +6307,7 @@ module.exports = function inflate_fast(strm, start) {
   return;
 };
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 'use strict';
 
 
@@ -7789,7 +7811,7 @@ exports.inflateSync = inflateSync;
 exports.inflateSyncPoint = inflateSyncPoint;
 exports.inflateUndermine = inflateUndermine;
 */
-},{"../utils/common":28,"./adler32":30,"./crc32":32,"./inffast":35,"./inftrees":37}],37:[function(require,module,exports){
+},{"../utils/common":29,"./adler32":31,"./crc32":33,"./inffast":36,"./inftrees":38}],38:[function(require,module,exports){
 'use strict';
 
 
@@ -8116,7 +8138,7 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
   return 0;
 };
 
-},{"../utils/common":28}],38:[function(require,module,exports){
+},{"../utils/common":29}],39:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -8130,7 +8152,7 @@ module.exports = {
   '-5':   'buffer error',        /* Z_BUF_ERROR     (-5) */
   '-6':   'incompatible version' /* Z_VERSION_ERROR (-6) */
 };
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 
@@ -9330,7 +9352,7 @@ exports._tr_stored_block = _tr_stored_block;
 exports._tr_flush_block  = _tr_flush_block;
 exports._tr_tally = _tr_tally;
 exports._tr_align = _tr_align;
-},{"../utils/common":28}],40:[function(require,module,exports){
+},{"../utils/common":29}],41:[function(require,module,exports){
 'use strict';
 
 
@@ -9360,7 +9382,7 @@ function ZStream() {
 }
 
 module.exports = ZStream;
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 module.exports = function (JSZip) {
     return $.newClass(function (parts, raw, props) {
         this.parts = parts;
@@ -9371,7 +9393,11 @@ module.exports = function (JSZip) {
             return this.parts[name];
         },
         getImagePart: function (name) {
-            return this.parts[name].asArrayBuffer();
+            var part = this.parts[name];
+            var crc32 = part._data.crc32;
+            var buffer = part.asArrayBuffer();
+            buffer.crc32 = part._data.crc32 = crc32;
+            return buffer;
         },
         parse: function () {
         },
@@ -9396,7 +9422,7 @@ module.exports = function (JSZip) {
         }
     });
 }(require('jszip'));
-},{"jszip":10}],42:[function(require,module,exports){
+},{"jszip":11}],43:[function(require,module,exports){
 module.exports = function (Super, Part) {
     return Super.extend(function () {
         Super.apply(this, arguments);
@@ -9485,7 +9511,7 @@ module.exports = function (Super, Part) {
         }
     });
 }(require('../document'), require('./part'));
-},{"../document":41,"./part":111}],43:[function(require,module,exports){
+},{"../document":42,"./part":112}],44:[function(require,module,exports){
 module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
     function ParseContext(current) {
         this.current = current;
@@ -9570,7 +9596,7 @@ module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
         }
     });
 }(require('../document'), require('./factory'), require('./theme/font'), require('./theme/color'), require('./theme/format'));
-},{"../document":42,"./factory":44,"./theme/color":107,"./theme/font":108,"./theme/format":109}],44:[function(require,module,exports){
+},{"../document":43,"./factory":45,"./theme/color":108,"./theme/font":109,"./theme/format":110}],45:[function(require,module,exports){
 module.exports = function (require, Model) {
     return function factory(wXml, doc, parent, more) {
         var tag = wXml.localName, swap;
@@ -9702,7 +9728,7 @@ module.exports = function (require, Model) {
         return new Model(wXml, doc, parent);
     };
 }(require, require('./model'), require('./model/document'), require('./model/section'), require('./model/body'), require('./model/table'), require('./model/row'), require('./model/cell'), require('./model/paragraph'), require('./model/list'), require('./model/heading'), require('./model/inline'), require('./model/headingInline'), require('./model/text'), require('./model/fieldBegin'), require('./model/fieldInstruct'), require('./model/fieldSeparate'), require('./model/fieldEnd'), require('./model/fieldSimple'), require('./model/bookmarkStart'), require('./model/bookmarkEnd'), require('./model/tab'), require('./model/softHyphen'), require('./model/noBreakHyphen'), require('./model/symbol'), require('./model/br'), require('./model/hyperlink'), require('./model/drawingAnchor'), require('./model/shape'), require('./model/image'), require('./model/chart'), require('./model/diagram'), require('./model/documentStyles'), require('./model/style/document'), require('./model/style/paragraph'), require('./model/style/table'), require('./model/style/inline'), require('./model/style/numbering'), require('./model/style/numberingDefinition'), require('./model/style/list'), require('./model/control/richtext'), require('./model/control/text'), require('./model/control/picture'), require('./model/control/gallery'), require('./model/control/combobox'), require('./model/control/dropdown'), require('./model/control/date'), require('./model/control/checkbox'), require('./model/equation'), require('./model/OLE'));
-},{"./model":45,"./model/OLE":46,"./model/body":47,"./model/bookmarkEnd":48,"./model/bookmarkStart":49,"./model/br":50,"./model/cell":51,"./model/chart":52,"./model/control/checkbox":54,"./model/control/combobox":55,"./model/control/date":56,"./model/control/dropdown":57,"./model/control/gallery":58,"./model/control/picture":59,"./model/control/richtext":60,"./model/control/text":61,"./model/diagram":62,"./model/document":63,"./model/documentStyles":64,"./model/drawingAnchor":66,"./model/equation":67,"./model/fieldBegin":72,"./model/fieldEnd":73,"./model/fieldInstruct":74,"./model/fieldSeparate":75,"./model/fieldSimple":76,"./model/heading":80,"./model/headingInline":81,"./model/hyperlink":82,"./model/image":83,"./model/inline":84,"./model/list":85,"./model/noBreakHyphen":86,"./model/paragraph":87,"./model/row":89,"./model/section":91,"./model/shape":92,"./model/softHyphen":93,"./model/style/document":95,"./model/style/inline":96,"./model/style/list":97,"./model/style/numbering":98,"./model/style/numberingDefinition":99,"./model/style/paragraph":100,"./model/style/table":102,"./model/symbol":103,"./model/tab":104,"./model/table":105,"./model/text":106}],45:[function(require,module,exports){
+},{"./model":46,"./model/OLE":47,"./model/body":48,"./model/bookmarkEnd":49,"./model/bookmarkStart":50,"./model/br":51,"./model/cell":52,"./model/chart":53,"./model/control/checkbox":55,"./model/control/combobox":56,"./model/control/date":57,"./model/control/dropdown":58,"./model/control/gallery":59,"./model/control/picture":60,"./model/control/richtext":61,"./model/control/text":62,"./model/diagram":63,"./model/document":64,"./model/documentStyles":65,"./model/drawingAnchor":67,"./model/equation":68,"./model/fieldBegin":73,"./model/fieldEnd":74,"./model/fieldInstruct":75,"./model/fieldSeparate":76,"./model/fieldSimple":77,"./model/heading":81,"./model/headingInline":82,"./model/hyperlink":83,"./model/image":84,"./model/inline":85,"./model/list":86,"./model/noBreakHyphen":87,"./model/paragraph":88,"./model/row":90,"./model/section":92,"./model/shape":93,"./model/softHyphen":94,"./model/style/document":96,"./model/style/inline":97,"./model/style/list":98,"./model/style/numbering":99,"./model/style/numberingDefinition":100,"./model/style/paragraph":101,"./model/style/table":103,"./model/symbol":104,"./model/tab":105,"./model/table":106,"./model/text":107}],46:[function(require,module,exports){
 module.exports = function (Parser, require) {
     return Parser.extend(function (wXml, wDoc, mParent) {
         Parser.apply(this, arguments);
@@ -9747,11 +9773,11 @@ module.exports = function (Parser, require) {
         }
     });
 }(require('../parser'), require);
-},{"../parser":110,"./factory":44}],46:[function(require,module,exports){
+},{"../parser":111,"./factory":45}],47:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({ type: 'OLE' });
 }(require('../model'));
-},{"../model":45}],47:[function(require,module,exports){
+},{"../model":46}],48:[function(require,module,exports){
 module.exports = function (Model, Section) {
     return Model.extend({
         type: 'body',
@@ -9760,7 +9786,7 @@ module.exports = function (Model, Section) {
         }
     });
 }(require('../model'), require('./section'));
-},{"../model":45,"./section":91}],48:[function(require,module,exports){
+},{"../model":46,"./section":92}],49:[function(require,module,exports){
 module.exports = function (Range) {
     return Range.extend({
         type: 'bookmarkEnd',
@@ -9769,7 +9795,7 @@ module.exports = function (Range) {
         }
     });
 }(require('./rangeBase'));
-},{"./rangeBase":88}],49:[function(require,module,exports){
+},{"./rangeBase":89}],50:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({
         type: 'bookmarkStart',
@@ -9782,11 +9808,11 @@ module.exports = function (Super) {
         }
     });
 }(require('../model'));
-},{"../model":45}],50:[function(require,module,exports){
+},{"../model":46}],51:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({ type: 'br' });
 }(require('../model'));
-},{"../model":45}],51:[function(require,module,exports){
+},{"../model":46}],52:[function(require,module,exports){
 module.exports = function (Model, Style) {
     return Model.extend({
         type: 'cell',
@@ -9795,51 +9821,51 @@ module.exports = function (Model, Style) {
         }
     });
 }(require('../model'), require('./style/table'));
-},{"../model":45,"./style/table":102}],52:[function(require,module,exports){
+},{"../model":46,"./style/table":103}],53:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({ type: 'chart' });
 }(require('./graphic'));
-},{"./graphic":78}],53:[function(require,module,exports){
+},{"./graphic":79}],54:[function(require,module,exports){
 module.exports = function (SDT) {
     return SDT.extend({});
 }(require('./sdt'));
-},{"./sdt":90}],54:[function(require,module,exports){
+},{"./sdt":91}],55:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.checkbox' });
 }(require('../control'));
-},{"../control":53}],55:[function(require,module,exports){
+},{"../control":54}],56:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.combobox' });
 }(require('../control'));
-},{"../control":53}],56:[function(require,module,exports){
+},{"../control":54}],57:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.date' });
 }(require('../control'));
-},{"../control":53}],57:[function(require,module,exports){
+},{"../control":54}],58:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.dropdown' });
 }(require('../control'));
-},{"../control":53}],58:[function(require,module,exports){
+},{"../control":54}],59:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.gallery' });
 }(require('../control'));
-},{"../control":53}],59:[function(require,module,exports){
+},{"../control":54}],60:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.picture' });
 }(require('../control'));
-},{"../control":53}],60:[function(require,module,exports){
+},{"../control":54}],61:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.richtext' });
 }(require('../control'));
-},{"../control":53}],61:[function(require,module,exports){
+},{"../control":54}],62:[function(require,module,exports){
 module.exports = function (Control) {
     return Control.extend({ type: 'control.text' });
 }(require('../control'));
-},{"../control":53}],62:[function(require,module,exports){
+},{"../control":54}],63:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({ type: 'diagram' });
 }(require('./graphic'));
-},{"./graphic":78}],63:[function(require,module,exports){
+},{"./graphic":79}],64:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({
         type: 'document',
@@ -9862,7 +9888,7 @@ module.exports = function (Super) {
         }
     });
 }(require('../model'));
-},{"../model":45}],64:[function(require,module,exports){
+},{"../model":46}],65:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'documentStyles',
@@ -9871,7 +9897,7 @@ module.exports = function (Model) {
         }
     });
 }(require('../model'));
-},{"../model":45}],65:[function(require,module,exports){
+},{"../model":46}],66:[function(require,module,exports){
 module.exports = function (Super, Style) {
     return Super.extend(function (wXml) {
         Super.apply(this, arguments);
@@ -10016,7 +10042,7 @@ module.exports = function (Super, Style) {
         })
     });
 }(require('../model'), require('./style'));
-},{"../model":45,"./style":94}],66:[function(require,module,exports){
+},{"../model":46,"./style":95}],67:[function(require,module,exports){
 module.exports = function (Super) {
     function refine(name) {
         return name.replace(/-(\w)/, function (a, b) {
@@ -10079,11 +10105,11 @@ module.exports = function (Super) {
         })
     });
 }(require('./drawing'));
-},{"./drawing":65}],67:[function(require,module,exports){
+},{"./drawing":66}],68:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({ type: 'equation' });
 }(require('../model'));
-},{"../model":45}],68:[function(require,module,exports){
+},{"../model":46}],69:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({ type: 'fied.date' }, {
         FieldCode: Super.FieldCode.extend({
@@ -10104,7 +10130,7 @@ module.exports = function (Super) {
         })
     });
 }(require('./field'));
-},{"./field":69}],69:[function(require,module,exports){
+},{"./field":70}],70:[function(require,module,exports){
 module.exports = function (Super) {
     var Command, FieldCode, Switch;
     return Super.extend(function (instruct, doc, parent) {
@@ -10224,7 +10250,7 @@ module.exports = function (Super) {
         })
     });
 }(require('../../model'));
-},{"../../model":45}],70:[function(require,module,exports){
+},{"../../model":46}],71:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend(function (instruct) {
         Super.apply(this, arguments);
@@ -10236,14 +10262,14 @@ module.exports = function (Super) {
         }
     });
 }(require('./field'));
-},{"./field":69}],71:[function(require,module,exports){
+},{"./field":70}],72:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend(function (instruct) {
         Super.apply(this, arguments);
         this.link = '#' + instruct.split(/\s+/)[1];
     });
 }(require('./hyperlink'));
-},{"./hyperlink":70}],72:[function(require,module,exports){
+},{"./hyperlink":71}],73:[function(require,module,exports){
 module.exports = function (Super, require) {
     return Super.extend(function (wXml, wDoc, mParent) {
         Super.apply(this, arguments);
@@ -10279,7 +10305,7 @@ module.exports = function (Super, require) {
         }
     });
 }(require('../model'), require, require('./field/hyperlink'), require('./field/date'), require('./field/ref'));
-},{"../model":45,"./field/date":68,"./field/hyperlink":70,"./field/ref":71}],73:[function(require,module,exports){
+},{"../model":46,"./field/date":69,"./field/hyperlink":71,"./field/ref":72}],74:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({
         type: 'fieldEnd',
@@ -10288,7 +10314,7 @@ module.exports = function (Super) {
         }
     });
 }(require('../model'));
-},{"../model":45}],74:[function(require,module,exports){
+},{"../model":46}],75:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend(function (wXml, wDoc, mParent) {
         Super.apply(this, arguments);
@@ -10299,7 +10325,7 @@ module.exports = function (Super) {
         }
     });
 }(require('../model'));
-},{"../model":45}],75:[function(require,module,exports){
+},{"../model":46}],76:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({
         type: 'fieldEnd',
@@ -10308,15 +10334,15 @@ module.exports = function (Super) {
         }
     });
 }(require('../model'));
-},{"../model":45}],76:[function(require,module,exports){
+},{"../model":46}],77:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({ type: 'fieldSimple' });
 }(require('../model'));
-},{"../model":45}],77:[function(require,module,exports){
+},{"../model":46}],78:[function(require,module,exports){
 module.exports = function (Header) {
     return Header.extend({ type: 'footer' });
 }(require('./header'));
-},{"./header":79}],78:[function(require,module,exports){
+},{"./header":80}],79:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend(function (wXml) {
         Super.apply(this, arguments);
@@ -10330,14 +10356,14 @@ module.exports = function (Super) {
         }))
     });
 }(require('./drawing'));
-},{"./drawing":65}],79:[function(require,module,exports){
+},{"./drawing":66}],80:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend(function (wXml, wDoc, mParent, location) {
         Model.apply(this, arguments);
         this.location = location;
     }, { type: 'header' });
 }(require('../model'));
-},{"../model":45}],80:[function(require,module,exports){
+},{"../model":46}],81:[function(require,module,exports){
 module.exports = function (Paragraph) {
     return Paragraph.extend({
         type: 'heading',
@@ -10346,11 +10372,11 @@ module.exports = function (Paragraph) {
         }
     });
 }(require('./paragraph'));
-},{"./paragraph":87}],81:[function(require,module,exports){
+},{"./paragraph":88}],82:[function(require,module,exports){
 module.exports = function (Inline) {
     return Inline.extend({ type: 'headingChar' });
 }(require('./inline'));
-},{"./inline":84}],82:[function(require,module,exports){
+},{"./inline":85}],83:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'hyperlink',
@@ -10361,7 +10387,7 @@ module.exports = function (Model) {
         }
     });
 }(require('../model'));
-},{"../model":45}],83:[function(require,module,exports){
+},{"../model":46}],84:[function(require,module,exports){
 module.exports = function (Super) {
     return Super.extend({
         type: 'image',
@@ -10371,7 +10397,7 @@ module.exports = function (Super) {
         }
     });
 }(require('./graphic'));
-},{"./graphic":78}],84:[function(require,module,exports){
+},{"./graphic":79}],85:[function(require,module,exports){
 module.exports = function (Model, Style) {
     return Model.extend({
         type: 'inline',
@@ -10416,7 +10442,7 @@ module.exports = function (Model, Style) {
         }
     });
 }(require('../model'), require('./style/inline'));
-},{"../model":45,"./style/inline":96}],85:[function(require,module,exports){
+},{"../model":46,"./style/inline":97}],86:[function(require,module,exports){
 module.exports = function (Super, Style) {
     return Super.extend({
         type: 'list',
@@ -10430,7 +10456,7 @@ module.exports = function (Super, Style) {
         }
     });
 }(require('./paragraph'), require('./style/list'));
-},{"./paragraph":87,"./style/list":97}],86:[function(require,module,exports){
+},{"./paragraph":88,"./style/list":98}],87:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'noBreakHyphen',
@@ -10439,7 +10465,7 @@ module.exports = function (Model) {
         }
     });
 }(require('./text'));
-},{"./text":106}],87:[function(require,module,exports){
+},{"./text":107}],88:[function(require,module,exports){
 module.exports = function (Model, Style) {
     return Model.extend(function (wXml, wDoc, mParent) {
         Model.apply(this, arguments);
@@ -10460,7 +10486,7 @@ module.exports = function (Model, Style) {
         }
     });
 }(require('../model'), require('./style/paragraph'));
-},{"../model":45,"./style/paragraph":100}],88:[function(require,module,exports){
+},{"../model":46,"./style/paragraph":101}],89:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'range',
@@ -10472,7 +10498,7 @@ module.exports = function (Model) {
         }
     });
 }(require('../model'));
-},{"../model":45}],89:[function(require,module,exports){
+},{"../model":46}],90:[function(require,module,exports){
 module.exports = function (Model, Style) {
     return Model.extend({
         type: 'row',
@@ -10481,11 +10507,11 @@ module.exports = function (Model, Style) {
         }
     });
 }(require('../model'), require('./style/table'));
-},{"../model":45,"./style/table":102}],90:[function(require,module,exports){
+},{"../model":46,"./style/table":103}],91:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({ type: 'sdt' });
 }(require('../model'));
-},{"../model":45}],91:[function(require,module,exports){
+},{"../model":46}],92:[function(require,module,exports){
 module.exports = function (require, Model, Header, Footer, Style) {
     var empty = [];
     return Model.extend(function (wXml, wDoc, mParent) {
@@ -10521,7 +10547,7 @@ module.exports = function (require, Model, Header, Footer, Style) {
         }
     });
 }(require, require('../model'), require('./header'), require('./footer'), require('./style/section'));
-},{"../model":45,"./footer":77,"./header":79,"./style/section":101}],92:[function(require,module,exports){
+},{"../model":46,"./footer":78,"./header":80,"./style/section":102}],93:[function(require,module,exports){
 module.exports = function (Super, Style, Drawing) {
     return Super.extend({
         type: 'shape',
@@ -10567,7 +10593,7 @@ module.exports = function (Super, Style, Drawing) {
         }))
     });
 }(require('../model'), require('./style'), require('./drawing'));
-},{"../model":45,"./drawing":65,"./style":94}],93:[function(require,module,exports){
+},{"../model":46,"./drawing":66,"./style":95}],94:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'softHyphen',
@@ -10576,7 +10602,7 @@ module.exports = function (Model) {
         }
     });
 }(require('./text'));
-},{"./text":106}],94:[function(require,module,exports){
+},{"./text":107}],95:[function(require,module,exports){
 module.exports = function (Model) {
     var RGB = /([a-fA-F0-9]{2}?){3}?/;
     return Model.extend(function (wXml, wDoc, mParent) {
@@ -10687,7 +10713,7 @@ module.exports = function (Model) {
         })
     });
 }(require('../model'));
-},{"../model":45}],95:[function(require,module,exports){
+},{"../model":46}],96:[function(require,module,exports){
 module.exports = function (Style) {
     return Style.extend(function (wXml, wDoc, mParent) {
         Style.apply(this, arguments);
@@ -10699,7 +10725,7 @@ module.exports = function (Style) {
         }
     });
 }(require('./paragraph'));
-},{"./paragraph":100}],96:[function(require,module,exports){
+},{"./paragraph":101}],97:[function(require,module,exports){
 module.exports = function (Style) {
     return Style.extend({
         type: 'style.inline',
@@ -10758,7 +10784,7 @@ module.exports = function (Style) {
         })
     });
 }(require('../style'));
-},{"../style":94}],97:[function(require,module,exports){
+},{"../style":95}],98:[function(require,module,exports){
 module.exports = function (Style, Numbering) {
     function asStyleId(numId) {
         return '_list' + numId;
@@ -10784,7 +10810,7 @@ module.exports = function (Style, Numbering) {
         }
     }, { asStyleId: asStyleId });
 }(require('../style'), require('./numberingDefinition'));
-},{"../style":94,"./numberingDefinition":99}],98:[function(require,module,exports){
+},{"../style":95,"./numberingDefinition":100}],99:[function(require,module,exports){
 module.exports = function (Super, List) {
     return Super.extend(function () {
         Super.apply(this, arguments);
@@ -10798,7 +10824,7 @@ module.exports = function (Super, List) {
         }
     });
 }(require('../style'), require('./list'));
-},{"../style":94,"./list":97}],99:[function(require,module,exports){
+},{"../style":95,"./list":98}],100:[function(require,module,exports){
 module.exports = function (Style, Inline, require) {
     function asStyleId(absNumId) {
         return '_numberingDefinition' + absNumId;
@@ -10860,7 +10886,7 @@ module.exports = function (Style, Inline, require) {
         })
     });
 }(require('../style'), require('./inline'), require);
-},{"../style":94,"./inline":96,"./paragraph":100}],100:[function(require,module,exports){
+},{"../style":95,"./inline":97,"./paragraph":101}],101:[function(require,module,exports){
 module.exports = function (Style, Inline, Numbering) {
     return Style.extend({
         type: 'style.paragraph',
@@ -10925,7 +10951,7 @@ module.exports = function (Style, Inline, Numbering) {
         FrameProperties: Style.Properties.extend({ type: 'frame' })
     });
 }(require('../style'), require('./inline'), require('./numbering'));
-},{"../style":94,"./inline":96,"./numbering":98}],101:[function(require,module,exports){
+},{"../style":95,"./inline":97,"./numbering":99}],102:[function(require,module,exports){
 module.exports = function (Style) {
     return Style.Properties.extend({
         type: 'section',
@@ -10954,7 +10980,7 @@ module.exports = function (Style) {
         }
     });
 }(require('../style'));
-},{"../style":94}],102:[function(require,module,exports){
+},{"../style":95}],103:[function(require,module,exports){
 module.exports = function (Style, Paragraph, Inline) {
     return Style.extend({
         type: 'style.table',
@@ -11037,7 +11063,7 @@ module.exports = function (Style, Paragraph, Inline) {
         })
     });
 }(require('../style'), require('./paragraph'), require('./inline'));
-},{"../style":94,"./inline":96,"./paragraph":100}],103:[function(require,module,exports){
+},{"../style":95,"./inline":97,"./paragraph":101}],104:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'symbol',
@@ -11049,7 +11075,7 @@ module.exports = function (Model) {
         }
     });
 }(require('./text'));
-},{"./text":106}],104:[function(require,module,exports){
+},{"./text":107}],105:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'tab',
@@ -11058,7 +11084,7 @@ module.exports = function (Model) {
         }
     });
 }(require('./text'));
-},{"./text":106}],105:[function(require,module,exports){
+},{"./text":107}],106:[function(require,module,exports){
 module.exports = function (Model, Style) {
     return Model.extend({
         type: 'table',
@@ -11087,7 +11113,7 @@ module.exports = function (Model, Style) {
         }
     });
 }(require('../model'), require('./style/table'));
-},{"../model":45,"./style/table":102}],106:[function(require,module,exports){
+},{"../model":46,"./style/table":103}],107:[function(require,module,exports){
 module.exports = function (Model) {
     return Model.extend({
         type: 'text',
@@ -11096,7 +11122,7 @@ module.exports = function (Model) {
         }
     });
 }(require('../model'));
-},{"../model":45}],107:[function(require,module,exports){
+},{"../model":46}],108:[function(require,module,exports){
 module.exports = function () {
     var RGB = /([a-fA-F0-9]{2}?){3}?/;
     return $.newClass(function (wXml, xMapping) {
@@ -11121,7 +11147,7 @@ module.exports = function () {
         }
     });
 }();
-},{}],108:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 module.exports = function () {
     return $.newClass(function (wXml, xLang) {
         this.wXml = wXml;
@@ -11167,7 +11193,7 @@ module.exports = function () {
         }
     });
 }();
-},{}],109:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 module.exports = function (Shape) {
     var asObject = Shape.Properties.prototype.asObject;
     return $.newClass(function (wXml, wDoc) {
@@ -11213,7 +11239,7 @@ module.exports = function (Shape) {
         }
     });
 }(require('../model/shape'));
-},{"../model/shape":92}],110:[function(require,module,exports){
+},{"../model/shape":93}],111:[function(require,module,exports){
 module.exports = function () {
     return $.newClass(function (wXml, wDoc) {
         this.wXml = wXml;
@@ -11224,7 +11250,7 @@ module.exports = function () {
         }
     });
 }();
-},{}],111:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 module.exports = function () {
     return $.newClass(function (name, doc) {
         this.name = name;
@@ -11260,8 +11286,8 @@ module.exports = function () {
         }
     });
 }();
-},{}],112:[function(require,module,exports){
-module.exports = function (Deferred) {
+},{}],113:[function(require,module,exports){
+module.exports = function (Deferred, Extend) {
     var $ = window.$ = {
             Deferred: Deferred,
             parseXML: DOMParser ? function (x) {
@@ -11272,61 +11298,7 @@ module.exports = function (Deferred) {
                 xmlDoc.loadXML(x);
                 return xmlDoc;
             },
-            extend: function () {
-                var hasOwn = Object.prototype.hasOwnProperty;
-                var toString = Object.prototype.toString;
-                var undefined;
-                var isPlainObject = function isPlainObject(obj) {
-                    'use strict';
-                    if (!obj || toString.call(obj) !== '[object Object]') {
-                        return false;
-                    }
-                    var has_own_constructor = hasOwn.call(obj, 'constructor');
-                    var has_is_property_of_method = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
-                    if (obj.constructor && !has_own_constructor && !has_is_property_of_method) {
-                        return false;
-                    }
-                    var key;
-                    for (key in obj) {
-                    }
-                    return key === undefined || hasOwn.call(obj, key);
-                };
-                return function extend() {
-                    'use strict';
-                    var options, name, src, copy, copyIsArray, clone, target = arguments[0], i = 1, length = arguments.length, deep = false;
-                    if (typeof target === 'boolean') {
-                        deep = target;
-                        target = arguments[1] || {};
-                        i = 2;
-                    } else if (typeof target !== 'object' && typeof target !== 'function' || target == null) {
-                        target = {};
-                    }
-                    for (; i < length; ++i) {
-                        options = arguments[i];
-                        if (options != null) {
-                            for (name in options) {
-                                src = target[name];
-                                copy = options[name];
-                                if (target === copy) {
-                                    continue;
-                                }
-                                if (deep && copy && (isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))) {
-                                    if (copyIsArray) {
-                                        copyIsArray = false;
-                                        clone = src && Array.isArray(src) ? src : [];
-                                    } else {
-                                        clone = src && isPlainObject(src) ? src : {};
-                                    }
-                                    target[name] = extend(deep, clone, copy);
-                                } else if (copy !== undefined) {
-                                    target[name] = copy;
-                                }
-                            }
-                        }
-                    }
-                    return target;
-                };
-            }(),
+            extend: Extend,
             isFunction: function (a) {
                 return typeof a === 'function';
             },
@@ -11454,8 +11426,8 @@ module.exports = function (Deferred) {
         }
     });
     return $;
-}(require('deferred'));
-},{"deferred":1}],113:[function(require,module,exports){
+}(require('apromise'), require('extend'));
+},{"apromise":1,"extend":2}],114:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -12773,7 +12745,7 @@ function decodeUtf8Char (str) {
   }
 }
 
-},{"base64-js":114,"ieee754":115,"is-array":116}],114:[function(require,module,exports){
+},{"base64-js":115,"ieee754":116,"is-array":117}],115:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -12899,7 +12871,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],115:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -12985,7 +12957,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],116:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 
 /**
  * isArray
@@ -13025,4 +12997,4 @@ module.exports = isArray || function (val) {
 global.$=require("./parser/tool")
 module.exports=require("./parser/openxml/docx/document")
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./parser/openxml/docx/document":43,"./parser/tool":112}]},{},[]);
+},{"./parser/openxml/docx/document":44,"./parser/tool":113}]},{},[]);
