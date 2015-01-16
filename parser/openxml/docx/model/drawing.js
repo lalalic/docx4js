@@ -34,7 +34,7 @@ define(['../model','./style'],function(Super, Style){
 			},
 			distL: function(x){
 				return this.distT(x)
-			},
+			}
 		}),
 		SpProperties: Style.Properties.extend({
 			naming: {

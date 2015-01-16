@@ -20,7 +20,10 @@ define(['jszip'],function(JSZip){
 			return buffer
 		},
 		parse: function(){},
-		release: function(){}
+		release: function(){},
+		factory: function(){
+			return this.constructor.factory.apply(this,arguments)
+		}
 	},{
 		load: function(inputFile){
 			var reader=new FileReader(),
@@ -31,10 +34,15 @@ define(['jszip'],function(JSZip){
 				raw.filter(function(path,file){
 					parts[path]=file
 				})
-				p.resolve(new DocumentSelf(parts,raw,{name:inputFile.name,lastModified:inputFile.lastModified,size:inputFile.size}))
+				p.resolve(new DocumentSelf(parts,raw,{
+					name:inputFile.name.replace(/\.docx$/i,''),
+					lastModified:inputFile.lastModified,
+					size:inputFile.size
+				}))
 			}
 			reader.readAsArrayBuffer(inputFile);
 			return p
-		}
+		},
+		factory: null
 	})
 })

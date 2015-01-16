@@ -7,7 +7,13 @@ define(['require','./model',
 './model/documentStyles','./model/style/document','./model/style/paragraph','./model/style/table','./model/style/inline','./model/style/numbering','./model/style/numberingDefinition','./model/style/list',
 './model/control/richtext','./model/control/text','./model/control/picture','./model/control/gallery','./model/control/combobox','./model/control/dropdown','./model/control/date','./model/control/checkbox',
 './model/equation','./model/OLE'], function(require, Model){
-	return function factory(wXml, doc, parent, more){
+	var models={'*':Model}
+	for(var i=2,model; i<arguments.length; i++){
+		model=arguments[i]
+		model.prototype.type && (models[model.prototype.type]=model)
+	}
+	
+	function factory(wXml, doc, parent, more){
 		var tag=wXml.localName, swap;
 		function attr(node,name){return node?node.attr(name):undefined}
 		
@@ -142,4 +148,8 @@ define(['require','./model',
 
 		return new Model(wXml,doc,parent)
 	}
+	
+	factory.map=models
+	
+	return factory
 })

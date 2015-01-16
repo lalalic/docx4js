@@ -19,6 +19,21 @@ define(['../document','./part'],function(Super,Part){
 				return part
 				
 			return this.parts[name]=new Part(name,this)
+		},
+		parse: function(){
+			Super.prototype.parse.apply(this,arguments)
+			this.getPart('core-properties').documentElement
+			.$('keywords,description,title').forEach(function(x){
+				var v=x.textContent.trim();
+				v.length && (this[x.localName]=v)
+			},this.props)
+			typeof this.props.keywords!='undefined' && (this.props.keywords=this.props.keywords.split(','));
+			
+			this.getPart('extended-properties').documentElement
+			.$('Template').forEach(function(x){
+				var v=x.textContent.trim();
+				v.length && (this[x.localName]=v)
+			},this.props)
 		}
 	},{
 		Visitor: $.newClass(function Any(srcModel, targetParent){
@@ -38,11 +53,11 @@ define(['../document','./part'],function(Super,Part){
 			case 'function':
 				break
 			case 'object':
-				var map=factory;
-				if(map['*'])
-					Any=map['*'];
-					
+				var rawMap=factory;
 				factory=function(srcModel, targetParent){
+					var map=factory.map
+					if(map['*'])
+						Any=map['*'];
 					var Visitor=map[srcModel.type], visitor, t;
 					if(!srcModel.type)
 						;
@@ -64,6 +79,8 @@ define(['../document','./part'],function(Super,Part){
 					if(!visitor._shouldIgnore())
 						return visitor
 				}
+				
+				factory.map=rawMap
 				break
 			case 'undefined':
 				factory=function(srcModel, targetParent){ 
@@ -80,6 +97,8 @@ define(['../document','./part'],function(Super,Part){
 					converter && (converter.options=opt);
 					return converter
 				}
+				if(typeof _raw.map!=undefined)
+					factory.map=_raw.map
 			}
 			
 			factory.with=function(targetParent){
