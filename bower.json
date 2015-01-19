@@ -1,6 +1,6 @@
 {
   "name": "docx4js",
-  "version": "0.10.0",
+  "version": "0.10.4",
   "homepage": "https://github.com/lalalic/docx4js",
   "authors": [
     "Raymond Li <lalalic@139.com>"
@@ -10,7 +10,7 @@
   "keywords": [
     "docx"
   ],
-  "license": "MIT",
+  "license": "GPL",
   "ignore": [
     "**/.*",
     "node_modules",
