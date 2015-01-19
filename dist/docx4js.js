@@ -9402,6 +9402,9 @@ module.exports = function (JSZip) {
         parse: function () {
         },
         release: function () {
+        },
+        factory: function () {
+            return this.constructor.factory.apply(this, arguments);
         }
     }, {
         load: function (inputFile) {
@@ -9412,14 +9415,15 @@ module.exports = function (JSZip) {
                     parts[path] = file;
                 });
                 p.resolve(new DocumentSelf(parts, raw, {
-                    name: inputFile.name,
+                    name: inputFile.name.replace(/\.docx$/i, ''),
                     lastModified: inputFile.lastModified,
                     size: inputFile.size
                 }));
             };
             reader.readAsArrayBuffer(inputFile);
             return p;
-        }
+        },
+        factory: null
     });
 }(require('jszip'));
 },{"jszip":11}],43:[function(require,module,exports){
@@ -9442,6 +9446,18 @@ module.exports = function (Super, Part) {
             if (Part.is(part))
                 return part;
             return this.parts[name] = new Part(name, this);
+        },
+        parse: function () {
+            Super.prototype.parse.apply(this, arguments);
+            this.getPart('core-properties').documentElement.$('keywords,description,title').forEach(function (x) {
+                var v = x.textContent.trim();
+                v.length && (this[x.localName] = v);
+            }, this.props);
+            typeof this.props.keywords != 'undefined' && (this.props.keywords = this.props.keywords.split(','));
+            this.getPart('extended-properties').documentElement.$('Template').forEach(function (x) {
+                var v = x.textContent.trim();
+                v.length && (this[x.localName] = v);
+            }, this.props);
         }
     }, {
         Visitor: $.newClass(function Any(srcModel, targetParent) {
@@ -9461,10 +9477,11 @@ module.exports = function (Super, Part) {
             case 'function':
                 break;
             case 'object':
-                var map = factory;
-                if (map['*'])
-                    Any = map['*'];
+                var rawMap = factory;
                 factory = function (srcModel, targetParent) {
+                    var map = factory.map;
+                    if (map['*'])
+                        Any = map['*'];
                     var Visitor = map[srcModel.type], visitor, t;
                     if (!srcModel.type);
                     else if (Visitor)
@@ -9483,6 +9500,7 @@ module.exports = function (Super, Part) {
                     if (!visitor._shouldIgnore())
                         return visitor;
                 };
+                factory.map = rawMap;
                 break;
             case 'undefined':
                 factory = function (srcModel, targetParent) {
@@ -9499,6 +9517,8 @@ module.exports = function (Super, Part) {
                     converter && (converter.options = opt);
                     return converter;
                 };
+                if (typeof _raw.map != undefined)
+                    factory.map = _raw.map;
             }
             factory.with = function (targetParent) {
                 function paramizedFactory(srcModel) {
@@ -9544,7 +9564,8 @@ module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
         type: 'Word',
         ext: 'docx',
         parse: function (visitFactories) {
-            this.content = factory(this.partMain.documentElement, this);
+            Super.prototype.parse.apply(this, arguments);
+            this.content = this.factory(this.partMain.documentElement, this);
             var roots = this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments));
             this.release();
             return roots.length == 1 ? roots[0] : roots;
@@ -9593,12 +9614,18 @@ module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
                     ids[id || style.id] = style;
                 }
             });
-        }
+        },
+        factory: factory
     });
 }(require('../document'), require('./factory'), require('./theme/font'), require('./theme/color'), require('./theme/format'));
 },{"../document":43,"./factory":45,"./theme/color":108,"./theme/font":109,"./theme/format":110}],45:[function(require,module,exports){
 module.exports = function (require, Model) {
-    return function factory(wXml, doc, parent, more) {
+    var models = { '*': Model };
+    for (var i = 2, model; i < arguments.length; i++) {
+        model = arguments[i];
+        model.prototype.type && (models[model.prototype.type] = model);
+    }
+    function factory(wXml, doc, parent, more) {
         var tag = wXml.localName, swap;
         function attr(node, name) {
             return node ? node.attr(name) : undefined;
@@ -9726,7 +9753,9 @@ module.exports = function (require, Model) {
         else if ('sectPr' == tag)
             return new (require('./model/section'))(wXml, doc, parent);
         return new Model(wXml, doc, parent);
-    };
+    }
+    factory.map = models;
+    return factory;
 }(require, require('./model'), require('./model/document'), require('./model/section'), require('./model/body'), require('./model/table'), require('./model/row'), require('./model/cell'), require('./model/paragraph'), require('./model/list'), require('./model/heading'), require('./model/inline'), require('./model/headingInline'), require('./model/text'), require('./model/fieldBegin'), require('./model/fieldInstruct'), require('./model/fieldSeparate'), require('./model/fieldEnd'), require('./model/fieldSimple'), require('./model/bookmarkStart'), require('./model/bookmarkEnd'), require('./model/tab'), require('./model/softHyphen'), require('./model/noBreakHyphen'), require('./model/symbol'), require('./model/br'), require('./model/hyperlink'), require('./model/drawingAnchor'), require('./model/shape'), require('./model/image'), require('./model/chart'), require('./model/diagram'), require('./model/documentStyles'), require('./model/style/document'), require('./model/style/paragraph'), require('./model/style/table'), require('./model/style/inline'), require('./model/style/numbering'), require('./model/style/numberingDefinition'), require('./model/style/list'), require('./model/control/richtext'), require('./model/control/text'), require('./model/control/picture'), require('./model/control/gallery'), require('./model/control/combobox'), require('./model/control/dropdown'), require('./model/control/date'), require('./model/control/checkbox'), require('./model/equation'), require('./model/OLE'));
 },{"./model":46,"./model/OLE":47,"./model/body":48,"./model/bookmarkEnd":49,"./model/bookmarkStart":50,"./model/br":51,"./model/cell":52,"./model/chart":53,"./model/control/checkbox":55,"./model/control/combobox":56,"./model/control/date":57,"./model/control/dropdown":58,"./model/control/gallery":59,"./model/control/picture":60,"./model/control/richtext":61,"./model/control/text":62,"./model/diagram":63,"./model/document":64,"./model/documentStyles":65,"./model/drawingAnchor":67,"./model/equation":68,"./model/fieldBegin":73,"./model/fieldEnd":74,"./model/fieldInstruct":75,"./model/fieldSeparate":76,"./model/fieldSimple":77,"./model/heading":81,"./model/headingInline":82,"./model/hyperlink":83,"./model/image":84,"./model/inline":85,"./model/list":86,"./model/noBreakHyphen":87,"./model/paragraph":88,"./model/row":90,"./model/section":92,"./model/shape":93,"./model/softHyphen":94,"./model/style/document":96,"./model/style/inline":97,"./model/style/list":98,"./model/style/numbering":99,"./model/style/numberingDefinition":100,"./model/style/paragraph":101,"./model/style/table":103,"./model/symbol":104,"./model/tab":105,"./model/table":106,"./model/text":107}],46:[function(require,module,exports){
 module.exports = function (Parser, require) {
@@ -9827,7 +9856,14 @@ module.exports = function (Super) {
 }(require('./graphic'));
 },{"./graphic":79}],54:[function(require,module,exports){
 module.exports = function (SDT) {
-    return SDT.extend({});
+    return SDT.extend({
+        getTag: function (t) {
+            return (t = this.wXml.$1('>sdtPr>tag')) && t.attr('w:val') || '';
+        },
+        isInline: function () {
+            return !this.wXml.$1('p,table');
+        }
+    });
 }(require('./sdt'));
 },{"./sdt":91}],55:[function(require,module,exports){
 module.exports = function (Control) {
@@ -10381,9 +10417,14 @@ module.exports = function (Model) {
     return Model.extend({
         type: 'hyperlink',
         getLink: function (a) {
-            return (a = this._attr('r:id')) ? this._getLocalLink(a) : '#' + this._attr('w:anchor');
+            if (!a) {
+                a = this._attr('r:id');
+            }
+            var ret = a ? this._getLocalLink(a) : '#' + this._attr('w:anchor');
+            return ret;
         },
         _getLocalLink: function (id) {
+            return this.wDoc.getRel(id);
         }
     });
 }(require('../model'));
@@ -11212,7 +11253,7 @@ module.exports = function (Shape) {
         line: function (idx, t) {
             if (t = this._line[idx])
                 return t;
-            return (t = this.wXml.$1('ln:nth-child(' + idx + ')')) && (this._line[idx] = this._converter.ln(t));
+            return (t = this.wXml.$1('ln:nth-child(' + (parseInt(idx) + 1) + ')')) && (this._line[idx] = this._converter.ln(t));
         },
         fill: function (idx, t) {
             idx = parseInt(idx);
@@ -11220,17 +11261,17 @@ module.exports = function (Shape) {
                 return this.bgFill(idx - 1000);
             if (t = this._fill[idx])
                 return t;
-            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._fill[idx] = this._converter[t.localName](t));
+            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + (parseInt(idx) + 1) + ')')) && (this._fill[idx] = this._converter[t.localName](t));
         },
         bgFill: function (idx) {
             if (t = this._bgFill[idx])
                 return t;
-            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._bgFill[idx] = this._converter[t.localName](t));
+            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + (parseInt(idx) + 1) + ')')) && (this._bgFill[idx] = this._converter[t.localName](t));
         },
         effect: function (idx) {
             if (t = this._effect[idx])
                 return t;
-            return (t = this.wXml.$1('effectStyle:nth-child(' + idx + ')>effectLst')) && (this._effect[idx] = this._converter.effectLst(t));
+            return (t = this.wXml.$1('effectStyle:nth-child(' + (parseInt(idx) + 1) + ')>effectLst')) && (this._effect[idx] = this._converter.effectLst(t));
         },
         font: function (idx) {
             if (t = this._font[idx])
@@ -11273,9 +11314,18 @@ module.exports = function () {
     }, {
         getRel: function (id) {
             var rel = this.rels[id];
+            if (!rel) {
+                return null;
+            }
             switch (rel.type) {
             case 'image':
                 return this.doc.getImagePart(rel.target);
+            case 'hyperlink':
+                var target = rel.target;
+                if (target) {
+                    target = target.replace('word/', '');
+                }
+                return target;
             default:
                 return this.doc.getPart(rel.target);
             }
@@ -11423,7 +11473,9 @@ module.exports = function (Deferred, Extend) {
             for (var i = 0, len = this.length; i < len; i++)
                 o.push(this[i]);
             return o;
-        }
+        },
+        forEach: Array.prototype.forEach,
+        map: Array.prototype.map
     });
     return $;
 }(require('apromise'), require('extend'));

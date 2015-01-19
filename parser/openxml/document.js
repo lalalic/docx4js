@@ -14,10 +14,10 @@ define(['../document','./part'],function(Super,Part){
 			var part=this.parts[name] || ((name=this.rels[name])&&this.parts[name])
 			if(!part)
 				return null
-				
-			if(Part.is(part)) 
+
+			if(Part.is(part))
 				return part
-				
+
 			return this.parts[name]=new Part(name,this)
 		},
 		parse: function(){
@@ -28,7 +28,7 @@ define(['../document','./part'],function(Super,Part){
 				v.length && (this[x.localName]=v)
 			},this.props)
 			typeof this.props.keywords!='undefined' && (this.props.keywords=this.props.keywords.split(','));
-			
+
 			this.getPart('extended-properties').documentElement
 			.$('Template').forEach(function(x){
 				var v=x.textContent.trim();
@@ -72,18 +72,18 @@ define(['../document','./part'],function(Super,Part){
 							}
 						}while(t.length>1)
 					}
-					
+
 					if(!visitor)
 						visitor=new Any(srcModel, targetParent);
-						
+
 					if(!visitor._shouldIgnore())
 						return visitor
 				}
-				
+
 				factory.map=rawMap
 				break
 			case 'undefined':
-				factory=function(srcModel, targetParent){ 
+				factory=function(srcModel, targetParent){
 					return new Any(srcModel, targetParent)
 				}
 				break
@@ -100,7 +100,7 @@ define(['../document','./part'],function(Super,Part){
 				if(typeof _raw.map!=undefined)
 					factory.map=_raw.map
 			}
-			
+
 			factory.with=function(targetParent){
 				function paramizedFactory(srcModel){
 					return factory(srcModel, targetParent)
@@ -108,7 +108,7 @@ define(['../document','./part'],function(Super,Part){
 				paramizedFactory.with=factory.with
 				return paramizedFactory
 			}
-			
+
 			return factory
 		}
 	})
