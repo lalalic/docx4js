@@ -146,7 +146,9 @@ define(['apromise','extend'], function(Deferred,Extend){
 			for(var i=0,len=this.length;i<len;i++)
 				o.push(this[i])
 			return o
-		}
+		},
+		forEach: Array.prototype.forEach,
+		map: Array.prototype.map
 	})
 
 	return $
