@@ -10,7 +10,7 @@ define(['../model','./style', './drawing'], function(Super,Style, Drawing){
 	},{
 		Properties: Style.Properties.extend($.extend({},Drawing.SpProperties.prototype,{
 			_getValidChildren: function(t){
-				return ((t=this.wXml.$('>style>*')) && t.asArray() ||[]).concat(this.wXml.$('>spPr>*').asArray())
+				return ((t=this.wXml.$('>style>*')) && t.asArray() ||[]).concat(this.wXml.$('>spPr>*, >bodyPr>*').asArray())
 			},
 			lnRef: function(x, t){
 				var o=this.wDoc.getFormatTheme().line(x.attr('idx'))
@@ -37,6 +37,9 @@ define(['../model','./style', './drawing'], function(Super,Style, Drawing){
 			},
 			effectRef: function(){
 				
+			},
+			spAutoFit: function(){
+				return true
 			}
 		}))
 	})

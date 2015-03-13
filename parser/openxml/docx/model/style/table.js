@@ -48,6 +48,12 @@ define(['../style','./paragraph','./inline'],function(Style, Paragraph, Inline){
 			},
 			tblStyleColBandSize: function(x){
 				return parseInt(x.attr('w:val'))
+			},
+			tblW: function(x){
+				return x.attr('w:type')=='pct' ? parseInt(x.attr('w:w'))*2/100+'%' : this.asPt(x.attr('w:w'))+'pt'
+			},
+			tblInd: function(x){
+				return this.asPt(x.attr('w:w'))
 			}
 		}),
 		RowProperties: Style.Properties.extend({

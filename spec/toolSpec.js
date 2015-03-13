@@ -1,0 +1,294 @@
+describe("node tool",function(){
+	Function.prototype.extractComment=function(input){
+		var content=this.toString()
+		return content.substring(content.indexOf('/*')+2, content.lastIndexOf('*/'));
+	}
+	var $=require('../parser/tool')
+	describe("basic functions",function(){
+		it("Deferred", function(){
+			expect($.Deferred).toBeTruthy()
+		})
+		
+		it("extend", function(){
+			expect($.extend).toBeTruthy()
+		})
+		
+		describe("helper",function(){
+			it("isFunction", function(){
+				expect($.isFunction(function(){})).toBe(true)
+			})
+			
+			describe("isArray", function(){
+				it("support new Array", function(){
+					expect($.isArray(new Array())).toBe(true)
+				})
+				
+				it("support []", function(){
+					expect($.isArray([])).toBe(true)
+				})
+			})
+			
+			it("support each", function(){
+				expect($.each).toBeTruthy()
+			})
+			
+			it("support map", function(){
+				expect($.map).toBeTruthy()
+			})
+		})
+	})
+	
+	describe("xml", function(){
+		it("support parser",function(){
+			expect($.parseXML).toBeTruthy()
+		})
+		
+		describe("parser", function(){
+			it("support xml without namespace", function(){
+				var doc=$.parseXML(function(){/*
+					<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+					<a>hello</a>				
+				*/}.extractComment())
+				expect(doc.documentElement.tagName).toEqual('a')
+			})
+			
+			it("support self close tag", function(){
+				var doc=$.parseXML(function(){/*
+					<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+					<a><b/></a>				
+				*/}.extractComment())
+				expect(doc.documentElement.tagName).toEqual('a')
+			})
+			
+			it("support node extension: Node.prototype.attr", function(){
+				var doc=$.parseXML(function(){/*
+					<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+					<a name="raymond"></a>				
+				*/}.extractComment())
+				expect(doc.documentElement.attr('name')).toEqual('raymond')
+			})
+			
+			it("support node extension: Node.prototype.remove", function(){
+				var doc=$.parseXML(function(){/*
+					<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+					<a><b/></a>				
+				*/}.extractComment()),
+				root=doc.documentElement;
+				expect(root.firstChild).toBeTruthy()
+				root.firstChild.remove()
+				expect(root.firstChild).toBeFalsy()
+			})
+			
+			it("support node extension: Node.prototype.uptrim", function(){
+				var doc=$.parseXML(function(){/*
+					<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+					<a><b><d/></b><c/></a>				
+				*/}.extractComment()),
+					root=doc.documentElement,
+					b=root.firstChild,
+					d=b.firstChild;
+				d.uptrim();
+				expect(root.firstChild.tagName).toEqual('c')
+			})
+			
+			it("support xml with namespaces, and tagName should startwith namespace such as w:styles", function(){
+				var doc=$.parseXML(function(){/*
+					<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+					<w:styles xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+						xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" 
+						xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" 
+						xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w14">
+						<w:docDefaults>
+							<w:rPrDefault>
+								<w:rPr>
+									<w:rFonts w:asciiTheme="minorHAnsi" w:eastAsiaTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" w:cstheme="minorBidi"/>
+									<w:sz w:val="22"/>
+									<w:szCs w:val="22"/>
+									<w:lang w:val="en-US" w:eastAsia="en-US" w:bidi="ar-SA"/>
+								</w:rPr>
+							</w:rPrDefault>
+							<w:pPrDefault>
+								<w:pPr>
+									<w:spacing w:after="200" w:line="276" w:lineRule="auto"/>
+								</w:pPr>
+							</w:pPrDefault>
+						</w:docDefaults>
+					<w:styles>	
+				*/}.extractComment());
+				expect(doc.documentElement.tagName).toEqual('w:styles')
+				expect(doc.documentElement.attr('mc:Ignorable')).toEqual('w14')
+			})
+			
+
+			describe("query", function(){
+				describe("tag", function(){
+					it("a",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b/></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('b').length).toEqual(1)
+						expect(root.$('a').length).toEqual(0)
+						expect(doc.$('a').length).toEqual(1)
+					})
+					
+					it("a with namespace",function(){
+						var doc=$.parseXML(function(){/*
+							<r:a><r:b/></r:a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('a').length).toEqual(0)
+						expect(doc.$('a').length).toEqual(1)
+					})
+					
+					it(">a",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b/></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(doc.childNodes.length).toEqual(1)
+						expect(doc.$('>a').length).toEqual(1)
+						expect(root.$('>b').length).toEqual(1)
+						expect(doc.$('>c').length).toEqual(0)
+					})
+					
+					it("a>b",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b><c/><c/></b></a>
+							*/}.extractComment());
+						expect(doc.$('a>b').length).toEqual(1)
+						expect(doc.$('c>b').length).toEqual(0)
+						expect(doc.$('b>c').length).toEqual(2)
+						expect(doc.$('a>b>c').length).toEqual(2)
+					})
+					
+					it("a>*",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b><c/><c/></b></a>
+							*/}.extractComment());
+						expect(doc.$('a>*').length).toEqual(1)
+						expect(doc.$('c>*').length).toEqual(0)
+						expect(doc.$('b>*').length).toEqual(2)
+						expect(doc.$('a>*>c').length).toEqual(2)
+					})
+					
+					it("*>b",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b><c/><c/></b></a>
+							*/}.extractComment());
+						try{
+							doc.$('*>c');
+							expect(1).toEqual(2)
+						}catch(error){
+							expect(1).toEqual(1)
+						}
+					})
+				})
+				
+				describe("attribute", function(){
+					it("not support *[br=1]", function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						try{	
+							root.$('[cr=1]')
+							expect(1).toEqual(2)
+						}catch(error){
+							expect(1).toEqual(1)
+						}
+					})
+					
+					it("b[br=1]", function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('b[br=1]').length).toEqual(1)
+						expect(root.$('b[br=2]').length).toEqual(0)
+						expect(root.$('c[cr=1]').length).toEqual(2)
+						expect(root.$('c[cr=2]').length).toEqual(1)
+						expect(doc.$('b[br=1]').length).toEqual(1)
+						expect(doc.$('b[br=2]').length).toEqual(0)
+						expect(doc.$('c[cr=1]').length).toEqual(2)
+						expect(doc.$('c[cr=2]').length).toEqual(1)
+					})
+					
+					it("a>b[br=1]", function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('a>b[br=1]>c[cr=2]').length).toEqual(0)
+						expect(doc.$('a>b[br=1]>c[cr=2]').length).toEqual(1)
+						expect(doc.$('a>b[br=1]>c[cr=1]').length).toEqual(2)
+						expect(doc.$('a>b[br=1]').length).toEqual(1)
+						expect(root.$('c>b[br=1]').length).toEqual(0)
+					})
+				})
+				
+				describe("function",function(){
+					it(":empty",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(doc.$('c:empty').length).toEqual(3)
+						expect(root.$('c:empty').length).toEqual(3)
+						expect(doc.$('a>b>c:empty').length).toEqual(3)
+						expect(doc.$('a>b:empty').length).toEqual(0)
+						expect(root.$('b:empty').length).toEqual(0)
+					})
+					
+					it(":not(:empty)", function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(doc.$('c:not(:empty)').length).toEqual(1)
+						expect(root.$('c:not(:empty)').length).toEqual(1)
+						
+						expect(root.$('b:not(:empty)').length).toEqual(1)
+						expect(doc.$('b:not(:empty)').length).toEqual(1)
+					})
+					
+					it(":first-child",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(doc.$('c:first-child').length).toEqual(1)
+						expect(root.$('b:first-child').length).toEqual(1)
+						expect(doc.$('a:first-child').length).toEqual(1)
+						expect(root.$('a:first-child').length).toEqual(0)
+					})
+					
+					it(":last-child",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(doc.$('c:last-child').length).toEqual(1)
+						expect(root.$('b:last-child').length).toEqual(1)
+						expect(doc.$('a:last-child').length).toEqual(1)
+						expect(root.$('a:last-child').length).toEqual(0)
+					})
+					
+					it(":nth-child",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(doc.$('c:nth-child(0)').length).toEqual(1)
+						expect(root.$('b:nth-child(0)').length).toEqual(1)
+						
+						expect(doc.$('c:nth-child(1)').length).toEqual(1)
+						expect(root.$('b:nth-child(1)').length).toEqual(0)
+						
+						expect(root.$('c:nth-child(2)').length).toEqual(1)
+					})
+				})
+			})
+		})
+	})
+})

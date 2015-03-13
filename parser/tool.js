@@ -2,16 +2,12 @@
 /**
 *  some utils extended on jquery
 */
+var DOMParser=require('xmldom').DOMParser;
 var $={
 	Deferred:require('apromise'),
-	parseXML: (DOMParser ? function(x){
-			return ( new DOMParser() ).parseFromString(x, "text/xml");
-		} : function(x) {
-			var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-			xmlDoc.async = "false";
-			xmlDoc.loadXML(x);
-			return xmlDoc;
-		}),
+	parseXML: function(x){
+		return new DOMParser().parseFromString(x, "text/xml");
+	},
 	extend: require('extend'),
 	isFunction: function(a){
 		return typeof a ==='function'
@@ -53,84 +49,26 @@ $.extend($,{
 	}
 });
 
-var DOMParser=require('xmldom').DOMParser;
-var a=new DOMParser().parseFromString('<a></a>','text/xml'),
-	Node=a.documentElement.constructor,
-	NodeList=a.documentElement.getElementsByTagName('a').constructor;
-
-	
-var elRe = /([.#:[])([-\w]+)(?:=([-\w]+)])?]?/g
-function findEl(node, sel, first) {
-	var el
-	, i = 0
-	, out = []
-	, rules = ["_"]
-	, tag = sel.replace(elRe, function(_, o, s, v) {
-		rules.push(
-			o == "." ? "(' '+_.className+' ').indexOf(' "+s+" ')>-1" :
-			o == "#" ? "_.id=='"+s+"'" :
-			"_.getAttribute('"+s+"')"+(v?"=='"+v+"'":"")
-		)
-		return ""
-	}) || "*"
-	, els = node.getElementsByTagName(tag)
-	, fn = Function("_", "return " + rules.join("&&"))
-
-	for (; el = els[i++]; ) if (fn(el)) {
-		if (first) return el
-		out.push(el)
+function extend(constructor, properties, classProperties){
+	var me=this
+	if(!$.isFunction(constructor)){
+		classProperties=properties
+		properties=constructor
+		constructor=function(){
+			me.apply(this,arguments)
+		}
 	}
-	return first ? null : out
+	$.extend(constructor.prototype, me.prototype, properties||{})
+	$.extend(constructor, me, classProperties||{})
+	return constructor
 }
 
-
+var a=new DOMParser().parseFromString('<a></a>','text/xml'),
+	Document=a.constructor,
+	Node=a.documentElement.constructor,
+	NodeList=a.childNodes.constructor;
 
 $.extend(Node.prototype,{
-	$: function(selector){
-		if(!directChildSelector.test(selector))
-			return this.querySelectorAll(selector)
-		else if(scopable)
-			return this.querySelectorAll(selector.split(',').map(function(a){
-					return a.trim().charAt(0)=='>' ? ':scope'+a : a
-				}).join(','))
-		else if(this.id){
-			return this.querySelectorAll(selector.split(',').map(function(a){
-					//return  '#'+this.id+((a=a.trim()).charAt(0)=='>' ? '' : ' ')+a
-					return (a=a.trim()).charAt(0)=='>' ? a.substring(1) : a
-				},this).join(',')) 
-		}else{
-			this.id=id
-			var nodes=this.querySelectorAll(selector.split(',').map(function(a){
-					//IE can't find '#xx', @todo: fix it later
-					//return  '#'+this.id+((a=a.trim()).charAt(0)=='>' ? '' : ' ')+a
-					return (a=a.trim()).charAt(0)=='>' ? a.substring(1) : a
-				},this).join(','))
-			delete this.id
-			return nodes
-		}
-	},
-	$1:function(selector){
-		if(!directChildSelector.test(selector))
-			return this.querySelector(selector)
-		else if(scopable)
-			return this.querySelector(selector.split(',').map(function(a){
-					return (a=a.trim()).charAt(0)=='>' ? ':scope'+a : a
-				}).join(','))
-		else if(this.id){
-			return this.querySelector(selector.split(',').map(function(a){
-					//return  '#'+this.id+((a=a.trim()).charAt(0)=='>' ? '' : ' ')+a
-					return (a=a.trim()).charAt(0)=='>' ? a.substring(1) : a
-				},this).join(',')) 
-		}else{
-			this.id=id
-			var nodes=this.querySelector(selector.split(',').map(function(a){
-					//return  '#'+this.id+((a=a.trim()).charAt(0)=='>' ? '' : ' ')+a
-					return (a=a.trim()).charAt(0)=='>' ? a.substring(1) : a
-				},this).join(','))
-			delete this.id
-			return nodes
-		}
-	},
 	attr: function(name, value){
 		if(arguments.length==1){
 			var attr=this.attributes.getNamedItem(name)
@@ -149,7 +87,7 @@ $.extend(Node.prototype,{
 		if(parent.childNodes.length==0)
 			parent.uptrim()
 	}
-})
+});
 
 $.extend(NodeList.prototype,{
 	asArray: function(o){
@@ -158,5 +96,101 @@ $.extend(NodeList.prototype,{
 			o.push(this[i])
 		return o
 	}
-})
+});
+		
+(function(){
+	var rnode=/(\w)?(\[.*\])*(\:.*)*/g, //[tagName][attributes][function]
+		rattr=/\[(\w+=\w+)\]/g,
+		rnth=/nth-child\((\d+)\)/;
+	
+	function findEl(node, sel, first) {
+		return Array.prototype.concat.apply([],$.map(sel.split(','),function(selector){
+			var finds, 
+				selectors=selector.split('>'), 
+				selector0=selectors.shift(),
+				last=selectors.length-1,
+				context=selector0.length ? queryEl(node,selector0,false) : [node];
+
+			context.length && $.each(selectors,function(selector, index){
+				$.map(context,function(ctx, i){
+					if(first && index==last && i>0 && context.length)
+						finds=context;
+					else
+						finds=queryEl(ctx, selector, true)
+				})
+				context=finds
+			})
+			finds=finds || context
+			return first ? finds[0] : finds
+		}));
+	}
+	
+	function queryEl(node,sel,direct){
+		var r=rnode.exec(sel), finds;
+		rnode.lastIndex=0;
+		if(r[1]){
+			if(direct){
+				finds=node.childNodes.asArray();
+				if(r[1]!='*')
+					finds=finds.filter(function(a){return a.localName==r[1]})
+			}else if(r[1]=='*'){
+				throw new Error("Not support: a *")
+			}else{
+				finds=node.getElementsByTagName(r[1]).asArray()
+			}
+		}else{
+			if(direct)
+				finds=node.childNodes.asArray()
+			else
+				throw new Error("Not support *[a=b]")
+		}
+			
+		if(finds.length && r[2]){
+			r[2].replace(rattr,function(a,b){
+				var as=b.split('=')
+				finds=finds.filter(function(a){
+					return a.attr(as[0])==as[1] 
+				})
+			})
+		}
+		
+		if(finds.length && r[3]){
+			switch(r[3]){
+			case ':empty':
+				finds=finds.filter(function(a){return a.childNodes.length==0})
+			break
+			case ':not(:empty)':
+				finds=finds.filter(function(a){return a.childNodes.length!=0})
+			break
+			case ':first-child':
+				finds=finds.filter(function(a){
+					return a.parentNode.firstChild==a
+				})
+			break
+			case ':last-child':
+				finds=finds.filter(function(a){
+					return a.parentNode.lastChild==a
+				})
+			default:
+				var t;
+				if(t=r[3].match(rnth)){
+					t=parseInt(t[1]);
+					finds=finds.filter(function(a){
+						return a.parentNode.childNodes[t]==a
+					})
+				}
+			}
+		}
+		return finds
+	}
+
+	Document.prototype.querySelectorAll=Document.prototype.$=Node.prototype.querySelectorAll=Node.prototype.$=function(selector){
+		return findEl(this,selector)
+	}
+	
+	Document.prototype.querySelector=Document.prototype.$1=Node.prototype.querySelector=Node.prototype.$1=function(selector){
+		return findEl(this,selector,true)
+	}
+})();
+
 module.exports=$

@@ -3,12 +3,16 @@ a javascript docx parser
 
 #install
 	$ npm install docx4js
+	
+#license
+GPL
 
 #API
 ```html
-	<script src="../dist/docx4js.js"></script>
-	<script>
-		var Text=(function(){
+	<head>
+		<script src="../dist/docx4js.js"></script>
+		<script>
+			var DOCX=require('docx4js')
 			var converter=[]
 			converter.visit=function(){
 				if(this.model.type=='paragraph')
@@ -16,32 +20,22 @@ a javascript docx parser
 				if(this.model.type=='text')
 					return this.push(this.model.getText())
 			}
-			
-			function factory(model, doc, parent){
-				converter.model=model
-				return converter
+
+			function test(input){
+				converter.splice(0,converter.length)
+				DOCX.load(input.files[0])
+					.then(function(doc){
+						input.value=""
+						document.$1('body>pre').innerHTML=""
+						doc.parse(DOCX.createVisitorFactory(), DOCX.createVisitorFactory(function(srcModel){
+							converter.model=srcModel
+							return converter;
+						}))
+						document.$1('body>pre').innerHTML=converter.join('')
+					})
 			}
-			
-			factory.with=function(parent){
-				return factory
-			}
-			
-			factory.asResult=function(){
-				return converter.join('')
-			}
-			
-			return factory
-		})();
-		function test(input){
-			require('docx4js').load(input.files[0])
-				.then(function(doc){
-					input.value=""
-					document.$1('body>pre').innerHTML=""
-					doc.parse(Text)
-					document.$1('body>pre').innerHTML=(Text.asResult())
-				})
-		}
-	</script>
+		</script>
+	</head>
 	<body>
 		<input type="file" style="position:absolute;top:0" onchange="test(this)">
 		<pre></pre>

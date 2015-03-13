@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "0.10.4",
+  "version": "0.11.0",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -23,8 +23,10 @@
   },
   "dependencies": {
 	"jszip":"*",
-	"extend":"latest",
-	"apromise":"latest"
+	"extend":"*",
+	"apromise":"*",
+	"xmldom":"*",
+	"jasmine-node":"*"
   },
   "main":"main.js",
   "browserify":{

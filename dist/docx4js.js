@@ -1569,7 +1569,10 @@ module.exports = isArray || function (val) {
 			isFunction: function(a){return typeof a == 'function' || false;},
 			isUndefined: function(a){return a === void 0;},
 			clone: function(a){return this.extend(true,{},a)},
-			arrayEach: function(a,f){a.forEach(f)},
+			arrayEach: function(a,f){
+				for(var i=0, len=a.length; i<len; i++)
+					f(a[i]);
+			},
 			isNullOrUndefined: function(a){return a===null || this.isUndefined()}
 		};
 		/**
@@ -10962,6 +10965,9 @@ module.exports = function (JSZip) {
         parse: function () {
         },
         release: function () {
+        },
+        factory: function () {
+            return this.constructor.factory.apply(this, arguments);
         }
     }, {
         load: function (inputFile) {
@@ -10972,14 +10978,15 @@ module.exports = function (JSZip) {
                     parts[path] = file;
                 });
                 p.resolve(new DocumentSelf(parts, raw, {
-                    name: inputFile.name,
+                    name: inputFile.name.replace(/\.docx$/i, ''),
                     lastModified: inputFile.lastModified,
                     size: inputFile.size
                 }));
             };
             reader.readAsArrayBuffer(inputFile);
             return p;
-        }
+        },
+        factory: null
     });
 }(require('jszip'));
 },{"jszip":15}],47:[function(require,module,exports){
@@ -11002,6 +11009,18 @@ module.exports = function (Super, Part) {
             if (Part.is(part))
                 return part;
             return this.parts[name] = new Part(name, this);
+        },
+        parse: function () {
+            Super.prototype.parse.apply(this, arguments);
+            this.getPart('core-properties').documentElement.$('keywords,description,title').forEach(function (x) {
+                var v = x.textContent.trim();
+                v.length && (this[x.localName] = v);
+            }, this.props);
+            typeof this.props.keywords != 'undefined' && (this.props.keywords = this.props.keywords.split(','));
+            this.getPart('extended-properties').documentElement.$('Template').forEach(function (x) {
+                var v = x.textContent.trim();
+                v.length && (this[x.localName] = v);
+            }, this.props);
         }
     }, {
         Visitor: $.newClass(function Any(srcModel, targetParent) {
@@ -11021,10 +11040,11 @@ module.exports = function (Super, Part) {
             case 'function':
                 break;
             case 'object':
-                var map = factory;
-                if (map['*'])
-                    Any = map['*'];
+                var rawMap = factory;
                 factory = function (srcModel, targetParent) {
+                    var map = factory.map;
+                    if (map['*'])
+                        Any = map['*'];
                     var Visitor = map[srcModel.type], visitor, t;
                     if (!srcModel.type);
                     else if (Visitor)
@@ -11043,6 +11063,7 @@ module.exports = function (Super, Part) {
                     if (!visitor._shouldIgnore())
                         return visitor;
                 };
+                factory.map = rawMap;
                 break;
             case 'undefined':
                 factory = function (srcModel, targetParent) {
@@ -11059,6 +11080,8 @@ module.exports = function (Super, Part) {
                     converter && (converter.options = opt);
                     return converter;
                 };
+                if (typeof _raw.map != undefined)
+                    factory.map = _raw.map;
             }
             factory.with = function (targetParent) {
                 function paramizedFactory(srcModel) {
@@ -11104,7 +11127,8 @@ module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
         type: 'Word',
         ext: 'docx',
         parse: function (visitFactories) {
-            this.content = factory(this.partMain.documentElement, this);
+            Super.prototype.parse.apply(this, arguments);
+            this.content = this.factory(this.partMain.documentElement, this);
             var roots = this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments));
             this.release();
             return roots.length == 1 ? roots[0] : roots;
@@ -11153,12 +11177,18 @@ module.exports = function (Super, factory, FontTheme, ColorTheme, FormatTheme) {
                     ids[id || style.id] = style;
                 }
             });
-        }
+        },
+        factory: factory
     });
 }(require('../document'), require('./factory'), require('./theme/font'), require('./theme/color'), require('./theme/format'));
 },{"../document":47,"./factory":49,"./theme/color":112,"./theme/font":113,"./theme/format":114}],49:[function(require,module,exports){
 module.exports = function (require, Model) {
-    return function factory(wXml, doc, parent, more) {
+    var models = { '*': Model };
+    for (var i = 2, model; i < arguments.length; i++) {
+        model = arguments[i];
+        model.prototype.type && (models[model.prototype.type] = model);
+    }
+    function factory(wXml, doc, parent, more) {
         var tag = wXml.localName, swap;
         function attr(node, name) {
             return node ? node.attr(name) : undefined;
@@ -11286,7 +11316,9 @@ module.exports = function (require, Model) {
         else if ('sectPr' == tag)
             return new (require('./model/section'))(wXml, doc, parent);
         return new Model(wXml, doc, parent);
-    };
+    }
+    factory.map = models;
+    return factory;
 }(require, require('./model'), require('./model/document'), require('./model/section'), require('./model/body'), require('./model/table'), require('./model/row'), require('./model/cell'), require('./model/paragraph'), require('./model/list'), require('./model/heading'), require('./model/inline'), require('./model/headingInline'), require('./model/text'), require('./model/fieldBegin'), require('./model/fieldInstruct'), require('./model/fieldSeparate'), require('./model/fieldEnd'), require('./model/fieldSimple'), require('./model/bookmarkStart'), require('./model/bookmarkEnd'), require('./model/tab'), require('./model/softHyphen'), require('./model/noBreakHyphen'), require('./model/symbol'), require('./model/br'), require('./model/hyperlink'), require('./model/drawingAnchor'), require('./model/shape'), require('./model/image'), require('./model/chart'), require('./model/diagram'), require('./model/documentStyles'), require('./model/style/document'), require('./model/style/paragraph'), require('./model/style/table'), require('./model/style/inline'), require('./model/style/numbering'), require('./model/style/numberingDefinition'), require('./model/style/list'), require('./model/control/richtext'), require('./model/control/text'), require('./model/control/picture'), require('./model/control/gallery'), require('./model/control/combobox'), require('./model/control/dropdown'), require('./model/control/date'), require('./model/control/checkbox'), require('./model/equation'), require('./model/OLE'));
 },{"./model":50,"./model/OLE":51,"./model/body":52,"./model/bookmarkEnd":53,"./model/bookmarkStart":54,"./model/br":55,"./model/cell":56,"./model/chart":57,"./model/control/checkbox":59,"./model/control/combobox":60,"./model/control/date":61,"./model/control/dropdown":62,"./model/control/gallery":63,"./model/control/picture":64,"./model/control/richtext":65,"./model/control/text":66,"./model/diagram":67,"./model/document":68,"./model/documentStyles":69,"./model/drawingAnchor":71,"./model/equation":72,"./model/fieldBegin":73,"./model/fieldEnd":74,"./model/fieldInstruct":75,"./model/fieldSeparate":76,"./model/fieldSimple":77,"./model/heading":85,"./model/headingInline":86,"./model/hyperlink":87,"./model/image":88,"./model/inline":89,"./model/list":90,"./model/noBreakHyphen":91,"./model/paragraph":92,"./model/row":94,"./model/section":96,"./model/shape":97,"./model/softHyphen":98,"./model/style/document":100,"./model/style/inline":101,"./model/style/list":102,"./model/style/numbering":103,"./model/style/numberingDefinition":104,"./model/style/paragraph":105,"./model/style/table":107,"./model/symbol":108,"./model/tab":109,"./model/table":110,"./model/text":111}],50:[function(require,module,exports){
 module.exports = function (Parser, require) {
@@ -11387,7 +11419,14 @@ module.exports = function (Super) {
 }(require('./graphic'));
 },{"./graphic":83}],58:[function(require,module,exports){
 module.exports = function (SDT) {
-    return SDT.extend({});
+    return SDT.extend({
+        getTag: function (t) {
+            return (t = this.wXml.$1('>sdtPr>tag')) && t.attr('w:val') || '';
+        },
+        isInline: function () {
+            return !this.wXml.$1('p,table');
+        }
+    });
 }(require('./sdt'));
 },{"./sdt":95}],59:[function(require,module,exports){
 module.exports = function (Control) {
@@ -12099,7 +12138,7 @@ module.exports = function (Super, Style, Drawing) {
     }, {
         Properties: Style.Properties.extend($.extend({}, Drawing.SpProperties.prototype, {
             _getValidChildren: function (t) {
-                return ((t = this.wXml.$('>style>*')) && t.asArray() || []).concat(this.wXml.$('>spPr>*').asArray());
+                return ((t = this.wXml.$('>style>*')) && t.asArray() || []).concat(this.wXml.$('>spPr>*, >bodyPr>*').asArray());
             },
             lnRef: function (x, t) {
                 var o = this.wDoc.getFormatTheme().line(x.attr('idx'));
@@ -12128,6 +12167,9 @@ module.exports = function (Super, Style, Drawing) {
                 };
             },
             effectRef: function () {
+            },
+            spAutoFit: function () {
+                return true;
             }
         }))
     });
@@ -12552,6 +12594,12 @@ module.exports = function (Style, Paragraph, Inline) {
             },
             tblStyleColBandSize: function (x) {
                 return parseInt(x.attr('w:val'));
+            },
+            tblW: function (x) {
+                return x.attr('w:type') == 'pct' ? parseInt(x.attr('w:w')) * 2 / 100 + '%' : this.asPt(x.attr('w:w')) + 'pt';
+            },
+            tblInd: function (x) {
+                return this.asPt(x.attr('w:w'));
             }
         }),
         RowProperties: Style.Properties.extend({
@@ -12732,7 +12780,7 @@ module.exports = function (Shape) {
         line: function (idx, t) {
             if (t = this._line[idx])
                 return t;
-            return (t = this.wXml.$1('ln:nth-child(' + idx + ')')) && (this._line[idx] = this._converter.ln(t));
+            return (t = this.wXml.$1('ln:nth-child(' + (parseInt(idx) + 1) + ')')) && (this._line[idx] = this._converter.ln(t));
         },
         fill: function (idx, t) {
             idx = parseInt(idx);
@@ -12740,17 +12788,17 @@ module.exports = function (Shape) {
                 return this.bgFill(idx - 1000);
             if (t = this._fill[idx])
                 return t;
-            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._fill[idx] = this._converter[t.localName](t));
+            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + (parseInt(idx) + 1) + ')')) && (this._fill[idx] = this._converter[t.localName](t));
         },
         bgFill: function (idx) {
             if (t = this._bgFill[idx])
                 return t;
-            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + idx + ')')) && (this._bgFill[idx] = this._converter[t.localName](t));
+            return (t = this.wXml.$1('bgFillStyleLst>:nth-child(' + (parseInt(idx) + 1) + ')')) && (this._bgFill[idx] = this._converter[t.localName](t));
         },
         effect: function (idx) {
             if (t = this._effect[idx])
                 return t;
-            return (t = this.wXml.$1('effectStyle:nth-child(' + idx + ')>effectLst')) && (this._effect[idx] = this._converter.effectLst(t));
+            return (t = this.wXml.$1('effectStyle:nth-child(' + (parseInt(idx) + 1) + ')>effectLst')) && (this._effect[idx] = this._converter.effectLst(t));
         },
         font: function (idx) {
             if (t = this._font[idx])
@@ -12943,7 +12991,9 @@ module.exports = function (Deferred, Extend) {
             for (var i = 0, len = this.length; i < len; i++)
                 o.push(this[i]);
             return o;
-        }
+        },
+        forEach: Array.prototype.forEach,
+        map: Array.prototype.map
     });
     return $;
 }(require('apromise'), require('extend'));
