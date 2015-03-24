@@ -12927,6 +12927,7 @@ module.exports = function (Deferred, Extend) {
     }
     $.extend(Node.prototype, {
         $: function (selector) {
+            console.warn(selector);
             if (!directChildSelector.test(selector))
                 return this.querySelectorAll(selector);
             else if (scopable)
@@ -12947,6 +12948,7 @@ module.exports = function (Deferred, Extend) {
             }
         },
         $1: function (selector) {
+            console.warn(selector);
             if (!directChildSelector.test(selector))
                 return this.querySelector(selector);
             else if (scopable)

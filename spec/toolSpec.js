@@ -132,6 +132,19 @@ describe("node tool",function(){
 						expect(doc.$('a').length).toEqual(1)
 					})
 					
+					it("",function(){
+						var doc=$.parseXML(function(){/*
+							<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+							<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+								<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>
+								<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>
+								<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+							</Relationships>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('Relationship').length).toEqual(3)
+					})
+					
 					it("a with namespace",function(){
 						var doc=$.parseXML(function(){/*
 							<r:a><r:b/></r:a>

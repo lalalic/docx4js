@@ -99,7 +99,7 @@ $.extend(NodeList.prototype,{
 });
 		
 (function(){
-	var rnode=/(\w)?(\[.*\])*(\:.*)*/g, //[tagName][attributes][function]
+	var rnode=/(\w+)?(\[.*\])*(\:.*)*/g, //[tagName][attributes][function]
 		rattr=/\[(\w+=\w+)\]/g,
 		rnth=/nth-child\((\d+)\)/;
 	

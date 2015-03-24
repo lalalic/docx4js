@@ -14,12 +14,15 @@ define([],function(){
 			}
 			
 			if(!doc.parts[relName]) return;
-			$.parseXML(doc.parts[relName].asText()).documentElement.$('Relationship').asArray()
-			.forEach(function(a){
-				this.rels[a.getAttribute('Id')]={
-					type:a.getAttribute('Type').split('/').pop(),
-					target:(folder ? (folder+"/") : '')+a.getAttribute('Target')}
-			},this)
+			//console.log("part:"+name+",relName:"+relName+",folder:"+folder+", text:"+doc.parts[relName].asText())
+			$.parseXML(doc.parts[relName].asText())
+				.documentElement.childNodes
+				.asArray()
+				.forEach(function(a, i){
+					this.rels[a.getAttribute('Id')]={
+						type:a.getAttribute('Type').split('/').pop(),
+						target:(folder ? (folder+"/") : '')+a.getAttribute('Target')}
+				},this)
 		},{
 		getRel:function(id){
 			var rel=this.rels[id]
