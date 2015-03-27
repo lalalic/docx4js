@@ -36,6 +36,11 @@ define(['../document','./part'],function(Super,Part){
 			},this.props)
 		}
 	},{
+		/**
+		 *  A visitor to visit a type of word model
+		 *  srcModel: identified word model
+		 *  targetParent: the result created by visitor of srcModel's parent model
+		 */
 		Visitor: $.newClass(function Any(srcModel, targetParent){
 				this.srcModel=srcModel
 				this.parent=parent
@@ -47,6 +52,16 @@ define(['../document','./part'],function(Super,Part){
 					return false
 				}
 			}),
+		/**
+		 *  To create a factory function that to create a visitor specific to word model types
+		 *  factory: it could be following type
+		 *  	* function(wordModel, targetParent) : 
+		 *  			wordModel: identified word model 
+		 *  			targetParent: the result created by visitor of srcModel's parent model
+		 *  	* object: {'word model type name': Visitor Class}
+		 *  	* undefined: a default factory just to info type of word model in console
+		 *  opt: a global option to all visitor instances created by the factory, refered by visitor.options
+		 */
 		createVisitorFactory: function(factory, opt){
 			var Any=this.Visitor
 			switch(typeof factory){

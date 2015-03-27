@@ -104,7 +104,7 @@ $.extend(NodeList.prototype,{
 		rnth=/nth-child\((\d+)\)/;
 	
 	function findEl(node, sel, first) {
-		return Array.prototype.concat.apply([],$.map(sel.split(','),function(selector){
+		var all=Array.prototype.concat.apply([],$.map(sel.split(','),function(selector){
 			var finds, 
 				selectors=selector.split('>'), 
 				selector0=selectors.shift(),
@@ -120,9 +120,9 @@ $.extend(NodeList.prototype,{
 				})
 				context=finds
 			})
-			finds=finds || context
-			return first ? finds[0] : finds
+			return finds || context || []
 		}));
+		return first ? all[0] : all;
 	}
 	
 	function queryEl(node,sel,direct){
