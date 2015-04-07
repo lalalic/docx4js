@@ -2,117 +2,120 @@
 /**
 *  some utils extended on jquery
 */
-var DOMParser=require('xmldom').DOMParser;
-var $={
-	Deferred:require('apromise'),
-	parseXML: function(x){
-		return new DOMParser().parseFromString(x, "text/xml");
-	},
-	extend: require('extend'),
-	isFunction: function(a){
-		return typeof a ==='function'
-	},
-	isArray: function(a){
-		return Array.isArray(a)
-	},
-	each: function(a,f,ctx){
-		if(Array.isArray(a)){
-			a.forEach(f,ctx)
-		}else if(typeof a ==='object'){
-			Object.keys(a).forEach(function(k){
-				f.call(ctx,k,a[k])
-			})
+(function(parseXML, Document, Node, NodeList){
+	var $={
+		Deferred:require('apromise'),
+		parseXML: parseXML,
+		extend: require('extend'),
+		isFunction: function(a){
+			return typeof a ==='function'
+		},
+		isArray: function(a){
+			return Array.isArray(a)
+		},
+		each: function(a,f,ctx){
+			if(Array.isArray(a)){
+				a.forEach(f,ctx)
+			}else if(typeof a ==='object'){
+				Object.keys(a).forEach(function(k){
+					f.call(ctx,k,a[k])
+				})
+			}
+		},
+		map: function(a,f,ctx){
+			return a.map(f,ctx)
 		}
-	},
-	map: function(a,f,ctx){
-		return a.map(f,ctx)
-	}
-};
-	
-$.extend($,{
-	toArray: function(args){
-		var a=[];
-		for(var i=0,len=args.length;i<len;i++)
-			a.push(args[i])
-		return a
-	},
-	newClass: function (constructor, properties, classProperties) {
+	};
+		
+	$.extend($,{
+		toArray: function(args){
+			var a=[];
+			for(var i=0,len=args.length;i<len;i++)
+				a.push(args[i])
+			return a
+		},
+		newClass: function (constructor, properties, classProperties) {
+			if(!$.isFunction(constructor)){
+				classProperties=properties
+				properties=constructor
+				constructor=function(){}
+			}
+			$.extend(constructor.prototype, properties||{})
+			classProperties && $.extend(constructor, classProperties)
+			constructor.extend=extend
+			return constructor;
+		}
+	});
+
+	function extend(constructor, properties, classProperties){
+		var me=this
 		if(!$.isFunction(constructor)){
 			classProperties=properties
 			properties=constructor
-			constructor=function(){}
+			constructor=function(){
+				me.apply(this,arguments)
+			}
 		}
-		$.extend(constructor.prototype, properties||{})
-		classProperties && $.extend(constructor, classProperties)
-		constructor.extend=extend
-		return constructor;
+		$.extend(constructor.prototype, me.prototype, properties||{})
+		$.extend(constructor, me, classProperties||{})
+		return constructor
 	}
-});
 
-function extend(constructor, properties, classProperties){
-	var me=this
-	if(!$.isFunction(constructor)){
-		classProperties=properties
-		properties=constructor
-		constructor=function(){
-			me.apply(this,arguments)
+	$.extend(Node.prototype,{
+		attr: function(name, value){
+			if(arguments.length==1){
+				var attr=this.attributes.getNamedItem(name)
+				return attr ? attr.value : undefined
+			}else if(value==null)
+				this.removeAttribute(name)
+			else
+				this.setAttribute(name,value)
+		},
+		remove: Node.prototype.remove || function(){
+			this.parentNode.removeChild(this)
+		},
+		uptrim: function(){
+			var parent=this.parentNode
+			this.remove()
+			if(parent.childNodes.length==0)
+				parent.uptrim()
 		}
-	}
-	$.extend(constructor.prototype, me.prototype, properties||{})
-	$.extend(constructor, me, classProperties||{})
-	return constructor
-}
+	});
 
-var a=new DOMParser().parseFromString('<a></a>','text/xml'),
-	Document=a.constructor,
-	Node=a.documentElement.constructor,
-	NodeList=a.childNodes.constructor;
+	$.extend(NodeList.prototype,{
+		asArray: function(o){
+			o=o||[]
+			for(var i=0,len=this.length;i<len;i++)
+				o.push(this[i])
+			return o
+		}
+	});
 
-$.extend(Node.prototype,{
-	attr: function(name, value){
-		if(arguments.length==1){
-			var attr=this.attributes.getNamedItem(name)
-			return attr ? attr.value : undefined
-		}else if(value==null)
-			this.removeAttribute(name)
-		else
-			this.setAttribute(name,value)
-	},
-	remove: Node.prototype.remove || function(){
-		this.parentNode.removeChild(this)
-	},
-	uptrim: function(){
-		var parent=this.parentNode
-		this.remove()
-		if(parent.childNodes.length==0)
-			parent.uptrim()
+	module.exports=$
+}).apply(null, (function(DOMParser){
+	function parse(x){
+		return new DOMParser().parseFromString(x, "text/xml")
 	}
-});
-
-$.extend(NodeList.prototype,{
-	asArray: function(o){
-		o=o||[]
-		for(var i=0,len=this.length;i<len;i++)
-			o.push(this[i])
-		return o
-	}
-});
-		
-(function(){
-	var rnode=/(\w+)?(\[.*\])*(\:.*)*/g, //[tagName][attributes][function]
-		rattr=/\[(\w+=\w+)\]/g,
-		rnth=/nth-child\((\d+)\)/;
 	
+	var a=parse('<a></a>'),
+		Document=a.constructor,
+		Node=a.documentElement.constructor,
+		NodeList=a.childNodes.constructor
+		
+	var rnode=/(\w+)?(\[.*\])*(\:.*)*/g, //[tagName][attributes][function]
+			rattr=/\[(\w+=\w+)\]/g,
+			rnth=/nth-child\((\d+)\)/;
+		
 	function findEl(node, sel, first) {
-		var all=Array.prototype.concat.apply([],$.map(sel.split(','),function(selector){
+		var all=Array.prototype.concat.apply([],sel.split(',').map(function(selector){
 			var finds, 
 				selectors=selector.split('>'), 
 				selector0=selectors.shift(),
 				last=selectors.length-1,
 				context=selector0.length ? queryEl(node,selector0,false) : [node];
 
-			context.length && $.each(selectors,function(selector, index){
-				$.map(context,function(ctx, i){
+			context.length && selectors.forEach(function(selector, index){
+				context.map(function(ctx, i){
 					if(first && index==last && i>0 && context.length)
 						finds=context;
 					else
@@ -190,7 +193,6 @@ $.extend(NodeList.prototype,{
 	
 	Document.prototype.querySelector=Document.prototype.$1=Node.prototype.querySelector=Node.prototype.$1=function(selector){
 		return findEl(this,selector,true)
-	}
-})();
-
-module.exports=$
+	}	
+	return [parse, Document, Node, NodeList]
+})(require('xmldom').DOMParser));

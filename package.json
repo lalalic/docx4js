@@ -11,33 +11,38 @@
     "parser",
     "javascript"
   ],
-  "license":"GPL",
-  "readme":"README.md",
+  "license": "GPL",
+  "readme": "README.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/lalalic/docx4js.git"
   },
   "devDependencies": {
-    "requirejs": "*",
-	"adeamdify": "*"
+    "adeamdify": ">=0.1.1",
+    "gulp": "^3.8.11",
+    "jasmine": "^2.2.1",
+    "jasmine-node": "^2.0.0",
+    "requirejs": ">=2.1.15"
   },
   "dependencies": {
-	"jszip":"*",
-	"extend":"*",
-	"apromise":"*",
-	"xmldom":"*",
-	"jasmine-node":"*"
+    "apromise": ">0.1.0",
+    "extend": ">=2.0.0",
+    "jsdom": "^3.1.2",
+    "jszip": ">=2.4.0",
+    "xmldom": "^0.1.19"
   },
-  "main":"main.js",
-  "browserify":{
-	"transform":["adeamdify"]
+  "main": "main.js",
+  "browserify": {
+    "transform": [
+      "adeamdify"
+    ]
   },
-	"browser": {
-		"./parser/tool.js": "./parser/tool-browser.js"
-	 },
+  "browser": {
+    "./parser/tool.js": "./parser/tool-browser.js"
+  },
   "scripts": {
-	"pretest": "browserify -t adeamdify -r ./main.js:docx4js -o dist/docx4js.js | uglifyjs dist/docx4js.js -o dist/docx4js.min.js",
-	"prepublish": "browserify -t adeamdify -r ./main.js:docx4js -o dist/docx4js.js | uglifyjs dist/docx4js.js -o dist/docx4js.min.js",
-	"test": "echo 0"
+    "pretest": "browserify -t adeamdify -r ./main.js:docx4js -o dist/docx4js.js | uglifyjs dist/docx4js.js -o dist/docx4js.min.js",
+    "prepublish": "browserify -t adeamdify -r ./main.js:docx4js -o dist/docx4js.js | uglifyjs dist/docx4js.js -o dist/docx4js.min.js",
+    "test": "echo 0"
   }
 }
