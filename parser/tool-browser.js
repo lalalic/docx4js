@@ -3,7 +3,7 @@
  *  some utils
  */
 define(['apromise','extend'], function(Deferred,Extend){
-	var $=window.$={
+	var $={
 		Deferred:Deferred,
 		parseXML: (DOMParser ? function(x){
 				return ( new DOMParser() ).parseFromString(x, "text/xml");
@@ -151,5 +151,5 @@ define(['apromise','extend'], function(Deferred,Extend){
 		map: Array.prototype.map
 	})
 
-	return $
+	return window.$=$
 });

@@ -1,7 +1,5 @@
 describe("server side parse posibility",function(){
-	require('./requireAMD');
 	var Docx4js;
-	
 	function checkModel(doc, models){
 		var converter=[]
 		converter.visit=function(){
