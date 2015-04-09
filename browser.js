@@ -1,2 +1,2 @@
-global.$=require("./parser/tool-browser")
+require("./parser/tool")
 module.exports=require("./parser/openxml/docx/document")
