@@ -128,11 +128,6 @@ define(['apromise','extend'], function(Deferred,Extend){
 			}
 		})
 		
-		if(typeof(Document.prototype.$)=='undefined'){
-			Document.prototype.$=Node.prototype.$
-			Document.prototype.$1=Node.prototype.$1
-		}
-		
 		$.extend(NodeList.prototype,{
 			asArray: function(o){
 				o=o||[]
@@ -165,7 +160,7 @@ define(['apromise','extend'], function(Deferred,Extend){
 				return false
 			}
 		}
-		return window.$=makeTool(parser, Document, Node, NodeList, supportScopeSelector())
+		return window.$=makeTool(parser, Document, Element, NodeList, supportScopeSelector())
 	}else
 		return makeTool
 });

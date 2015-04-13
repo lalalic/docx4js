@@ -130,13 +130,11 @@ describe("node tool",function(){
 							*/}.extractComment()),
 							root=doc.documentElement;
 						expect(root.$('b').length).toEqual(2)
-						expect(root.$('a').length).toEqual(0)
-						expect(doc.$('a').length).toEqual(1)
-						
+						expect(root.$('a').length).toEqual(0)						
 						expect(root.$1('b').tagName).toEqual('b')
 					})
 					
-					it("",function(){
+					it("simple tag",function(){
 						var doc=$.parseXML(function(){/*
 							<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 							<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
@@ -155,38 +153,37 @@ describe("node tool",function(){
 							*/}.extractComment()),
 							root=doc.documentElement;
 						expect(root.$('a').length).toEqual(0)
-						expect(doc.$('a').length).toEqual(1)
 					})
 					
 					it(">a",function(){
 						var doc=$.parseXML(function(){/*
-							<a><b/></a>
+							<a><b><c/><c/></b></a>
 							*/}.extractComment()),
 							root=doc.documentElement;
-						expect(doc.childNodes.length).toEqual(1)
-						expect(doc.$('>a').length).toEqual(1)
 						expect(root.$('>b').length).toEqual(1)
-						expect(doc.$('>c').length).toEqual(0)
+						expect(root.$1('>b').$('>c').length).toEqual(2)
 					})
 					
 					it("a>b",function(){
 						var doc=$.parseXML(function(){/*
 							<a><b><c/><c/></b></a>
-							*/}.extractComment());
-						expect(doc.$('a>b').length).toEqual(1)
-						expect(doc.$('c>b').length).toEqual(0)
-						expect(doc.$('b>c').length).toEqual(2)
-						expect(doc.$('a>b>c').length).toEqual(2)
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('a>b').length).toEqual(1)
+						expect(root.$('c>b').length).toEqual(0)
+						expect(root.$('b>c').length).toEqual(2)
+						expect(root.$('a>b>c').length).toEqual(2)
 					})
 					
 					it("a>*",function(){
 						var doc=$.parseXML(function(){/*
 							<a><b><c/><c/></b></a>
-							*/}.extractComment());
-						expect(doc.$('a>*').length).toEqual(1)
-						expect(doc.$('c>*').length).toEqual(0)
-						expect(doc.$('b>*').length).toEqual(2)
-						expect(doc.$('a>*>c').length).toEqual(2)
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('a>*').length).toEqual(1)
+						expect(root.$('c>*').length).toEqual(0)
+						expect(root.$('b>*').length).toEqual(2)
+						expect(root.$('a>*>c').length).toEqual(2)
 					})
 					
 					it("*>b",function(){
@@ -194,7 +191,7 @@ describe("node tool",function(){
 							<a><b><c/><c/></b></a>
 							*/}.extractComment());
 						try{
-							doc.$('*>c');
+							doc.documentElement.$('*>c');
 						}catch(error){
 							expect(error).toBeUndefined()
 						}
@@ -211,10 +208,6 @@ describe("node tool",function(){
 						expect(root.$('b[br="2"]').length).toEqual(0)
 						expect(root.$('c[cr="1"]').length).toEqual(2)
 						expect(root.$('c[cr="2"]').length).toEqual(1)
-						expect(doc.$('b[br="1"]').length).toEqual(1)
-						expect(doc.$('b[br="2"]').length).toEqual(0)
-						expect(doc.$('c[cr="1"]').length).toEqual(2)
-						expect(doc.$('c[cr="2"]').length).toEqual(1)
 					})
 					
 					it('a>b[br="1"]', function(){
@@ -223,24 +216,65 @@ describe("node tool",function(){
 							*/}.extractComment()),
 							root=doc.documentElement;
 						expect(root.$('a>b[br="1"]>c[cr="2"]').length).toEqual(1)
-						expect(doc.$('a>b[br="1"]>c[cr="2"]').length).toEqual(1)
-						expect(doc.$('a>b[br="1"]>c[cr="1"]').length).toEqual(2)
-						expect(doc.$('a>b[br="1"]').length).toEqual(1)
 						expect(root.$('c>b[br="1"]').length).toEqual(0)
 					})
 				})
 				
-				describe("function",function(){
+				describe("function on tag",function(){
+					it("a:empty",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('c:empty').length).toEqual(3)
+						expect(root.$('b:empty').length).toEqual(0)
+					})
+					
+					it("a:not(:empty)", function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('c:not(:empty)').length).toEqual(1)
+						expect(root.$('b:not(:empty)').length).toEqual(1)
+					})
+					
+					it("a:first-child",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('b:first-child').length).toEqual(1)
+						expect(root.$('a:first-child').length).toEqual(0)
+					})
+					
+					it("a:last-child",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('b:last-child').length).toEqual(1)
+						expect(root.$('a:last-child').length).toEqual(0)
+					})
+					
+					it("a:nth-child",function(){
+						var doc=$.parseXML(function(){/*
+							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$('b:nth-child(1)').length).toEqual(1)
+						expect(root.$('b:nth-child(2)').length).toEqual(0)
+						expect(root.$('c:nth-child(3)').length).toEqual(1)
+					})
+				})
+				
+				describe("naked function",function(){
 					it(":empty",function(){
 						var doc=$.parseXML(function(){/*
 							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/></b></a>
 							*/}.extractComment()),
 							root=doc.documentElement;
-						expect(doc.$('c:empty').length).toEqual(3)
-						expect(root.$('c:empty').length).toEqual(3)
-						expect(doc.$('a>b>c:empty').length).toEqual(3)
-						expect(doc.$('a>b:empty').length).toEqual(0)
-						expect(root.$('b:empty').length).toEqual(0)
+						expect(root.$(':empty').length).toEqual(3)
 					})
 					
 					it(":not(:empty)", function(){
@@ -248,11 +282,7 @@ describe("node tool",function(){
 							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
 							*/}.extractComment()),
 							root=doc.documentElement;
-						expect(doc.$('c:not(:empty)').length).toEqual(1)
-						expect(root.$('c:not(:empty)').length).toEqual(1)
-						
-						expect(root.$('b:not(:empty)').length).toEqual(1)
-						expect(doc.$('b:not(:empty)').length).toEqual(1)
+						expect(root.$(':not(:empty)').length).toEqual(2)
 					})
 					
 					it(":first-child",function(){
@@ -260,10 +290,17 @@ describe("node tool",function(){
 							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
 							*/}.extractComment()),
 							root=doc.documentElement;
-						expect(doc.$('c:first-child').length).toEqual(1)
-						expect(root.$('b:first-child').length).toEqual(1)
-						//expect(doc.$('a:first-child').length).toEqual(1)
-						expect(root.$('a:first-child').length).toEqual(0)
+						expect(root.$(':first-child').length).toEqual(2)
+						expect(root.$('b>:first-child').length).toEqual(1)
+					})
+					
+					it("b>:first-child with namespace",function(){
+						var doc=$.parseXML(function(){/*
+							<a><w:b br="1"><x:c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></w:b></a>
+							*/}.extractComment()),
+							root=doc.documentElement;
+						expect(root.$(':first-child').length).toEqual(2)
+						expect(root.$('b>:first-child').length).toEqual(1)
 					})
 					
 					it(":last-child",function(){
@@ -271,10 +308,7 @@ describe("node tool",function(){
 							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
 							*/}.extractComment()),
 							root=doc.documentElement;
-						expect(doc.$('c:last-child').length).toEqual(1)
-						expect(root.$('b:last-child').length).toEqual(1)
-						//expect(doc.$('a:last-child').length).toEqual(1)
-						expect(root.$('a:last-child').length).toEqual(0)
+						expect(root.$(':last-child').length).toEqual(2)
 					})
 					
 					it(":nth-child",function(){
@@ -282,13 +316,7 @@ describe("node tool",function(){
 							<a><b br="1"><c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></b></a>
 							*/}.extractComment()),
 							root=doc.documentElement;
-						//expect(doc.$('c:nth-child(0)').length).toEqual(1)
-						//expect(root.$('b:nth-child(0)').length).toEqual(1)
-						
-						expect(doc.$('c:nth-child(1)').length).toEqual(1)
-						//expect(root.$('b:nth-child(1)').length).toEqual(0)
-						
-						expect(root.$('c:nth-child(2)').length).toEqual(1)
+						expect(root.$(':nth-child(1)').length).toEqual(2)
 					})
 				})
 			})

@@ -20,18 +20,29 @@ global.$=require("./parser/tool").apply(null,(function(xmldom){
 		
 		var a=parse('<a></a>'),
 			Document=a.constructor,
-			Node=a.documentElement.constructor,
+			Element=a.documentElement.constructor,
 			NodeList=a.childNodes.constructor
 			
-		Document.prototype.querySelector=Node.prototype.querySelector=function(selector){
+		Document.prototype.querySelector=Element.prototype.querySelector=function(selector){
 			return addNwmatcher(this.ownerDocument||this).first(selector, this);
 		}
 		
-		Document.prototype.querySelectorAll=Node.prototype.querySelectorAll=function(selector){
+		Document.prototype.querySelectorAll=Element.prototype.querySelectorAll=function(selector){
 			return addNwmatcher(this.ownerDocument||this).select(selector, this);
 		}
+		
+		/**
+		 * nwwatcher has unexpected result with namespace on nodeName 
+		 */
+		var _createElementNS=Document.prototype.createElementNS
+		Document.prototype.createElementNS=function(){
+			var el=_createElementNS.apply(this,arguments)
+			el.nodeName=el.localName
+			return el
+		}
+		
 
-		return [parse, Document, Node, NodeList, false]
+		return [parse, Document, Element, NodeList, false]
 	})(require('xmldom')));
 
 module.exports=require("./parser/openxml/docx/document")

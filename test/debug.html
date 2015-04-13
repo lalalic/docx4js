@@ -99,6 +99,8 @@
 	<script>
 		var converter=[]
 		converter.visit=function(){
+			if(arguments.length)
+				return
 			return this.push(this.model.type)
 			
 			if(this.model.type=='paragraph')
@@ -113,12 +115,12 @@
 				DOCX.load(input.files[0])
 					.then(function(doc){
 						input.value=""
-						document.$1('body>pre').innerHTML=""
+						document.querySelector('body>pre').innerHTML=""
 						doc.parse(DOCX.createVisitorFactory(), DOCX.createVisitorFactory(function(srcModel){
 							converter.model=srcModel
 							return converter;
 						}))
-						document.$1('body>pre').innerHTML=converter.join(',')
+						document.querySelector('body>pre').innerHTML=converter.join(',')
 					})
 			})
 		}

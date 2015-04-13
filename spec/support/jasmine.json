@@ -3,7 +3,7 @@
   "spec_files": [
     "**/*[sS]pecX.js",
 	"**/toolSpec.js",
-	"**/fsSpecX.js"
+	"**/fsSpec.js"
   ],
   "helpers": [
     "helpers/**/*.js"
