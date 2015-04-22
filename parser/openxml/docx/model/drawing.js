@@ -105,7 +105,7 @@ define(['../model','./style'],function(Super, Style){
 			},
 			custGeom: function(x){
 				var path=[], px=function(x){return this.pt2Px(this.asPt(x,'cm'))}.bind(this);
-				for(var a, children=x.$1('path').children, len=children.length,i=0;i<len;i++){
+				for(var a, children=x.$1('path').childNodes, len=children.length,i=0;i<len;i++){
 					a=children[i]
 					switch(a.localName){
 					case 'moveTo':
@@ -126,4 +126,4 @@ define(['../model','./style'],function(Super, Style){
 			}
 		})
 	})
-})
+})

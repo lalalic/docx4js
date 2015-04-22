@@ -50,7 +50,14 @@ define(['../style','./paragraph','./inline'],function(Style, Paragraph, Inline){
 				return parseInt(x.attr('w:val'))
 			},
 			tblW: function(x){
-				return x.attr('w:type')=='pct' ? parseInt(x.attr('w:w'))*2/100+'%' : this.asPt(x.attr('w:w'))+'pt'
+				switch(x.attr('w:type')){
+				case 'pct':
+					return parseInt(x.attr('w:w'))*2/100+'%'
+				case 'auto':
+					return 'auto'
+				default:
+					this.asPt(x.attr('w:w'))+'pt'
+				}
 			},
 			tblInd: function(x){
 				return this.asPt(x.attr('w:w'))

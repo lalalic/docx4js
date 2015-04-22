@@ -105,14 +105,15 @@ define(['../document','./part'],function(Super,Part){
 			default:
 				throw 'unsupported factory'
 			}
+			
 			if(opt){
 				var _raw=factory
 				factory=function(){
-					var converter=_raw.call(null,arguments)
-					converter && (converter.options=opt);
+					var converter=_raw.apply(null,arguments)
+						converter && (converter.options=opt);
 					return converter
 				}
-				if(typeof _raw.map!=undefined)
+				if(typeof(_raw.map)!='undefined')
 					factory.map=_raw.map
 			}
 			

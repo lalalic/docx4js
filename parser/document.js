@@ -15,7 +15,7 @@ define(['jszip'],function(JSZip){
 		getImagePart:function(name){
 			var part=this.parts[name]
 			var crc32=part._data.crc32
-			var buffer=part.asArrayBuffer()
+			var buffer=part[JSZip.support.nodebuffer ? 'asNodeBuffer' : 'asArrayBuffer']()
 			buffer.crc32=part._data.crc32=crc32
 			return buffer
 		},
