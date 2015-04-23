@@ -48,13 +48,16 @@ define(['../model','./style'],function(Super, Style){
 			solidFill: function(x){
 				var elColor=x.firstChild,
 					color=this.asColor(elColor.attr('val')), t;
-				
+					
+				if(color=='phClr')
+					return 'phClr'
+					
 				switch(elColor.localName){
 				case 'schemeClr':
 					color=this.wDoc.getColorTheme().get(color)
 					break
 				}
-
+				
 				if(t=elColor.$1('shade'))
 					color=this.shadeColor(color,-1*parseInt(t.attr('val'))/1000)
 				

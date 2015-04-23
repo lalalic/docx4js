@@ -25,17 +25,17 @@ define(['../model/shape'],function(Shape){
 				return t
 			return (t=this.wXml.$1('bgFillStyleLst>:nth-child('+(parseInt(idx)+1)+')')) && (this._fill[idx]=this._converter[t.localName](t))
 		},
-		bgFill: function(idx){
+		bgFill: function(idx, t){
 			if(t=this._bgFill[idx])
 				return t
 			return (t=this.wXml.$1('bgFillStyleLst>:nth-child('+(parseInt(idx)+1)+')')) && (this._bgFill[idx]=this._converter[t.localName](t))
 		},
-		effect: function(idx){
+		effect: function(idx, t){
 			if(t=this._effect[idx])
 				return t
 			return (t=this.wXml.$1('effectStyle:nth-child('+(parseInt(idx)+1)+')>effectLst')) && (this._effect[idx]=this._converter.effectLst(t))
 		},
-		font: function(idx){
+		font: function(idx, t){
 			if(t=this._font[idx])
 				return t
 			return (t=this.wXml.$1('fontScheme>'+idx+'Font>latin')) && (this._effect[idx]=t.attr('typeface'))			

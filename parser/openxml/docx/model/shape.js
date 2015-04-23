@@ -1,4 +1,17 @@
 define(['../model','./style', './drawing'], function(Super,Style, Drawing){
+	function phClr(o, clr, a){
+		for(var i in o){
+			switch(typeof(a=o[i])){
+			case 'string':
+				if(a=='phClr')
+					o[i]=clr
+				break
+			case 'object':
+				phClr(a, clr)
+			}
+		}
+		return o
+	}
 	return Super.extend({
 		type:'shape',
 		getDirectStyle: function(){
@@ -12,25 +25,11 @@ define(['../model','./style', './drawing'], function(Super,Style, Drawing){
 			_getValidChildren: function(t){
 				return ((t=this.wXml.$('>style>*')) && t.asArray() ||[]).concat(this.wXml.$('>spPr>*, >bodyPr>*').asArray())
 			},
-			lnRef: function(x, t){
-				var o=this.wDoc.getFormatTheme().line(x.attr('idx'))
-				if(o.color=='phClr')
-					o.color=this.solidFill(x)
-				return o
+			lnRef: function(x){
+				return phClr(this.wDoc.getFormatTheme().line(x.attr('idx')),this.solidFill(x))
 			},
-			fillRef: function(x, t){
-				var o=this.wDoc.getFormatTheme().fill(x.attr('idx'))
-				switch(typeof(o)){
-				case 'string':
-					if(o=='phClr')
-						o=this.solidFill(x)
-					break
-				case 'object':
-					if(o.color=='phClr')
-						o.color=this.solidFill(x)
-					break
-				}
-				return o
+			fillRef: function(x){
+				return phClr(this.wDoc.getFormatTheme().fill(x.attr('idx')),this.solidFill(x))
 			},
 			fontRef: function(x){
 				return {color:this.solidFill(x), family: this.wDoc.getFormatTheme().font(x.attr('idx'))}
