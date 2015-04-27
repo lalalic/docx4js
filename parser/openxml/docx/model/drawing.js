@@ -43,7 +43,13 @@ define(['../model','./style'],function(Super, Style){
 			},		
 			xfrm: function(x){
 				var ext=x.$1('ext'), offset=x.$1('off')
-				return this.world={width:this.asPt(ext.attr('cx'),'cm'),height:this.asPt(ext.attr('cy'),'cm'),x:this.asPt(offset.attr('x'),'cm'), y:this.asPt(offset.attr('y'),'cm')}
+				return this.world={
+					width:this.asPt(ext.attr('cx'),'cm'),
+					height:this.asPt(ext.attr('cy'),'cm'),
+					x:this.asPt(offset.attr('x'),'cm'), 
+					y:this.asPt(offset.attr('y'),'cm'),
+					rotation: parseInt(x.attr('rot')||0)/60000
+				}
 			},
 			solidFill: function(x){
 				var elColor=x.firstChild,
