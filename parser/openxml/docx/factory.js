@@ -1,5 +1,5 @@
 define(['require','./model',
-'./model/document','./model/section','./model/body',
+'./model/document','./model/section','./model/body', './model/documentProperty',
 './model/table','./model/row','./model/cell','./model/paragraph','./model/list','./model/heading','./model/inline','./model/headingInline','./model/text',
 './model/fieldBegin','./model/fieldInstruct','./model/fieldSeparate','./model/fieldEnd','./model/fieldSimple','./model/bookmarkStart','./model/bookmarkEnd',
 './model/tab','./model/softHyphen','./model/noBreakHyphen','./model/symbol','./model/br','./model/hyperlink',
@@ -12,11 +12,11 @@ define(['require','./model',
 		model=arguments[i]
 		model.prototype.type && (models[model.prototype.type]=model)
 	}
-	
+
 	function factory(wXml, doc, parent, more){
 		var tag=wXml.localName, swap;
 		function attr(node,name){return node?node.attr(name):undefined}
-		
+
 		if('document'==tag)
 			return new (require('./model/document'))(wXml,doc, parent)
 		else if('styles'==tag)
@@ -44,12 +44,12 @@ define(['require','./model',
 			var styleId=attr(wXml.$1('>pPr>pStyle'),'w:val'), style=doc.style.get(styleId)
 			if(wXml.$1('>pPr>numPr') || (style && style.getNumId()!=-1))
 				return new (require('./model/list'))(wXml,doc,parent)
-			
+
 			if(style && style.getOutlineLevel()!=-1)
 				return new (require('./model/heading'))(wXml,doc, parent)
-				
-			
-				
+
+
+
 			return new (require('./model/paragraph'))(wXml,doc,parent)
 		}else if('r'==tag){
 			var style=doc.style.get(attr(wXml.$1('>rPr>rStyle'),'w:val'))
@@ -62,7 +62,7 @@ define(['require','./model',
 					return factory(wXml.lastChild,doc,parent)
 				}
 			}
-				
+
 			return new (require('./model/inline'))(wXml,doc,parent)
 		}else if('instrText'==tag)
 				return new (require('./model/fieldInstruct'))(wXml, doc,parent)
@@ -117,24 +117,32 @@ define(['require','./model',
 				console.error('inline '+type +' is not suppored yet.')
 			}
 		}else if('sdt'==tag){
-			//by experience, @todo: by query
-			tag=wXml.firstChild.lastChild.localName
-			if('text'==tag)
-				return new (require('./model/control/text'))(wXml,doc,parent)
-			else if('picture'==tag)
-				return new (require('./model/control/picture'))(wXml,doc,parent)
-			else if('docPartList'==tag)
-				return new (require('./model/control/gallery'))(wXml,doc,parent)
-			else if('comboBox'==tag)
-				return new (require('./model/control/combobox'))(wXml,doc,parent)
-			else if('dropDownList'==tag)
-				return new (require('./model/control/dropdown'))(wXml,doc,parent)
-			else if('date'==tag)
-				return new (require('./model/control/date'))(wXml,doc,parent)
-			else if('checkbox'==tag)
-				return new (require('./model/control/checkbox'))(wXml,doc,parent)
-			else 
-				return new (require('./model/control/richtext'))(wXml,doc,parent)
+			var elBinding=wXml.$1('>sdtPr>dataBinding')
+			if(elBinding){//properties
+				var path=attr(elBinding, 'w:xpath'),
+					d=path.split(/[\/\:\[]/),
+					name=(d.pop(),d.pop());
+				return new (require('./model/documentProperty'))(wXml,doc,parent, name)
+			}else {//controls
+				var elType=wXml.$1('>sdtPr').$1("text, picture, docPartList, comboBox, dropDownList, date, checkbox")
+				tag=elType ? elType.localName : null
+				if('text'==tag)
+					return new (require('./model/control/text'))(wXml,doc,parent)
+				else if('picture'==tag)
+					return new (require('./model/control/picture'))(wXml,doc,parent)
+				else if('docPartList'==tag)
+					return new (require('./model/control/gallery'))(wXml,doc,parent)
+				else if('comboBox'==tag)
+					return new (require('./model/control/combobox'))(wXml,doc,parent)
+				else if('dropDownList'==tag)
+					return new (require('./model/control/dropdown'))(wXml,doc,parent)
+				else if('date'==tag)
+					return new (require('./model/control/date'))(wXml,doc,parent)
+				else if('checkbox'==tag)
+					return new (require('./model/control/checkbox'))(wXml,doc,parent)
+				else
+					return new (require('./model/control/richtext'))(wXml,doc,parent)
+			}
 		}else if('bookmarkStart'==tag)
 			return new (require('./model/bookmarkStart'))(wXml,doc,parent)
 		else if('bookmarkEnd'==tag)
@@ -148,8 +156,8 @@ define(['require','./model',
 
 		return new Model(wXml,doc,parent)
 	}
-	
+
 	factory.map=models
-	
+
 	return factory
 })
