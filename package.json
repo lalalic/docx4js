@@ -18,12 +18,12 @@
     "url": "https://github.com/lalalic/docx4js.git"
   },
   "devDependencies": {
-    "adeamdify": ">=0.1.1",
     "jasmine": "^2.2.1",
     "jasmine-node": "^2.0.0",
     "requirejs": ">=2.1.15"
   },
   "dependencies": {
+    "adeamdify": ">=0.1.1",
     "amd-require": "0.0.5",
     "apromise": ">0.1.0",
     "extend": ">=2.0.0",
