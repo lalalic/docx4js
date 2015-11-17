@@ -1,8 +1,11 @@
-define(['./text'],function(Model){
-	return Model.extend({
-		type:'tab',
-		getText: function(){
-			return String.fromCharCode(0x9)
-		}
-	})
-})
+'use strict'
+
+class Main extends require('./text'){
+	get type(){return 'tab'}
+
+	getText(){
+		return String.fromCharCode(0x9)
+	}
+}
+
+module.exports=Main

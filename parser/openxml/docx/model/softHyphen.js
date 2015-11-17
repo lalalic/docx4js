@@ -1,8 +1,12 @@
-define(['./text'],function(Model){
-	return Model.extend({
-		type:'softHyphen',
-		getText: function(){
-			return String.fromCharCode(0xAD)
-		}
-	})
-})
+'use strict'
+
+class Main extends require('./text'){
+	get type(){return 'softHyphen'}
+
+	getText(){
+		return String.fromCharCode(0xAD)
+	}
+}
+
+
+module.exports=Main

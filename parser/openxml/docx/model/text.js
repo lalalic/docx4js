@@ -1,8 +1,10 @@
-define(['../model'], function(Model){
-	return Model.extend({
-		type:'text',
-		getText:function(){
-			return this.wXml.textContent
-		}
-	})
-})
+'use strict'
+class Main extends require('../model'){
+	get type(){return 'text'}
+
+	getText(){
+		return this.wXml.textContent
+	}
+}
+
+module.exports=Main

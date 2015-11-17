@@ -18,7 +18,7 @@ define(['../parser','require'],function(Parser,require){
 						paramizedVisitFactories.push(visitFactory.with(visitor))
 					}
 				}.bind(this));
-					
+
 				var factory=require('./factory')
 				this._iterate(function(wXml){
 					factory(wXml,this.wDoc,this).parse(paramizedVisitFactories)

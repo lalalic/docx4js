@@ -27,7 +27,7 @@ define(['apromise','extend'], function(Deferred,Extend){
 				return a.map(f,ctx)
 			}
 		};
-			
+
 		$.extend($,{
 			toArray: function(args){
 				var a=[];
@@ -61,7 +61,7 @@ define(['apromise','extend'], function(Deferred,Extend){
 			return constructor
 		}
 
-		var directChildSelector=/((^|,)\s*>)/, id="sxxx"		
+		var directChildSelector=/((^|,)\s*>)/, id="sxxx"
 		$.extend(Node.prototype,{
 			$: function(selector){
 				if(!directChildSelector.test(selector))
@@ -74,7 +74,7 @@ define(['apromise','extend'], function(Deferred,Extend){
 					return this.querySelectorAll(selector.split(',').map(function(a){
 							//return  '#'+this.id+((a=a.trim()).charAt(0)=='>' ? '' : ' ')+a
 							return (a=a.trim()).charAt(0)=='>' ? a.substring(1) : a
-						},this).join(',')) 
+						},this).join(','))
 				}else{
 					this.id=id
 					var nodes=this.querySelectorAll(selector.split(',').map(function(a){
@@ -97,7 +97,7 @@ define(['apromise','extend'], function(Deferred,Extend){
 					return this.querySelector(selector.split(',').map(function(a){
 							//return  '#'+this.id+((a=a.trim()).charAt(0)=='>' ? '' : ' ')+a
 							return (a=a.trim()).charAt(0)=='>' ? a.substring(1) : a
-						},this).join(',')) 
+						},this).join(','))
 				}else{
 					this.id=id
 					var nodes=this.querySelector(selector.split(',').map(function(a){
@@ -127,7 +127,7 @@ define(['apromise','extend'], function(Deferred,Extend){
 					parent.uptrim()
 			}
 		})
-		
+
 		$.extend(NodeList.prototype,{
 			asArray: function(o){
 				o=o||[]
@@ -141,18 +141,18 @@ define(['apromise','extend'], function(Deferred,Extend){
 
 		return $
 	}
-	
+
 	if(typeof(window)!=='undefined'){
 		function parser(x){
 			if(typeof(DOMParser)!='undefined')
 				return ( new DOMParser() ).parseFromString(x, "text/xml");
-				
+
 			var xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
 			xmlDoc.async = "false";
 			xmlDoc.loadXML(x);
 			return xmlDoc;
 		}
-		
+
 		function supportScopeSelector(){
 			try{
 				return document.body.querySelector(':scope>*').length!=0
@@ -160,6 +160,8 @@ define(['apromise','extend'], function(Deferred,Extend){
 				return false
 			}
 		}
+		document.$1=document.querySelector
+		document.$=document.querySelectorAll
 		return window.$=makeTool(parser, Document, Element, NodeList, supportScopeSelector())
 	}else
 		return makeTool
