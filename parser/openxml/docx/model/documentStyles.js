@@ -1,8 +1,11 @@
-define(['../model'],function(Model){
+'use strict';
+
+define(['../model'], function (Model) {
 	return Model.extend({
 
-		_getValidChildren: function(){
-			return this.wXml.$('docDefaults,style')
+		_getValidChildren: function _getValidChildren() {
+			return this.wXml.$('docDefaults,style');
 		}
-	},{type:'documentStyles'})
-})
+	}, { type: 'documentStyles' });
+});
+//# sourceMappingURL=documentStyles.js.map

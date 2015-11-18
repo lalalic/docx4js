@@ -1,8 +1,11 @@
-define(['../model'],function(Model){
+'use strict';
+
+define(['../model'], function (Model) {
 	return Model.extend({
 
-		iterate: function(visitor){},
-		first: function(){},
-		last: function(){}
-	},{type:'range'})
-})
+		iterate: function iterate(visitor) {},
+		first: function first() {},
+		last: function last() {}
+	}, { type: 'range' });
+});
+//# sourceMappingURL=rangeBase.js.map

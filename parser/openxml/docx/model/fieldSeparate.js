@@ -1,8 +1,11 @@
-define(['../model'],function(Super){
+'use strict';
+
+define(['../model'], function (Super) {
 	return Super.extend({
 
-		parse: function(factories){
-			this.wDoc.parseContext.field.seperate(this)
+		parse: function parse(factories) {
+			this.wDoc.parseContext.field.seperate(this);
 		}
-	},{type:'fieldEnd'})
-})
+	}, { type: 'fieldEnd' });
+});
+//# sourceMappingURL=fieldSeparate.js.map

@@ -1,8 +1,11 @@
-define(['../model'],function(Super){
+'use strict';
+
+define(['../model'], function (Super) {
 	return Super.extend({
 
-		_iterate: function(f, factories, visitors){
-			this.wDoc.parseContext.field.end(visitors)
+		_iterate: function _iterate(f, factories, visitors) {
+			this.wDoc.parseContext.field.end(visitors);
 		}
-	},{type:'fieldEnd'})
-})
+	}, { type: 'fieldEnd' });
+});
+//# sourceMappingURL=fieldEnd.js.map

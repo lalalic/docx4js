@@ -1,19 +1,21 @@
-define(['../model','./style/paragraph'], function(Model, Style){
+'use strict';
+
+define(['../model', './style/paragraph'], function (Model, Style) {
 	return Model.extend({
-		getStyleId: function(a){
-			return this._val('>pPr>pStyle')
+		getStyleId: function getStyleId(a) {
+			return this._val('>pPr>pStyle');
 		},
-		getNamedStyle: function(){
-			return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.type)
+		getNamedStyle: function getNamedStyle() {
+			return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.type);
 		},
-		getDirectStyle: function(pr){
-			if(pr=this.wXml.$1('>pPr'))
-				return new Style.Properties(pr,this.wDoc,this)
+		getDirectStyle: function getDirectStyle(pr) {
+			if (pr = this.wXml.$1('>pPr')) return new Style.Properties(pr, this.wDoc, this);
 		},
-		_shouldIgnore: function(wXml){
-			return wXml.localName=='pPr'
+		_shouldIgnore: function _shouldIgnore(wXml) {
+			return wXml.localName == 'pPr';
 		}
-	},{
-		type:'paragraph'
-	})
-})
+	}, {
+		type: 'paragraph'
+	});
+});
+//# sourceMappingURL=paragraph.js.map

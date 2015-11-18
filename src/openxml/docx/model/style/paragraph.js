@@ -1,0 +1,79 @@
+import Style from '../style'
+import Inline from './inline'
+import Numbering from './numbering'
+export default class Paragraph extends Style{
+	getOutlineLevel(v){
+		if((v=this._val('outlineLvl'))!=null)
+			return parseInt(v)
+		if((v=this.getParentStyle())!=null && v.getOutlineLevel)
+			return v.getOutlineLevel()
+		return -1
+	}
+	getNumId(v){
+		if((v=this._val('numId'))!=null)
+			return v
+		if((v=this.getParentStyle())!=null && v.getNumId)
+			return v.getNumId()
+		return -1
+	}
+	asNumberingStyle(){
+		return Numbering.prototype.asNumberingStyle.call(this,...arguments)
+	}
+	_iterate(f, factories, visitors){
+		var pr=this.wXml.$1('pPr')
+		pr && new this.constructor.Properties(pr,this.wDoc,this).parse(visitors);
+
+		(pr=this.wXml.$1('rPr')) && new Inline.Properties(pr,this.wDoc,this).parse(visitors);
+
+		(pr=this.wXml.$1('numPr')) && new Numbering.Properties(pr,this.wDoc,this).parse(visitors);
+
+		(pr=this.wXml.$1('framePr')) && new this.constructor.FrameProperties(pr,this.wDoc,this).parse(visitors);
+	}
+
+	static get type(){return 'style.paragraph'}
+
+	static get Properties(){return Properties}
+
+	static get FrameProperties(){return FrameProperties}
+}
+class Properties extends Style.Properties{
+	jc(x){
+		return x.attr('w:val')
+	}
+	ind(x){
+		return this.asObject(x, this.asPt)
+	}
+	spacing(x){
+		var r=this.asObject(x), o={}
+
+		if(!r.beforeAutospacing && r.beforeLines)
+			o.top=this.asPt(r.beforeLines)
+		else (r.before)
+			o.top=this.asPt(r.before)
+
+		if(!r.afterAutospacing && r.afterLines)
+			o.bottom=this.asPt(r.afterLines)
+		else (r.after)
+			o.bottom=this.asPt(r.after)
+
+		if(!r.line)
+			return o
+
+		switch(x.lineRule){
+		case 'atLeast':
+		case 'exact':
+			o.lineHeight=this.asPt(x.line)+'pt'
+			break
+		case 'auto':
+		default:
+			o.lineHeight=(parseInt(r.line)*100/240)+'%'
+		}
+		o.lineRule=x.lineRule
+		return o
+	}
+	static get type(){return 'paragraph'}
+}
+
+class FrameProperties extends Style.Properties{
+	static get type(){return 'frame'}
+}

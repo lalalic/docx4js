@@ -1,9 +1,12 @@
-define(['../model', './section'],function(Model, Section){
+'use strict';
+
+define(['../model', './section'], function (Model, Section) {
 	return Model.extend({
-		_getValidChildren: function(){
-			return this.wXml.$('sectPr')
+		_getValidChildren: function _getValidChildren() {
+			return this.wXml.$('sectPr');
 		}
-	},{
-		type:'body'
-	})
-})
+	}, {
+		type: 'body'
+	});
+});
+//# sourceMappingURL=body.js.map

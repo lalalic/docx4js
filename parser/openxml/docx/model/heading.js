@@ -1,8 +1,11 @@
-define(['./paragraph'],function(Paragraph){
+'use strict';
+
+define(['./paragraph'], function (Paragraph) {
 	return Paragraph.extend({
 
-		getOutlineLevel: function(){
-			return this.getNamedStyle().getOutlineLevel()
+		getOutlineLevel: function getOutlineLevel() {
+			return this.getNamedStyle().getOutlineLevel();
 		}
-	},{type:'heading'})
-})
+	}, { type: 'heading' });
+});
+//# sourceMappingURL=heading.js.map

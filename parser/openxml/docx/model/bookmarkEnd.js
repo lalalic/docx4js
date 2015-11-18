@@ -1,10 +1,13 @@
-define(['./rangeBase'],function(Range){
+'use strict';
+
+define(['./rangeBase'], function (Range) {
 	return Range.extend({
 
-		getName: function(){
-			this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')]
+		getName: function getName() {
+			this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')];
 		}
-	},{
-		type:'bookmarkEnd'
-	})
-})
+	}, {
+		type: 'bookmarkEnd'
+	});
+});
+//# sourceMappingURL=bookmarkEnd.js.map
