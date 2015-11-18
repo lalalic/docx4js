@@ -1,6 +1,5 @@
 define(['../style'],function(Style){
 	return Style.Properties.extend({
-		type:'section',
 		naming:$.extend(Style.Properties.prototype.naming,{
 			pgSz:'size',
 			pgMar:'margin'
@@ -19,5 +18,5 @@ define(['../style'],function(Style){
 			o.space && (o.space=o.space/20.0)
 			return o
 		}
-	})
+	},{type:'section'})
 })

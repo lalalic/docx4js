@@ -1,5 +1,5 @@
 define(['../model'],function(Model){
-	return Model.extend({
+	return Model.extend({},{
 		type:'sdt'
 	})
 })

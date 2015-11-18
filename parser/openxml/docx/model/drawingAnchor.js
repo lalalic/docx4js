@@ -1,16 +1,17 @@
 define(['./drawing'],function(Super){
 	function refine(name){
-		return name.replace(/-(\w)/, function(a,b){return b.toUpperCase()})			
+		return name.replace(/-(\w)/, function(a,b){return b.toUpperCase()})
 	}
 	return Super.extend(function(wXml,wDoc,mParent){
 		Super.apply(this,arguments)
 		this.wDrawing=wXml.$1('drawing>:first-child')
 	},{
-		type:'drawing.anchor',
+
 		_getValidChildren: function(){
 			return this.wDrawing.$('wsp')
 		}
 	},{
+		type:'drawing.anchor',
 		Properties: Super.Properties.extend({
 			type:'shape',
 			naming: $.extend(Super.Properties.prototype.naming,{

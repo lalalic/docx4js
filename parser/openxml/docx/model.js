@@ -6,6 +6,7 @@ define(['../parser','require'],function(Parser,require){
 			this.content=[]
 			if(mParent)
 				mParent.content.push(this)
+			this.type=this.constructor.type
 		},{
 			parse: function(visitFactories){
 				var visitors=[]

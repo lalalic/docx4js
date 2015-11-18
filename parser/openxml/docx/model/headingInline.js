@@ -1,5 +1,5 @@
 define(['./inline'],function(Inline){
-	return Inline.extend({
+	return Inline.extend({},{
 		type:'headingChar'
 	})
 })

@@ -1,9 +1,8 @@
 define(['../style','./paragraph','./inline'],function(Style, Paragraph, Inline){
 	return Style.extend({
-		type:'style.table',
 		parse: function(factories){
 			Style.prototype.parse.apply(this,arguments)
-			
+
 			var TableStyle=this.constructor
 			for(var styles=this.wXml.$('tblStylePr'), len=styles.length, i=0;i<len;i++){
 				var model=new TableStyle(styles[i],this.wDoc,this)
@@ -23,8 +22,8 @@ define(['../style','./paragraph','./inline'],function(Style, Paragraph, Inline){
 			return this.wXml.attr('w:type')
 		}
 	},{
+		type:'style.table',
 		Properties: Style.Properties.extend({
-			type:'table',
 			tblBorders: function(x){
 				var value={};
 				for(var borders=x.childNodes,border,i=0,len=borders.length;i<len;i++){
@@ -62,15 +61,13 @@ define(['../style','./paragraph','./inline'],function(Style, Paragraph, Inline){
 			tblInd: function(x){
 				return this.asPt(x.attr('w:w'))
 			}
-		}),
+		},{type:'table'}),
 		RowProperties: Style.Properties.extend({
-			type:'row',
 			cnfStyle: function(x){
 				return x.attr('w:val')
 			}
-		}),
+		},{type:'row'}),
 		CellProperties: Style.Properties.extend({
-			type:'cell',
 			tcBorders: function(x){
 				var value={};
 				for(var borders=x.childNodes,border,i=0,len=borders.length;i<len;i++){
@@ -89,6 +86,6 @@ define(['../style','./paragraph','./inline'],function(Style, Paragraph, Inline){
 			gridSpan: function(x){
 				return x.attr('w:val')
 			}
-		})
+		},{type:'cell'})
 	})
 })

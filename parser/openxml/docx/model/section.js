@@ -2,7 +2,7 @@ define(['require','../model','./header','./footer','./style/section'], function(
 	var empty=[]
 	return Model.extend(function(wXml, wDoc, mParent){
 		this.wFirst=mParent.content.length ? mParent.content[mParent.content.length-1].wLast.nextSibling : mParent.wXml.firstChild
-		
+
 		this.wLast=wXml
 		while(this.wLast.parentNode!=mParent.wXml)
 			this.wLast=this.wLast.parentNode
@@ -12,7 +12,7 @@ define(['require','../model','./header','./footer','./style/section'], function(
 		Model.apply(this,arguments)
 		wDoc.parseContext.section.current=this
 	},{
-		type:'section',
+
 		_iterate: function(f, visitorFactories){
 			this._iterateHeaderFooter(visitorFactories,'header')
 			var current=this.wFirst
@@ -33,5 +33,5 @@ define(['require','../model','./header','./footer','./style/section'], function(
 		getDirectStyle: function(){
 			return new Style(this.wXml,this.wDoc, this)
 		}
-	})
+	},{type:'section'})
 })

@@ -5,7 +5,6 @@ define(['../../model'], function(Super){
 		this.command=new this.constructor.FieldCode(instruct)
 		this.command.parse()
 	},{
-		type:'field',
 		parse: function(visitors, endVisitors){
 			for(var i=0, len=visitors.length;i<len;i++)
 				visitors[i].visit(this, endVisitors[i])
@@ -14,6 +13,7 @@ define(['../../model'], function(Super){
 			return this.command
 		}
 	},{
+		type:'field',
 		Command: Command=$.newClass(function(instruct){
 			this.data=instruct
 		},{
@@ -23,13 +23,13 @@ define(['../../model'], function(Super){
 				var i=-1, len=this.data.length;
 				//find any one of seperator chars
 				while((++i)<len && seperators.indexOf(this.data.charAt(i))==-1);
-				
+
 				var node=this.data.substring(0, i).trim();
-				
+
 				//ignore all seperator chars
 				if(i<len)
 					while(++i<len && seperators.indexOf(this.data.charAt(i))!=-1);
-				
+
 				//left this.data
 				this.data=this.data.substring(i).trim();
 				return node;
@@ -56,7 +56,7 @@ define(['../../model'], function(Super){
 						this.data=cmd.substring(1).trim();
 						return;
 					} catch (e) {
-						
+
 					}
 				}
 				this.type='!';
@@ -117,7 +117,7 @@ define(['../../model'], function(Super){
 				var option=this.nextUntil("\\");
 				if(option==null || option.length==0)
 					return null;
-				
+
 				return new Switch(option);
 			},
 			parse: function(){}

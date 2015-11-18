@@ -10,7 +10,7 @@ define(['require','./model',
 	var models={'*':Model}
 	for(var i=2,model; i<arguments.length; i++){
 		model=arguments[i]
-		model.prototype.type && (models[model.prototype.type]=model)
+		model.type && (models[model.type]=model)
 	}
 
 	function factory(wXml, doc, parent, more){

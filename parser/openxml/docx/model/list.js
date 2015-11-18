@@ -1,6 +1,6 @@
 define(['./paragraph','./style/list'], function(Super, Style){
 	return Super.extend({
-		type:'list',
+
 		getLevel: function(numPr,t){
 			return (t=this.wXml.$1('>pPr>numPr>ilvl')) ? t.attr('w:val') : '0'
 		},
@@ -9,5 +9,5 @@ define(['./paragraph','./style/list'], function(Super, Style){
 			!numId && (t=this.getNamedStyle()) && (numId=t.getNumId())
 			return this.wDoc.style.get(Style.asStyleId(numId))
 		}
-	})
+	},{type:'list'})
 })

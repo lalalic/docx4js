@@ -1,11 +1,10 @@
 define(['../model','./style/table'], function(Model, Style){
 	return Model.extend({
-		type:'table',
 		getStyleId: function(a){
 			return this._val('>tblPr>tblStyle')
 		},
 		getNamedStyle: function(){
-			return this.wDoc.style.get(this.getStyleId())|| this.wDoc.style.getDefault(Style.prototype.type)
+			return this.wDoc.style.get(this.getStyleId())|| this.wDoc.style.getDefault(Style.type)
 		},
 		getDirectStyle: function(pr){
 			return (pr=this.wXml.$1('>tblPr')) && new Style.Properties(pr,this.wDoc,this)
@@ -21,5 +20,5 @@ define(['../model','./style/table'], function(Model, Style){
 		_shouldIgnore: function(wXml){
 			return wXml.localName=='tblPr'||wXml.localName=='tblGrid'
 		}
-	})
+	},{type:'table'})
 })

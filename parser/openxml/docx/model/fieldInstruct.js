@@ -3,7 +3,7 @@ define(['../model'],function(Super){
 		Super.apply(this,arguments)
 		wDoc.parseContext.field.instruct(wXml.textContent)
 	},{
-		type:'fieldInstruct',
+
 		parse: function(){}
-	})
+	},{type:'fieldInstruct'})
 })

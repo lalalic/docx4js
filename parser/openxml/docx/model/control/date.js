@@ -1,5 +1,5 @@
 define(['../control'], function(Control){
-	return Control.extend({
+	return Control.extend({},{
 		type:'control.date'
 	})
 })

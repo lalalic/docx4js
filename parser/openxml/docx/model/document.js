@@ -1,6 +1,6 @@
 define(['../model'],function(Super){
 	return Super.extend({
-		type:'document',
+
 		parse: function(){
 			var visitors=Super.prototype.parse.apply(this,arguments)
 			visitors.forEach(function(a){
@@ -15,5 +15,5 @@ define(['../model'],function(Super){
 				children.splice(1,0,numbering.documentElement)
 			return children
 		}
-	})
+	},{type:'document'})
 })

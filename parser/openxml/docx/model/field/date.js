@@ -1,7 +1,8 @@
 define(['./field'], function(Super){
 	return Super.extend({
-		type:'fied.date'
+
 	},{
+		type:'fied.date',
 		FieldCode: Super.FieldCode.extend({
 			parse: function(){
 				var option=null;

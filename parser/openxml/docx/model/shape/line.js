@@ -1,5 +1,5 @@
 define(['../shape'],function(Shape){
-	return Shape.extend({
+	return Shape.extend({},{
 		type:'shape.line'
 	})
 })

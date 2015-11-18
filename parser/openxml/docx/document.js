@@ -29,7 +29,6 @@ define(['../document','./factory','./theme/font', './theme/color','./theme/forma
 				})([])
 			};
 		},{
-		type:"Word",
 		ext:'docx',
 		parse: function(visitFactories){
 			Super.prototype.parse.apply(this,arguments)
@@ -61,6 +60,7 @@ define(['../document','./factory','./theme/font', './theme/color','./theme/forma
 			Super.prototype.release.call(this)
 		}
 	},{
+		type:"Word",
 		Style: function(){
 			var ids={},defaults={}
 			$.extend(this,{

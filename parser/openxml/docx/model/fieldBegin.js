@@ -3,10 +3,10 @@ define(['../model','require', './field/hyperlink','./field/date','./field/ref'],
 		Super.apply(this,arguments)
 		this.commands=[]
 	},{
-		type:'fieldBegin',
+
 		parse: function(){
 			this.wDoc.parseContext.field.push(this)
-			Super.prototype.parse.apply(this,arguments)	
+			Super.prototype.parse.apply(this,arguments)
 		},
 		instruct: function(t){
 			this.commands.push(t)
@@ -21,14 +21,15 @@ define(['../model','require', './field/hyperlink','./field/date','./field/ref'],
 			}
 		}
 	},{
+		type:'fieldBegin',
 		factory: function(instruct, wDoc, mParent){
-			var index=instruct.indexOf(' '), 
+			var index=instruct.indexOf(' '),
 				type=index!=-1 ?  instruct.substring(0,index) : instruct
-			type=type.toLowerCase()		
+			type=type.toLowerCase()
 			try{
 				return new (require('./field/'+type))(instruct.trim(), wDoc, mParent)
 			}catch(e){
-				
+
 			}
 		}
 	})

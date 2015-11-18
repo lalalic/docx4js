@@ -10,7 +10,6 @@ define(['../style','./inline','require'],function(Style, Inline, require){
 		if(link)
 			this.link=link.attr('w:val')
 	},{
-		type:'style.numbering.definition',
 		_iterate: function(f, factories, visitors){
 			for(var i=0,children=this.wXml.$('lvl'),l=children.length, t; i<l; i++){
 				this.levels.push(t=new this.constructor.Level(children[i],this.wDoc, this))
@@ -21,10 +20,11 @@ define(['../style','./inline','require'],function(Style, Inline, require){
 			return this.wXml.attr('w:abstractNumId')
 		}
 	},{
+		type:'style.numbering.definition',
 		asStyleId: asStyleId,
 		Level: Style.Properties.extend(function(wXml){
 			Style.Properties.apply(this,arguments)
-			this.type=wXml.attr('w:ilvl')
+			this.constructor.type=wXml.attr('w:ilvl')
 		},{
 			parse: function(visitors){
 				Style.Properties.prototype.parse.apply(this,arguments)
@@ -34,11 +34,11 @@ define(['../style','./inline','require'],function(Style, Inline, require){
 					pr.type=this.type+' '+pr.type
 					pr.parse(visitors)
 				}
-				
+
 				if(t=this.wXml.$1('>rPr')){
 					pr=new Inline.Properties(t,this.wDoc,this)
 					pr.type=this.type+' '+pr.type
-					pr.parse(visitors)	
+					pr.parse(visitors)
 				}
 			},
 			start: function(x){

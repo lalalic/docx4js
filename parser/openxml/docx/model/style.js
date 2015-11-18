@@ -25,7 +25,7 @@ define(['../model'],function(Model){
 			EMPTY:-999,
 			type:null,
 			naming:{},
-			//use parent visitor to visitor style nodes and attributes	
+			//use parent visitor to visitor style nodes and attributes
 			parse: function(visitors){
 				var values={}
 				visitors.forEach(function(visitor){
@@ -34,7 +34,7 @@ define(['../model'],function(Model){
 							var node=children[i], name=node.localName
 							if(values[name]==undefined && $.isFunction(this[name]))
 								values[name]=this[name](node);
-							values[name]!=this.EMPTY && visitor.visit(values[name],this.naming[name]||name,this.type)
+							values[name]!=this.EMPTY && visitor.visit(values[name],this.naming[name]||name,this.constructor.type)
 						}
 					},this)
 				},this)
@@ -62,9 +62,9 @@ define(['../model'],function(Model){
 				G = parseInt(G * (100 + percent) / 100);
 				B = parseInt(B * (100 + percent) / 100);
 
-				R = (R<255)?R:255;  
-				G = (G<255)?G:255;  
-				B = (B<255)?B:255;  
+				R = (R<255)?R:255;
+				G = (G<255)?G:255;
+				B = (B<255)?B:255;
 
 				var RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
 				var GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
@@ -80,15 +80,15 @@ define(['../model'],function(Model){
 			},
 			asPt: function(x, type){
 				switch(type){
-				case 'cm': 
+				case 'cm':
 					return parseInt(x)*28.3464567/360000;
-				default://dxa 
+				default://dxa
 					return parseInt(x)/20.0
 				}
 			},
 			pt2Px: function(x){
 				if(typeof(x)=='string')
-					x=parseFloat(x.replace('pt','')) 
+					x=parseFloat(x.replace('pt',''))
 				return Math.floor(x*96/72)
 			}
 		})

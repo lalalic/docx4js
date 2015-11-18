@@ -1,5 +1,5 @@
 define(['./graphic'],function(Super){
-	return Super.extend({
+	return Super.extend({},{
 		type:'diagram'
 	})
 })

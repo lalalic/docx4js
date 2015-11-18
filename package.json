@@ -26,7 +26,7 @@
     "watchify": "^3.6.1"
   },
   "dependencies": {
-    "babel": "^5.6.14",  
+    "babel": "^5.6.14",
     "adeamdify": ">=0.1.1",
     "amd-require": "0.0.5",
     "apromise": ">0.1.0",

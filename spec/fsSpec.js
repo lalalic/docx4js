@@ -1,4 +1,4 @@
-describe("server side parse posibility",function(){
+fdescribe("server side parse posibility",function(){
 	var Docx4js=require('../main');
 	function checkModel(doc, models){
 		var converter=[], a, i=0
@@ -13,10 +13,15 @@ describe("server side parse posibility",function(){
 			i++
 		}
 
-		doc.parse(Docx4js.createVisitorFactory(function(srcModel){
-			converter.model=srcModel
-			return converter;
-		}))
+		try{
+			doc.parse(Docx4js.createVisitorFactory(function(srcModel){
+				converter.model=srcModel
+				return converter;
+			}))
+		}catch(e){
+			fail(e.message)
+			console.trace(e.stack)
+		}
 	}
 
 	it("load docx4js from server side", function(){

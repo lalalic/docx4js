@@ -1,11 +1,11 @@
 define(['../model','./style/inline'], function(Model, Style){
 	return Model.extend({
-		type:'inline',
+
 		getStyleId: function(){
 			return this._val('>rPr>rStyle')
 		},
 		getNamedStyle: function(){
-			return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type)
+			return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.type)
 		},
 		getDirectStyle: function(pr){
 			return (pr=this.wXml.$1('>rPr')) && new Style.Properties(pr,this.wDoc,this)
@@ -19,5 +19,5 @@ define(['../model','./style/inline'], function(Model, Style){
 		isHidden: function(){
 			return this.wXml.$1('>rPr>vanish')
 		}
-	})
+	},{type:'inline'})
 })

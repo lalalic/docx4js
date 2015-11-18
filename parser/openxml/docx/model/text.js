@@ -1,10 +1,9 @@
 'use strict'
-class Main extends require('../model'){
-	get type(){return 'text'}
-
+class Text extends require('../model'){
+	static get type(){return 'text'}
 	getText(){
 		return this.wXml.textContent
 	}
 }
 
-module.exports=Main
+module.exports=Text

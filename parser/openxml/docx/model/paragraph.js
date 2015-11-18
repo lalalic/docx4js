@@ -1,13 +1,10 @@
 define(['../model','./style/paragraph'], function(Model, Style){
-	return Model.extend(function(wXml,wDoc,mParent){
-		Model.apply(this,arguments)
-	},{
-		type:'paragraph',
+	return Model.extend({
 		getStyleId: function(a){
 			return this._val('>pPr>pStyle')
 		},
 		getNamedStyle: function(){
-			return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.prototype.type)
+			return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.type)
 		},
 		getDirectStyle: function(pr){
 			if(pr=this.wXml.$1('>pPr'))
@@ -16,5 +13,7 @@ define(['../model','./style/paragraph'], function(Model, Style){
 		_shouldIgnore: function(wXml){
 			return wXml.localName=='pPr'
 		}
+	},{
+		type:'paragraph'
 	})
 })

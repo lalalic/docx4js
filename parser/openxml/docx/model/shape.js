@@ -13,7 +13,7 @@ define(['../model','./style', './drawing'], function(Super,Style, Drawing){
 		return o
 	}
 	return Super.extend({
-		type:'shape',
+
 		getDirectStyle: function(){
 			return new this.constructor.Properties(this.wXml,this.wDoc,this)
 		},
@@ -21,9 +21,10 @@ define(['../model','./style', './drawing'], function(Super,Style, Drawing){
 			return this.wXml.$('txbxContent')
 		}
 	},{
+		type:'shape',
 		Properties: Style.Properties.extend($.extend({},Drawing.SpProperties.prototype,{
 			naming: $.extend(Style.Properties.prototype.naming, Drawing.SpProperties.prototype.naming,{
-				
+
 			}),
 			_getValidChildren: function(t){
 				var children=((t=this.wXml.$('>style>*')) && t.asArray() ||[])
@@ -45,7 +46,7 @@ define(['../model','./style', './drawing'], function(Super,Style, Drawing){
 				return {color:this.solidFill(x), family: this.wDoc.getFormatTheme().font(x.attr('idx'))}
 			},
 			effectRef: function(){
-				
+
 			},
 			spAutoFit: function(){
 				return true

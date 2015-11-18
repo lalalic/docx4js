@@ -1,11 +1,12 @@
-define(['./paragraph'],function(Style){
-	return Style.extend(function(wXml,wDoc,mParent){
-		Style.apply(this,arguments)
+"use strict"
+class Document extends require("./paragraph"){
+	constructor(wXml,wDoc,mParent){
+		super(wXml,wDoc,mParent)
 		wDoc.style.setDefault(this)
-	},{
-		type:'style.document',
-		isDefault: function(){
-			return true
-		}
-	})
-})
+	}
+
+	isDefault(){
+		return true
+	}
+}
+Object.assign(module.exports=Document,{type:'style.document'})

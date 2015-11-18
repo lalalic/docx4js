@@ -1,11 +1,11 @@
 'use strict'
 
-class Main extends require('./text'){
-	get type(){return 'tab'}
-
+class Tab extends require('./text'){
+	static get type(){return 'tab'}
+	
 	getText(){
 		return String.fromCharCode(0x9)
 	}
 }
 
-module.exports=Main
+module.exports=Tab

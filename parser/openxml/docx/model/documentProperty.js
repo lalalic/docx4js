@@ -5,7 +5,7 @@ define(['./sdt'],function(SDT){
 		this.value=wXml.$1('>sdtContent').textContent
 		if(!this.wDoc.props[this.key])
 			this.wDoc.props[this.key]=this.value
-	},{
+	},{},{
 		type:'documentProperty'
 	})
 })

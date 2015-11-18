@@ -1,5 +1,5 @@
 define(['./header'], function(Header){
-	return Header.extend({
+	return Header.extend({},{
 		type:'footer'
 	})
 })

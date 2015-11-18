@@ -1,8 +1,7 @@
 'use strict'
 
-class Main extends require('./text'){
-	get type(){return 'symbol'}
-
+class Symbol extends require('./text'){
+	static get type(){return 'symbol'}
 	getText(){
 		return String.fromCharCode(ParseInt('0x'+this._attr('w:char')))
 	}
@@ -12,4 +11,4 @@ class Main extends require('./text'){
 }
 
 
-module.exports=Main
+module.exports=Symbol
