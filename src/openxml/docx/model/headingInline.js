@@ -1,5 +1,3 @@
-define(['./inline'],function(Inline){
-	return Inline.extend({},{
-		type:'headingChar'
-	})
-})
+export default class headingChar extends require('./inline'){
+	static get type(){return 'headingChar'}
+}

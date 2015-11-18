@@ -1,10 +1,6 @@
-define(['./rangeBase'],function(Range){
-	return Range.extend({
-
-		getName: function(){
-			this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')]
-		}
-	},{
-		type:'bookmarkEnd'
-	})
-})
+export default class bookmarkEnd extends require('./rangeBase'){
+	getName(){
+		this.wDoc.parseContext.bookmark[this.wXml.attr('w:id')]
+	}
+	static get type(){return 'bookmarkEnd'}
+}

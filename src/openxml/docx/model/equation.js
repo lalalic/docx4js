@@ -1,5 +1,3 @@
-define(['../model'], function(Model){
-	return Model.extend({},{
-		type:'equation'
-	})
-})
+export default class equation extends require('../model'){
+	static get type(){return 'equation'}
+}

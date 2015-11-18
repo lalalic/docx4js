@@ -1,8 +1,6 @@
-define(['../model'],function(Model){
-	return Model.extend({
-
-		_getValidChildren: function(){
-			return this.wXml.$('abstractNum')
-		}
-	},{type:'listStyles'})
-})
+export default class listStyles extends require('../model'){
+	_getValidChildren(){
+		return this.wXml.$('abstractNum')
+	}
+	static get type(){return 'listStyles'}
+}

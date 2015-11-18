@@ -1,8 +1,6 @@
-define(['./paragraph'],function(Paragraph){
-	return Paragraph.extend({
-
-		getOutlineLevel: function(){
-			return this.getNamedStyle().getOutlineLevel()
-		}
-	},{type:'heading'})
-})
+export default class heading extends require('./paragraph'){
+	getOutlineLevel(){
+		return this.getNamedStyle().getOutlineLevel()
+	}
+	static get type(){return 'heading'}
+}

@@ -12,16 +12,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Symbol = (function (_require) {
-	_inherits(Symbol, _require);
+var symbol = (function (_require) {
+	_inherits(symbol, _require);
 
-	function Symbol() {
-		_classCallCheck(this, Symbol);
+	function symbol() {
+		_classCallCheck(this, symbol);
 
-		_get(Object.getPrototypeOf(Symbol.prototype), 'constructor', this).apply(this, arguments);
+		_get(Object.getPrototypeOf(symbol.prototype), 'constructor', this).apply(this, arguments);
 	}
 
-	_createClass(Symbol, [{
+	_createClass(symbol, [{
 		key: 'getText',
 		value: function getText() {
 			return String.fromCharCode(ParseInt('0x' + this._attr('w:char')));
@@ -38,9 +38,9 @@ var Symbol = (function (_require) {
 		}
 	}]);
 
-	return Symbol;
+	return symbol;
 })(require('./text'));
 
-exports['default'] = Symbol;
+exports['default'] = symbol;
 module.exports = exports['default'];
 //# sourceMappingURL=symbol.js.map

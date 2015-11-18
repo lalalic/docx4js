@@ -6,4 +6,4 @@ node_modules
 test/**/*.html
 *.map
 
-parser/**/*.js
+parser/

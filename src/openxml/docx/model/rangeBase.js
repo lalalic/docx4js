@@ -1,8 +1,13 @@
-define(['../model'],function(Model){
-	return Model.extend({
+export default class rangeBase extends require('../model'){
+	iterate(visitor){
 
-		iterate: function(visitor){},
-		first: function(){},
-		last: function(){}
-	},{type:'range'})
-})
+	}
+	first(){
+
+	}
+	last(){
+
+	}
+
+	static get type(){return 'range'}
+}

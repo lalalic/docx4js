@@ -1,4 +1,4 @@
-export default class Tab extends require('./text'){
+export default class tab extends require('./text'){
 	static get type(){return 'tab'}
 
 	getText(){

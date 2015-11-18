@@ -1,8 +1,6 @@
-define(['../model'],function(Super){
-	return Super.extend({
-
-		parse: function(factories){
-			this.wDoc.parseContext.field.seperate(this)
-		}
-	},{type:'fieldEnd'})
-})
+export default class fieldSeperate extends require('../model'){
+	parse(factories){
+		this.wDoc.parseContext.field.seperate(this)
+	}
+	static get type(){return 'fieldEnd'}
+}

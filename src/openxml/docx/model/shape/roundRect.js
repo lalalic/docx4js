@@ -1,5 +1,3 @@
-define(['../shape'],function(Shape){
-	return Shape.extend({},{
-		type:'shape.roundRect'
-	})
-})
+export default class Line extends require('../shape'){
+	static get type(){return 'shape.roundRect'}
+}

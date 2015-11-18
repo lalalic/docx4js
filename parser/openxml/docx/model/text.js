@@ -12,16 +12,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Text = (function (_require) {
-	_inherits(Text, _require);
+var text = (function (_require) {
+	_inherits(text, _require);
 
-	function Text() {
-		_classCallCheck(this, Text);
+	function text() {
+		_classCallCheck(this, text);
 
-		_get(Object.getPrototypeOf(Text.prototype), 'constructor', this).apply(this, arguments);
+		_get(Object.getPrototypeOf(text.prototype), 'constructor', this).apply(this, arguments);
 	}
 
-	_createClass(Text, [{
+	_createClass(text, [{
 		key: 'getText',
 		value: function getText() {
 			return this.wXml.textContent;
@@ -33,9 +33,9 @@ var Text = (function (_require) {
 		}
 	}]);
 
-	return Text;
+	return text;
 })(require('../model'));
 
-exports['default'] = Text;
+exports['default'] = text;
 module.exports = exports['default'];
 //# sourceMappingURL=text.js.map

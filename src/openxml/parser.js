@@ -1,9 +1,11 @@
-define([],function(){
-	return $.newClass(function(wXml,wDoc){
+
+export default class parser{
+	constructor(wXml,wDoc){
 		this.wXml=wXml
 		this.wDoc=wDoc
-	},{
-		type: null,
-		parse:function(visitFactories){}
-	})
-})
+	}
+	static get type(){return null}
+	parse(visitFactories){
+
+	}
+}

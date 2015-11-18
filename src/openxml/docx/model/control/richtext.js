@@ -1,5 +1,5 @@
-define(['../control'], function(Control){
-	return Control.extend({},{
-		type:'control.richtext'
-	})
-})
+export default class richtext extends require('../control'){
+	static get type(){
+		return 'control.richtext'
+	}
+}

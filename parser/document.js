@@ -5,33 +5,61 @@
  */
 'use strict';
 
-define(['jszip'], function (JSZip) {
-	return $.newClass(function (parts, raw, props) {
+Object.defineProperty(exports, '__esModule', {
+	value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _jszip = require('jszip');
+
+var _jszip2 = _interopRequireDefault(_jszip);
+
+var Document = (function () {
+	function Document(parts, raw, props) {
+		_classCallCheck(this, Document);
+
 		this.parts = parts;
 		this.raw = raw;
 		this.props = props;
-	}, {
-		getPart: function getPart(name) {
+	}
+
+	_createClass(Document, [{
+		key: 'getPart',
+		value: function getPart(name) {
 			return this.parts[name];
-		},
-		getImagePart: function getImagePart(name) {
-			var part = this.parts[name];
-			var crc32 = part._data.crc32;
-			var buffer = part[JSZip.support.nodebuffer ? 'asNodeBuffer' : 'asArrayBuffer']();
-			buffer.crc32 = part._data.crc32 = crc32;
-			return buffer;
-		},
-		parse: function parse() {},
-		release: function release() {},
-		factory: function factory() {
-			return this.constructor.factory.apply(this, arguments);
 		}
 	}, {
-		load: function load(inputFile) {
+		key: 'getImagePart',
+		value: function getImagePart(name) {
+			var part = this.parts[name];
+			var crc32 = part._data.crc32;
+			var buffer = part[_jszip2['default'].support.nodebuffer ? 'asNodeBuffer' : 'asArrayBuffer']();
+			buffer.crc32 = part._data.crc32 = crc32;
+			return buffer;
+		}
+	}, {
+		key: 'parse',
+		value: function parse() {}
+	}, {
+		key: 'release',
+		value: function release() {}
+	}, {
+		key: 'factory',
+		value: function factory() {
+			return this.constructor.factory.apply(this, arguments);
+		}
+	}], [{
+		key: 'load',
+		value: function load(inputFile) {
 			var DocumentSelf = this;
 			return new Promise(function (resolve, reject) {
 				function parse(data, name) {
-					var raw = new JSZip(data),
+					var raw = new _jszip2['default'](data),
 					    parts = {};
 					raw.filter(function (path, file) {
 						parts[path] = file;
@@ -59,8 +87,17 @@ define(['jszip'], function (JSZip) {
 					});
 				}
 			});
-		},
-		factory: null
-	});
-});
+		}
+	}, {
+		key: 'factory',
+		get: function get() {
+			return null;
+		}
+	}]);
+
+	return Document;
+})();
+
+exports['default'] = Document;
+module.exports = exports['default'];
 //# sourceMappingURL=document.js.map

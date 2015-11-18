@@ -1,5 +1,3 @@
-define(['./header'], function(Header){
-	return Header.extend({},{
-		type:'footer'
-	})
-})
+export default class footer extends require('./header'){
+	static get type(){return 'footer'}
+}

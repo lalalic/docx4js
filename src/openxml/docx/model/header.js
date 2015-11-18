@@ -1,8 +1,7 @@
-define(['../model'], function(Model){
-	return Model.extend(function(wXml, wDoc, mParent, location){
-		Model.apply(this,arguments)
+export default class header extends require('../model'){
+	constructor(wXml, wDoc, mParent, location){
+		super(...arguments)
 		this.location=location
-	},{},{
-		type:'header'
-	})
-})
+	}
+	static get type(){return 'header'}
+}

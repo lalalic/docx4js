@@ -1,9 +1,7 @@
-define(['../model', './section'],function(Model, Section){
-	return Model.extend({
-		_getValidChildren: function(){
-			return this.wXml.$('sectPr')
-		}
-	},{
-		type:'body'
-	})
-})
+export default class Body extends require('../model'){
+	_getValidChildren(){
+		return this.wXml.$('sectPr')
+	}
+
+	static get type(){return 'body'}
+}

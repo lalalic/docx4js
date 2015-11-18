@@ -1,5 +1,3 @@
-define(['../model'],function(Model){
-	return Model.extend({},{
-		type:'br'
-	})
-})
+export default class br extends require('../model'){
+	static get type(){return 'br'}
+}

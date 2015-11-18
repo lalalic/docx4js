@@ -1,13 +1,7 @@
-define(['./shape'],function(Super){
-	return Super.extend({
+export default class group extends require('./shape'){
+	_getValidChildren(){
+		return this.wXml.$('wsp')
+	}
 
-		_getValidChildren: function(){
-			return this.wXml.$('wsp')
-		}
-	},{
-		type:'group',
-		Properties: Super.Properties.extend({
-
-		})
-	})
-})
+	static get type(){return 'group'}
+}

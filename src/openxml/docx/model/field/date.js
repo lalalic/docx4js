@@ -1,23 +1,21 @@
-define(['./field'], function(Super){
-	return Super.extend({
+export default class Date extends require('./field'){
+	static get type(){return 'fied.date'}
+	static get FieldCode(){return FieldCode}
+}
 
-	},{
-		type:'fied.date',
-		FieldCode: Super.FieldCode.extend({
-			parse: function(){
-				var option=null;
-				while(option=this.nextSwitch()){
-					switch(option.type){
-					case '@':
-						var i=option.data.indexOf('"');
-						if(i!=-1)
-							this.format=option.data.substring(0,i);
-						else
-							this.format=option.data;
-						break;
-					}
-				}
+class FieldCode extends require('./field').FieldCode{
+	parse(){
+		var option=null;
+		while(option=this.nextSwitch()){
+			switch(option.type){
+			case '@':
+				var i=option.data.indexOf('"');
+				if(i!=-1)
+					this.format=option.data.substring(0,i);
+				else
+					this.format=option.data;
+				break;
 			}
-		})
-	})
-})
+		}
+	}
+}

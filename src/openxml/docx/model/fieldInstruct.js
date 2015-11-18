@@ -1,9 +1,10 @@
-define(['../model'],function(Super){
-	return Super.extend(function(wXml,wDoc,mParent){
-		Super.apply(this,arguments)
+export default class fieldInstruct extends require('../model'){
+	constructor(wXml,wDoc,mParent){
+		super(...arguments)
 		wDoc.parseContext.field.instruct(wXml.textContent)
-	},{
+	}
+	parse(){
 
-		parse: function(){}
-	},{type:'fieldInstruct'})
-})
+	}
+	static get type(){return 'fieldInstruct'}
+}

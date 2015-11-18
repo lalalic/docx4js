@@ -12,16 +12,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Tab = (function (_require) {
-	_inherits(Tab, _require);
+var tab = (function (_require) {
+	_inherits(tab, _require);
 
-	function Tab() {
-		_classCallCheck(this, Tab);
+	function tab() {
+		_classCallCheck(this, tab);
 
-		_get(Object.getPrototypeOf(Tab.prototype), 'constructor', this).apply(this, arguments);
+		_get(Object.getPrototypeOf(tab.prototype), 'constructor', this).apply(this, arguments);
 	}
 
-	_createClass(Tab, [{
+	_createClass(tab, [{
 		key: 'getText',
 		value: function getText() {
 			return String.fromCharCode(0x9);
@@ -33,9 +33,9 @@ var Tab = (function (_require) {
 		}
 	}]);
 
-	return Tab;
+	return tab;
 })(require('./text'));
 
-exports['default'] = Tab;
+exports['default'] = tab;
 module.exports = exports['default'];
 //# sourceMappingURL=tab.js.map

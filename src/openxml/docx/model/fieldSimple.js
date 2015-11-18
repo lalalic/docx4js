@@ -1,5 +1,3 @@
-define(['../model'],function(Model){
-	return Model.extend({},{
-		type:'fieldSimple'
-	})
-})
+export default class fieldSimple extends require('../model'){
+	static get type(){return 'fieldSimple'}
+}

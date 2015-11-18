@@ -1,5 +1,3 @@
-define(['../model'],function(Model){
-	return Model.extend({},{
-		type:'OLE'
-	})
-})
+export default class OLE extends require('../model'){
+	static get type(){return 'OLE'}
+}

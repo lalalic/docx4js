@@ -1,6 +1,6 @@
-define(['./hyperlink'], function(Super){
-	return Super.extend(function(instruct){
-		Super.apply(this,arguments)
+export default class hyperlink extends require('./hyperlink'){
+	constructor(instruct){
+		super(...arguments)
 		this.link='#'+instruct.split(/\s+/)[1]
-	})
-})
+	}
+}

@@ -1,7 +1,17 @@
 "use strict";
 
-define([], function () {
-	return $.newClass(function (name, doc) {
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var part = (function () {
+	function part(name, doc) {
+		_classCallCheck(this, part);
+
 		this.name = name;
 		this.doc = doc;
 		this.documentElement = doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement;
@@ -23,8 +33,11 @@ define([], function () {
 				targetMode: a.getAttribute('TargetMode'),
 				target: (a.getAttribute('TargetMode') != "External" ? folder ? folder + "/" : '' : '') + a.getAttribute('Target') };
 		}, this);
-	}, {
-		getRel: function getRel(id) {
+	}
+
+	_createClass(part, [{
+		key: "getRel",
+		value: function getRel(id) {
 			var rel = this.rels[id];
 			switch (rel.type) {
 				case 'image':
@@ -34,11 +47,16 @@ define([], function () {
 					return this.doc.getPart(rel.target);
 			}
 		}
-
-	}, {
-		is: function is(o) {
+	}], [{
+		key: "is",
+		value: function is(o) {
 			return o && o.getRel;
 		}
-	});
-});
+	}]);
+
+	return part;
+})();
+
+exports["default"] = part;
+module.exports = exports["default"];
 //# sourceMappingURL=part.js.map

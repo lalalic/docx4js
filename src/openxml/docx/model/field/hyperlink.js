@@ -1,10 +1,11 @@
-define(['./field'], function(Super){
-	return Super.extend(function(instruct){
-		Super.apply(this,arguments)
+export default class hyperlink extends require('./field'){
+	constructor(instruct){
+		super(...arguments)
 		this.link=instruct.split('"')[1]
-	},{
-		getLink: function(){
-			return this.link
-		}
-	},{type:'field.hyperlink'})
-})
+	}
+	getLink(){
+		return this.link
+	}
+	
+	static get type(){return 'field.hyperlink'}
+}

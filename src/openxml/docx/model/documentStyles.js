@@ -1,8 +1,6 @@
-define(['../model'],function(Model){
-	return Model.extend({
-
-		_getValidChildren: function(){
-			return this.wXml.$('docDefaults,style')
-		}
-	},{type:'documentStyles'})
-})
+export default class documentStyles extends require('../model'){
+	_getValidChildren(){
+		return this.wXml.$('docDefaults,style')
+	}
+	static get type(){return 'documentStyles'}
+}

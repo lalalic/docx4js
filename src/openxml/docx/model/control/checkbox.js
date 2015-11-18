@@ -1,5 +1,5 @@
-define(['../control'], function(Control){
-	return Control.extend({},{
-		type:'control.checkbox'
-	})
-})
+export default class Checkbox extends require('../control'){
+	static get type(){
+		return 'control.checkbox'
+	}
+}

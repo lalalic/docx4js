@@ -1,5 +1,5 @@
-define(['../control'], function(Control){
-	return Control.extend({},{
-		type:'control.text'
-	})
-})
+export default class text extends require('../control'){
+	static get type(){
+		return 'control.text'
+	}
+}

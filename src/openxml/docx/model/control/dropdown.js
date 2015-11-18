@@ -1,5 +1,5 @@
-define(['../control'], function(Control){
-	return Control.extend({},{
-		type:'control.dropdown'
-	})
-})
+export default class dropdown extends require('../control'){
+	static get type(){
+		return 'control.dropdown'
+	}
+}

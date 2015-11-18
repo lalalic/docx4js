@@ -1,5 +1,5 @@
-define(['../control'], function(Control){
-	return Control.extend({},{
-		type:'control.date'
-	})
-})
+export default class date extends require('../control'){
+	static get type(){
+		return 'control.date'
+	}
+}

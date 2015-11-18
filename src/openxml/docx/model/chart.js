@@ -1,5 +1,3 @@
-define(['./graphic'],function(Super){
-	return Super.extend({},{
-		type:'chart'
-	})
-})
+export default class chart extends require('./graphic'){
+	static get type(){return 'chart'}
+}

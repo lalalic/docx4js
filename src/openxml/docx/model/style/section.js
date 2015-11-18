@@ -1,22 +1,25 @@
-define(['../style'],function(Style){
-	return Style.Properties.extend({
-		naming:$.extend(Style.Properties.prototype.naming,{
-			pgSz:'size',
-			pgMar:'margin'
-		}),
-		pgSz: function(x){
-			return {width:parseInt(x.attr('w:w'))/20, height:parseInt(x.attr('w:h')/20)}
-		},
-		pgMar: function(x){
-			var value=this.asObject(x, function(v){return parseFloat(v)/20})
-			if(value.gutter && this.wDoc.getPart('settings').documentElement.$1('gutterAtTop'))
-				value.gutterAtRight=1;
-			return value;
-		},
-		cols: function(x){
-			var o=this.asObject(x, parseInt)
-			o.space && (o.space=o.space/20.0)
-			return o
-		}
-	},{type:'section'})
-})
+import Style from '../style'
+
+var naming=Object.assign({},Style.Properties.naming,{
+		pgSz:'size',
+		pgMar:'margin'
+	})
+export default class section extends Style{
+	static get naming(){return naming}
+	
+	pgSz(x){
+		return {width:parseInt(x.attr('w:w'))/20, height:parseInt(x.attr('w:h')/20)}
+	}
+	pgMar(x){
+		var value=this.asObject(x, function(v){return parseFloat(v)/20})
+		if(value.gutter && this.wDoc.getPart('settings').documentElement.$1('gutterAtTop'))
+			value.gutterAtRight=1;
+		return value;
+	}
+	cols(x){
+		var o=this.asObject(x, parseInt)
+		o.space && (o.space=o.space/20.0)
+		return o
+	}
+	static get type(){return 'section'}
+}

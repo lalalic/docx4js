@@ -1,10 +1,9 @@
-define(['../model','./style/table'], function(Model,Style){
-	return Model.extend({
-
-		getDirectStyle: function(pr){
-			return (pr=this.wXml.$1('>tcPr')) && new Style.CellProperties(pr,this.wDoc,this)
-		}
-	},{
-		type:'cell'
-	})
-})
+export default class cell extends require('../model'){
+	static get type(){return 'cell'}
+	
+	getDirectStyle(pr){
+		return (pr=this.wXml.$1('>tcPr'))
+			&& new require('./style/table')
+				.CellProperties(pr,this.wDoc,this)
+	}
+}

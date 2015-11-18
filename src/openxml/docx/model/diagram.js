@@ -1,5 +1,3 @@
-define(['./graphic'],function(Super){
-	return Super.extend({},{
-		type:'diagram'
-	})
-})
+export default class diagram extends require('./graphic'){
+	static get type(){return 'diagram'}
+}
