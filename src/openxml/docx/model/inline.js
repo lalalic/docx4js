@@ -1,3 +1,5 @@
+import Style from './style/inline'
+
 export default class inline extends require('../model'){
 	getStyleId(){
 		return this._val('>rPr>rStyle')
@@ -6,7 +8,7 @@ export default class inline extends require('../model'){
 		return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.type)
 	}
 	getDirectStyle(pr){
-		return (pr=this.wXml.$1('>rPr')) && new require('../style/inline').Properties(pr,this.wDoc,this)
+		return (pr=this.wXml.$1('>rPr')) && new Style.Properties(pr,this.wDoc,this)
 	}
 	_shouldIgnore(wXml){
 		return wXml.localName=='rPr'

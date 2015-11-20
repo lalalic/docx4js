@@ -1,4 +1,4 @@
-fdescribe("server side parse posibility",function(){
+describe("server side parse posibility",function(){
 	var Docx4js=require('../main');
 	function checkModel(doc, models){
 		var converter=[], a, i=0
