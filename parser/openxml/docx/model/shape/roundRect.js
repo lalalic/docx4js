@@ -12,25 +12,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Line = (function (_require) {
-	_inherits(Line, _require);
+var roundRect = (function (_require) {
+	_inherits(roundRect, _require);
 
-	function Line() {
-		_classCallCheck(this, Line);
+	function roundRect() {
+		_classCallCheck(this, roundRect);
 
-		_get(Object.getPrototypeOf(Line.prototype), 'constructor', this).apply(this, arguments);
+		_get(Object.getPrototypeOf(roundRect.prototype), 'constructor', this).apply(this, arguments);
 	}
 
-	_createClass(Line, null, [{
+	_createClass(roundRect, null, [{
 		key: 'type',
 		get: function get() {
 			return 'shape.roundRect';
 		}
 	}]);
 
-	return Line;
+	return roundRect;
 })(require('../shape'));
 
-exports['default'] = Line;
+exports['default'] = roundRect;
 module.exports = exports['default'];
 //# sourceMappingURL=roundRect.js.map

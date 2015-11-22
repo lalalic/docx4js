@@ -1,3 +1,4 @@
+import Style from "./style/paragraph"
 export default class paragraph extends require('../model'){
 	getStyleId(a){
 		return this._val('>pPr>pStyle')

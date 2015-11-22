@@ -8,27 +8,27 @@ export default class Style extends require('../model'){
 		if(this.id=this._attr('w:styleId'))
 			wDoc.style.set(this)
 	}
-		getParentStyle(){
-			return this.wDoc.style.get(this._val('basedOn'))
-		}
-		isDefault(){
-			return this.wXml.attr('w:default')=='1'
-		}
-		getNumId(){
-			return -1
-		}
-		getOutlineLevel(){
-			return -1
-		}
+	getParentStyle(){
+		return this.wDoc.style.get(this._val('basedOn'))
+	}
+	isDefault(){
+		return this.wXml.attr('w:default')=='1'
+	}
+	getNumId(){
+		return -1
+	}
+	getOutlineLevel(){
+		return -1
+	}
 
-		static get Properties(){return Properties}
+	static get Properties(){return Properties}
 }
 
 var naming={}
 class Properties extends require('../model'){
 	static get type(){return null}
 	static get naming(){return naming}
-	
+
 	get EMPTY(){return -999}
 	//use parent visitor to visitor style nodes and attributes
 	parse(visitors){

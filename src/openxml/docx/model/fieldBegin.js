@@ -1,8 +1,11 @@
 import hyperlink from './field/hyperlink'
 import date from './field/date'
 import ref from './field/ref'
+import pageref from './field/pageref'
+import toc from './field/toc'
+import page from './field/page'
 
-var fields={hyperlink, date, ref}
+var fields={hyperlink, date, ref, pageref, toc, page}
 export default class fieldBegin extends require('../model'){
 	constructor(){
 		super(...arguments)

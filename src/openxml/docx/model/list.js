@@ -1,3 +1,5 @@
+import Style from "./style/list"
+
 export default class list extends require('./paragraph'){
 	getLevel(numPr,t){
 		return (t=this.wXml.$1('>pPr>numPr>ilvl')) ? t.attr('w:val') : '0'

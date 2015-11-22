@@ -26,7 +26,19 @@ var _fieldRef = require('./field/ref');
 
 var _fieldRef2 = _interopRequireDefault(_fieldRef);
 
-var fields = { hyperlink: _fieldHyperlink2['default'], date: _fieldDate2['default'], ref: _fieldRef2['default'] };
+var _fieldPageref = require('./field/pageref');
+
+var _fieldPageref2 = _interopRequireDefault(_fieldPageref);
+
+var _fieldToc = require('./field/toc');
+
+var _fieldToc2 = _interopRequireDefault(_fieldToc);
+
+var _fieldPage = require('./field/page');
+
+var _fieldPage2 = _interopRequireDefault(_fieldPage);
+
+var fields = { hyperlink: _fieldHyperlink2['default'], date: _fieldDate2['default'], ref: _fieldRef2['default'], pageref: _fieldPageref2['default'], toc: _fieldToc2['default'], page: _fieldPage2['default'] };
 
 var fieldBegin = (function (_require) {
 	_inherits(fieldBegin, _require);

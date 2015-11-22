@@ -6,6 +6,6 @@ export default class hyperlink extends require('./field'){
 	getLink(){
 		return this.link
 	}
-	
+
 	static get type(){return 'field.hyperlink'}
 }

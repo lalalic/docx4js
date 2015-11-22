@@ -1,3 +1,5 @@
+import Style from "./style/table"
+
 export default class table extends require('../model'){
 	getStyleId(a){
 		return this._val('>tblPr>tblStyle')
