@@ -5,5 +5,3 @@ node_modules
 *.log
 test/**/*.html
 *.map
-
-parser/

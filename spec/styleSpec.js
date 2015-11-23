@@ -157,7 +157,7 @@ describe("style visit", function(){
             })
         })
 
-        fit("line", function(done){
+        it("line", function(done){
             check("word/models", done, "shape", (model)=>{
                 var style=model.getDirectStyle()
                 expect(style).toBeDefined()

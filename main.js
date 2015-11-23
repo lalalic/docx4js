@@ -1,5 +1,3 @@
-require('amd-require');
-
 global.$=require("./parser/tool").apply(null,(function(xmldom){
 		var DOMParser=xmldom.DOMParser,
 			DOMImplementation=xmldom.DOMImplementation;
