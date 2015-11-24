@@ -127,7 +127,7 @@ export default class Document extends require('../document'){
 class Visitor{
 	constructor(srcModel, targetParent){
 		this.srcModel=srcModel
-		this.parent=parent
+		this.parent=targetParent
 	}
 	visit(){
 		console.info(this.srcModel.type)
