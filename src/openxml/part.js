@@ -16,6 +16,7 @@ export default class part{
 		if(!doc.parts[relName]) return;
 		//console.log("part:"+name+",relName:"+relName+",folder:"+folder+", text:"+doc.parts[relName].asText())
 		$.parseXML(doc.parts[relName].asText())
+			.documentElement
 			.$("Relationship")
 			.asArray()
 			.forEach(function(a, i){

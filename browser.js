@@ -1,4 +1,4 @@
-window.$=require('./parser/tool').apply(null,(function(){
+window.$=require('./src/tool').apply(null,(function(){
     function parser(x){
         if(typeof(DOMParser)!='undefined')
             return ( new DOMParser() ).parseFromString(x, "text/xml");
@@ -21,4 +21,4 @@ window.$=require('./parser/tool').apply(null,(function(){
     return [parser, Document, Element, NodeList, supportScopeSelector()]
 })())
 
-module.exports=require("./parser/openxml/docx/document")
+module.exports=require("./src/openxml/docx/document")
