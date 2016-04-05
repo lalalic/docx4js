@@ -1,7 +1,7 @@
-import JSZip from "jszip"
+var JSZip=require("jszip")
 
 
-export function newDocx(content={}){
+function newDocx(content){
     if(typeof(content)=='string')
         content={"word/document.xml":content}
     var zip=new JSZip()
@@ -27,10 +27,16 @@ export function newDocx(content={}){
         zip.file(key,finalValue)
     }
 
-    var blob=zip.generate({type:"blob", mimeType: "application/docx", compression: "DEFLATE"})
-    blob.name="a.docx"
-    return blob
+    if(JSZip.support.nodebuffer){
+        return zip.generate({type:"nodebuffer"})
+    }else{
+        var blob=zip.generate({type:"blob", mimeType: "application/docx", compression: "DEFLATE"})
+        blob.name="a.docx"
+        return blob
+    }
 }
+
+exports.newDocx=newDocx
 
 var  DOCX={
 "[Content_Types].xml":

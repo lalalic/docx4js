@@ -1,5 +1,5 @@
 describe("node tool",function(){
-	require('../main')
+	require('../lib/tool')
 
 	Function.prototype.extractComment=function(input){
 		var content=this.toString()
@@ -7,9 +7,9 @@ describe("node tool",function(){
 	}
 
 	describe("basic functions",function(){
-		it("Deferred", function(){
+		xit("Deferred", function(){
 			expect($.Deferred).toBeTruthy()
-		})
+		}).pend("please use ES6 Promise")
 
 		it("extend", function(){
 			expect($.extend).toBeTruthy()
@@ -93,7 +93,7 @@ describe("node tool",function(){
 				expect(root.firstChild.tagName).toEqual('c')
 			})
 
-			it("support xml with namespaces, and nodename, tagName should have no prefix, attr should have namespace", function(){
+			it("support xml with namespaces,  attr should have namespace", function(){
 				var doc=$.parseXML(`
 					<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 					<w:styles xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -117,9 +117,10 @@ describe("node tool",function(){
 						</w:docDefaults>
 					<w:styles>
 				`);
-				expect(doc.documentElement.tagName).toEqual('styles')
 				expect(doc.documentElement.attr('mc:Ignorable')).toEqual('w14')
 			})
+
+			it("xml with namespeces, nodeName and tagName are different in nodejs (without namespace) and browser(with namespace), so use localName")
 
 
 			describe("query", function(){
@@ -296,9 +297,17 @@ describe("node tool",function(){
 
 					it("b>:first-child with namespace",function(){
 						var doc=$.parseXML(`
-							<a><w:b br="1"><x:c cr="1"/><c cr="1"/><c cr="2"/><c>good</c></w:b></a>
+							<a xmlns:w="http://a" xmlns:x="http://b">
+								<w:b br="1">
+									<x:c cr="1"/>
+									<c cr="1"/>
+									<c cr="2"/>
+									<c>good</c>
+								</w:b>
+							</a>
 							`),
 							root=doc.documentElement;
+						debugger
 						expect(root.$(':first-child').length).toEqual(2)
 						expect(root.$('b>:first-child').length).toEqual(1)
 					})
