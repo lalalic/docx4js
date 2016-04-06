@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -18,11 +18,10 @@
     "url": "https://github.com/lalalic/docx4js.git"
   },
   "devDependencies": {
+    "babel-cli": "^6.6.5",
     "babel-plugin-add-module-exports": "^0.1.2",
     "babelify": "^7.2.0",
     "browserify": "^13.0.0",
-    "gulp": "^3.9.0",
-    "gulp-shell": "^0.5.1",
     "jasmine": "^2.2.1",
     "jasmine-core": "^2.4.1",
     "karma": "^0.13.22",
@@ -46,10 +45,20 @@
     ]
   },
   "babel": {
-    "presets": ["es2015"],
-    "plugins":["babel-plugin-add-module-exports"]
+    "presets": [
+      "es2015"
+    ],
+    "plugins": [
+      "babel-plugin-add-module-exports"
+    ]
   },
-  "main": "index.js",
+  "main": "./dist/openxml/docx/document.js",
   "browser": "./lib/openxml/docx/document.js",
-  "scripts": {}
+  "scripts": {
+    "dist": "babel lib -d dist --source-maps inline -w",
+    "test": "jasmine",
+    "test.debug": "node --debug-brk .jasmine.js",
+    "karma": "karma start",
+    "prepublish":"babel lib -d dist --source-maps inline"
+  }
 }

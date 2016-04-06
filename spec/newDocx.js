@@ -9,11 +9,11 @@ function newDocx(content){
     content=content||{}
 
     for(var key in DOCX){
-        let defaultValue=DOCX[key]
+        var defaultValue=DOCX[key]
             ,defaultType=typeof(defaultValue)
 
-        let value=content[key]
-        let finalValue="<a/>"
+        var value=content[key]
+        var finalValue="<a/>"
         if(value){
             if(defaultType=='function')
                 finalValue=defaultValue(value)
