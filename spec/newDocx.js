@@ -9,6 +9,9 @@ function newDocx(content){
     content=content||{}
 
     for(var key in DOCX){
+		if(!DOCX.hasOwnProperty(key))
+			continue;
+		
         var defaultValue=DOCX[key]
             ,defaultType=typeof(defaultValue)
 
@@ -36,7 +39,7 @@ function newDocx(content){
     }
 }
 
-exports.newDocx=newDocx
+module.exports=newDocx
 
 var  DOCX={
 "[Content_Types].xml":
@@ -62,7 +65,7 @@ var  DOCX={
 	<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>`,
 
-"word/_rels/document.xml.rels":(a="")=>
+"word/_rels/document.xml.rels":(a)=>
 `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 	<Relationship Id="rId8" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable" Target="fontTable.xml"/>
 	<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>
@@ -73,7 +76,7 @@ var  DOCX={
 	<Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="http://jd.com/" TargetMode="External"/>
 	<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings" Target="webSettings.xml"/>
 	<Relationship Id="rId9" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>
-    ${a}
+    ${a||''}
 </Relationships>`,
 
 "word/document.xml": (a)=>

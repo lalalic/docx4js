@@ -30,8 +30,15 @@ module.exports = function(config) {
         'spec/**/*Spec.js': ['browserify']
     },
 
-    browserify: Object.assign(require("./package.json").browserify,{debug:true}),
-
+    browserify: //Object.assign(require("./package.json").browserify,{debug:true}),
+ {
+    "transform": [
+      [
+		"redirectify", {"dist":"lib"}
+	  ]
+    ],
+	debug:true
+  },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

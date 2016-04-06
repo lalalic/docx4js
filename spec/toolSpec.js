@@ -1,5 +1,5 @@
 describe("node tool",function(){
-	require('../lib/tool')
+	require('../dist/tool')
 
 	Function.prototype.extractComment=function(input){
 		var content=this.toString()
