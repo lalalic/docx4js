@@ -1,6 +1,6 @@
 describe("style visit", function(){
     var load, NULL=()=>1, Ignore={visit:NULL}
-    var Docx4js=require('../main');
+    var Docx4js=require('../dist/openxml/docx/document');
 
     function check(name, done, selector, visit){
         load(NULL,name).then((docx)=>{

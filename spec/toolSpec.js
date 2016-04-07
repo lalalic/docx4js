@@ -307,7 +307,6 @@ describe("node tool",function(){
 							</a>
 							`),
 							root=doc.documentElement;
-						debugger
 						expect(root.$(':first-child').length).toEqual(2)
 						expect(root.$('b>:first-child').length).toEqual(1)
 					})

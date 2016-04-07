@@ -15,12 +15,14 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'spec/**/toolSpec.js'
+      'spec/**/*Spec.js'
     ],
 
 
     // list of files to exclude
     exclude: [
+		'spec/**/styleSpec.js',
+		'spec/**/fsSpec.js'
     ],
 
 
@@ -30,15 +32,14 @@ module.exports = function(config) {
         'spec/**/*Spec.js': ['browserify']
     },
 
-    browserify: //Object.assign(require("./package.json").browserify,{debug:true}),
- {
-    "transform": [
-      [
-		"redirectify", {"dist":"lib"}
-	  ]
-    ],
-	debug:true
-  },
+    browserify: {
+		"transform": [
+		  [
+			"redirectify", {"dist":"lib"}
+		  ]
+		],
+		debug:true
+	  },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

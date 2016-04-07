@@ -1,5 +1,5 @@
 describe("server side parse posibility",function(){
-	var Docx4js=require('../main');
+	var Docx4js=require('../dist/openxml/docx/document');
 	function checkModel(doc, models){
 		var converter=[], a, i=0
 		models=models.split(',')
@@ -11,7 +11,7 @@ describe("server side parse posibility",function(){
 				this.visit=()=>1
 			}
 			i++
-		}
+		} 
 
 		try{
 			doc.parse(Docx4js.createVisitorFactory(function(srcModel){
@@ -31,7 +31,7 @@ describe("server side parse posibility",function(){
 	var load, NULL=()=>1;
 
 	describe("load all kinds of models", function(){
-		it("load docx", load=(done, docx)=>{
+		fit("load docx", load=(done, docx)=>{
 			return Docx4js.load(__dirname+"/../test/"+(docx||"fs")+".docx").then(function(doc){
 				expect(doc).toBeDefined()
 				expect(doc.partMain).toBeDefined()
@@ -39,12 +39,12 @@ describe("server side parse posibility",function(){
 
 				return doc
 			},(e)=>{
-				fail(e.message())
+				fail(e)
 				done()
 			})
 		})
 
-		it("load models", (done)=>{
+		fit("load models", (done)=>{
 			load(NULL,"word/models").then((doc)=>{
 				checkModel(doc,"document,documentStyles,style.document,style.paragraph,style.paragraph,style.paragraph,style.paragraph,style.inline,style.table,style.numbering,,,,,style.paragraph,style.inline,style.inline,style.inline,style.inline,style.paragraph,style.inline,style.inline,style.inline,style.table,style.paragraph,style.paragraph,style.paragraph,style.paragraph,style.inline,style.paragraph,style.paragraph,style.inline,style.paragraph,style.inline,body,section,header,table,row,cell,,,paragraph,fieldBegin,inline,text,,fieldEnd,cell,,,paragraph,hyperlink,inline,text,,cell,,,paragraph,hyperlink,,inline,text,,,cell,,,paragraph,hyperlink,,inline,text,,,paragraph,paragraph,inline,text,,heading,bookmarkStart,inline,text,,bookmarkEnd,paragraph,inline,drawing.anchor,shape,,paragraph,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,paragraph,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,paragraph,inline,text,,heading,bookmarkStart,inline,text,,inline,text,,,inline,text,,,inline,text,,,inline,text,,,inline,text,,inline,text,,inline,text,,bookmarkEnd,inline,text,,paragraph,inline,text,,inline,noBreakHyphen,inline,text,,inline,noBreakHyphen,inline,text,,paragraph,,inline,text,,inline,text,,,inline,symbol,inline,text,,inline,text,,paragraph,,inline,text,,inline,text,,,inline,tab,text,,inline,text,,inline,text,,paragraph,inline,text,,inline,text,,inline,text,,inline,text,,paragraph,hyperlink,,inline,text,,,inline,text,,hyperlink,inline,text,,heading,inline,text,,inline,text,,paragraph,equation,,,,,,,,,,,,,,inline,text,,,inline,text,,inline,text,,,,,,,,,,inline,text,,,inline,text,,,,,,,,,,,,,,,style.list,inline,text,,,inline,text,,,,,,,,inline,text,,,inline,text,,,,,,,,inline,text,,,inline,text,,paragraph,heading,bookmarkStart,inline,text,,inline,text,,bookmarkEnd,heading,bookmarkStart,inline,text,,,inline,text,,,inline,text,,,inline,text,,bookmarkEnd,,paragraph,fieldSimple,inline,text,,heading,bookmarkStart,,inline,text,,inline,text,,bookmarkEnd,,paragraph,fieldBegin,inline,text,,inline,fieldEnd,heading,bookmarkStart,inline,text,,,inline,text,,bookmarkEnd,,paragraph,bookmarkStart,inline,text,,bookmarkEnd,inline,text,,heading,bookmarkStart,inline,text,,bookmarkEnd,heading,bookmarkStart,,,inline,text,,bookmarkEnd,,,inline,text,,paragraph,inline,drawing.anchor,shape,paragraph,heading,bookmarkStart,,,inline,text,,bookmarkEnd,,,paragraph,inline,text,,inline,,image,inline,text,,inline,text,,inline,text,,inline,text,,inline,text,,paragraph,heading,bookmarkStart,inline,text,,paragraph,inline,,image,paragraph,heading,inline,text,,paragraph,inline,,diagram,heading,inline,text,,paragraph,inline,,chart,heading,,inline,text,,,paragraph,inline,,image,heading,inline,text,,bookmarkEnd,heading,bookmarkStart,inline,text,,bookmarkEnd,paragraph,inline,drawing.anchor,shape,heading,inline,text,,paragraph,inline,drawing.anchor,shape,heading,bookmarkStart,,inline,text,,bookmarkEnd,,paragraph,inline,drawing.anchor,shape,heading,bookmarkStart,,inline,text,,bookmarkEnd,,paragraph,inline,drawing.anchor,shape,heading,bookmarkStart,inline,text,,bookmarkEnd,paragraph,inline,drawing.anchor,shape,shape,heading,bookmarkStart,inline,text,,bookmarkEnd,heading,bookmarkStart,inline,text,,inline,text,,bookmarkEnd,heading,bookmarkStart,inline,text,,bookmarkEnd,paragraph,heading,bookmarkStart,,,inline,text,,bookmarkEnd,,,paragraph,inline,text,,paragraph,heading,bookmarkStart,,,inline,text,,bookmarkEnd,,,paragraph,paragraph,heading,bookmarkStart,inline,text,,inline,text,,inline,text,,inline,text,,bookmarkEnd,table,row,cell,,,paragraph,inline,text,,paragraph,heading,bookmarkStart,bookmarkStart,bookmarkEnd,inline,text,,bookmarkEnd,heading,bookmarkStart,,,inline,text,,bookmarkEnd,,,paragraph,heading,bookmarkStart,inline,text,,bookmarkEnd,control.richtext,,,,,,,heading,inline,text,,control.text,,,,,,,,heading,inline,text,,heading,inline,text,,control.picture,,,,,,,paragraph,inline,,image,heading,inline,text,,control.gallery,,,,,,,,paragraph,inline,text,,control.combobox,,,,,,,heading,inline,text,,control.dropdown,,,,,,,heading,inline,text,,control.date,,,,,,,,,,heading,inline,text,,heading,inline,text,,control.checkbox,,,,,,,,,paragraph,inline,text,,heading,bookmarkStart,,inline,text,,bookmarkEnd,,paragraph,,inline,text,,,inline,text,,hyperlink,inline,text,,inline,text,,paragraph,heading,bookmarkStart,inline,text,,bookmarkEnd,paragraph,inline,OLE,,,,,,,,,,,,,,,,,,,,,,,paragraph,heading,bookmarkStart,inline,text,,inline,text,,bookmarkEnd,paragraph,inline,drawing.anchor,shape,,paragraph,inline,text,,paragraph,bookmarkStart,bookmarkEnd,heading,bookmarkStart,inline,text,,inline,text,,bookmarkEnd,paragraph,inline,text,,inline,br,paragraph,inline,text,,heading,bookmarkStart,inline,text,,bookmarkEnd,paragraph,inline,fieldBegin,inline,inline,inline,inline,text,,inline,fieldEnd,heading,inline,text,,paragraph,fieldBegin,inline,text,,inline,fieldEnd,heading,inline,text,,paragraph,inline,drawing.anchor,shape,,paragraph,inline,text,,heading,inline,text,,paragraph,fieldBegin,inline,text,,fieldEnd,heading,inline,text,,paragraph,fieldBegin,inline,inline,text,,fieldEnd,heading,inline,text,,paragraph,inline,text,")
 				done()
