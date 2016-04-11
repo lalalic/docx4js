@@ -117,20 +117,17 @@ ${a||`<w:p w:rsidR="00F755B0" w:rsidRDefault="00F755B0" w:rsidP="008F2DD4">
 "word/stylesWithEffects.xml":false,
 "docProps/core.xml":false,
 "word/styles.xml": (a)=>
-`<w:styles>
+`<w:styles 
+xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" 
+xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" 
+xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w14">
     <w:docDefaults>
 		<w:rPrDefault>
-			<w:rPr>
-				<w:rFonts w:asciiTheme="minorHAnsi" w:eastAsiaTheme="minorEastAsia" w:hAnsiTheme="minorHAnsi" w:cstheme="minorBidi"/>
-				<w:sz w:val="22"/>
-				<w:szCs w:val="22"/>
-				<w:lang w:val="en-US" w:eastAsia="zh-CN" w:bidi="ar-SA"/>
-			</w:rPr>
+			<w:rPr/>
 		</w:rPrDefault>
 		<w:pPrDefault>
-			<w:pPr>
-				<w:spacing w:after="200" w:line="276" w:lineRule="auto"/>
-			</w:pPr>
+			<w:pPr/>
 		</w:pPrDefault>
 	</w:docDefaults>
 

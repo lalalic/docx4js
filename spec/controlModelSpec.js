@@ -1,3 +1,5 @@
+"use strict"
+
 describe("docx4js model factory can identify", function(){
 	let newDocx=require("./newDocx"),
 		docx4js=require("../dist/openxml/docx/document"),
@@ -11,94 +13,6 @@ describe("docx4js model factory can identify", function(){
 				return going
 		}))
 	}
-	
-	it("document",done=>
-		docx4js.load(newDocx()).then(docx=>check(docx,"document",done))
-	)
-	
-	it("body",done=>
-		docx4js.load(newDocx()).then(docx=>check(docx,"body",done))
-	)
-	
-	it("sections",done=>
-		docx4js.load(newDocx()).then(docx=>check(docx,"section",done))
-	)
-	
-	it("paragraph",done=>
-		docx4js.load(newDocx("<w:p></w:p>")).then(docx=>check(docx,"paragraph",done))
-	)
-	
-	it("inline",done=>
-		docx4js.load(newDocx("<w:p><w:r></w:r></w:p>")).then(docx=>check(docx,"inline",done))
-	)
-	
-	it("text",done=>
-		docx4js.load(newDocx("<w:p><w:r><w:t>hello</w:t></w:r></w:p>")).then(docx=>check(docx,"text",done))
-	)
-	
-	describe("table", function(){
-		it("table",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"table",done))
-		)
-		
-		it("row",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"row",done))
-		)
-		
-		it("cell",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"cell",done))
-		)
-	})
-	
-	xdescribe("fields", function(){
-		it("date",done=>
-			docx4js.load(newDocx(`
-				<w:p>
-					<w:r>
-						<w:fldChar w:fldCharType="begin"/>
-					</w:r>
-					<w:r>
-						<w:instrText xml:space="preserve"> DATE   \* MERGEFORMAT </w:instrText>
-					</w:r>
-					<w:r>
-						<w:fldChar w:fldCharType="separate"/>
-					</w:r>
-					<w:r w:rsidR="00DB68C3">
-						<w:rPr>
-							<w:noProof/>
-						</w:rPr>
-						<w:t>28-Apr-15</w:t>
-					</w:r>
-					<w:r>
-						<w:rPr>
-							<w:noProof/>
-						</w:rPr>
-						<w:fldChar w:fldCharType="end"/>
-					</w:r>
-				</w:p>`)).then(docx=>check(docx,"field.date",done))
-		)
-		
-		it("hyperlink",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"hyperlink",done))
-		)
-		
-		it("page",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"page",done))
-		)
-		
-		it("pageref",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"pageref",done))
-		)
-		
-		it("ref",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"ref",done))
-		)
-		
-		it("toc",done=>
-			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"toc",done))
-		)
-	})
-	
 	describe("controls", function(){
 		it("checkbox",done=>
 			docx4js.load(newDocx(`
@@ -337,50 +251,5 @@ describe("docx4js model factory can identify", function(){
 				</w:sdt>`)).then(docx=>check(docx,"control.text",done))
 		)
 	})
-	
-	describe("shapes", function(){
-		
-	})
-	
-	xdescribe("styles", function(){
-		it("documentStyles",done=>
-			docx4js.load(newDocx()).then(docx=>check(docx,"documentStyles",done))
-		)
-		
-		it("document",done=>
-			docx4js.load(newDocx()).then(docx=>check(docx,"style.document",done))
-		)
-		
-		it("paragraph",done=>
-			docx4js.load(newDocx()).then(docx=>check(docx,"style.paragraph",done))
-		)
-		
-		it("inline",done=>
-			docx4js.load(newDocx({"word/styles.xml":`
-				<w:style w:type="character" w:default="1" w:styleId="DefaultParagraphFont">
-					<w:name w:val="Default Paragraph Font"/>
-					<w:uiPriority w:val="1"/>
-					<w:semiHidden/>
-					<w:unhideWhenUsed/>
-				</w:style>
-			`})).then(docx=>check(docx,"style.inline",done))
-		)
-		
-		it("list",done=>
-			docx4js.load(newDocx()).then(docx=>check(docx,"style.list",done))
-		)
-		
-		it("numbering",done=>
-			docx4js.load(newDocx()).then(docx=>check(docx,"style.numbering",done))
-		)
-		
-		it("section",done=>
-			docx4js.load(newDocx()).then(docx=>check(docx,"style.section",done))
-		)
-		
-		it("table",done=>
-			docx4js.load(newDocx()).then(docx=>check(docx,"style.table",done))
-		)
-		
-	})
 })
+	

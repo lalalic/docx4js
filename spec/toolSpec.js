@@ -120,7 +120,8 @@ describe("node tool",function(){
 				expect(doc.documentElement.attr('mc:Ignorable')).toEqual('w14')
 			})
 
-			it("xml with namespeces, nodeName and tagName are different in nodejs (without namespace) and browser(with namespace), so use localName")
+			it("xml with namespeces")
+				.pend("use node localName to test and query, attribute use nodename with namespace. nodeName and tagName are different in nodejs (without namespace) and browser(with namespace)")
 
 
 			describe("query", function(){
