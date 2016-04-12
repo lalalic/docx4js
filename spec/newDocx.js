@@ -113,6 +113,7 @@ ${a||`<w:p w:rsidR="00F755B0" w:rsidRDefault="00F755B0" w:rsidP="008F2DD4">
 
 "word/theme/theme1.xml":false,
 "word/settings.xml":false,
+"word/numbering.xml":false,
 "word/webSettings.xml":false,
 "word/stylesWithEffects.xml":false,
 "docProps/core.xml":false,

@@ -15,6 +15,12 @@ describe("docx4js model factory can identify", function(){
 	}
 		
 	describe("shapes", function(){
+		it("picture")
+		
+		it("line")
+		
+		it("rect")
+		
 		
 	})
 	

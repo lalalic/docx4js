@@ -38,7 +38,28 @@ describe("docx4js model factory can identify", function(){
 			`})).then(docx=>check(docx,"style.inline",done))
 		)
 		
-		it("list")
+		it("list", done=>
+			docx4js.load(newDocx({"word/numbering.xml":`
+				<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" >
+					<w:abstractNum w:abstractNumId="0">
+						<w:nsid w:val="36965BDB"/>
+						<w:multiLevelType w:val="multilevel"/>
+						<w:tmpl w:val="0409001D"/>
+						<w:lvl w:ilvl="0">
+							<w:start w:val="1"/>
+							<w:numFmt w:val="decimal"/>
+							<w:lvlText w:val="%1)"/>
+							<w:lvlJc w:val="left"/>
+							<w:pPr>
+								<w:ind w:left="360" w:hanging="360"/>
+							</w:pPr>
+						</w:lvl>
+					</w:abstractNum>
+					<w:num w:numId="3">
+						<w:abstractNumId w:val="0"/>
+					</w:num>
+				</w:numbering>`})).then(docx=>check(docx,"style.list",done))
+		)
 		
 		it("numbering",done=>
 			docx4js.load(newDocx({"word/styles.xml":`
