@@ -21,8 +21,7 @@ module.exports = function(config) {
 
     // list of files to exclude
     exclude: [
-		'spec/**/styleSpec.js',
-		'spec/**/fsSpec.js'
+
     ],
 
 
@@ -33,13 +32,8 @@ module.exports = function(config) {
     },
 
     browserify: {
-		"transform": [
-		  [
-			"redirectify", {"dist":"lib"}
-		  ]
-		],
 		debug:true
-	  },
+	},
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

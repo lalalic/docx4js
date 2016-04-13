@@ -2,7 +2,7 @@
 
 describe("docx4js model factory can identify", function(){
 	let newDocx=require("./newDocx"),
-		docx4js=require("../dist/openxml/docx/document"),
+		docx4js=require("../lib/openxml/docx/document"),
 		going={visit:a=>1}
 	
 	function check(docx,model,done){
@@ -50,5 +50,29 @@ describe("docx4js model factory can identify", function(){
 		it("cell",done=>
 			docx4js.load(newDocx("<w:tbl><w:tr><w:tc>hello</w:tc></w:tr></w:tbl>")).then(docx=>check(docx,"cell",done))
 		)
+	})
+	
+	it("br")
+	
+	it("hyperlink")
+	
+	it("tab")
+	
+	it("symbol")
+	
+	it("softHyphen")
+	
+	it("noBreakHyphen")
+	
+	it("range")
+	
+	it("equation")
+	
+	it("heading")
+	
+	it("headingInline")
+	
+	describe("list", function(){
+		
 	})
 })

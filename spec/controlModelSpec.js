@@ -2,7 +2,7 @@
 
 describe("docx4js model factory can identify", function(){
 	let newDocx=require("./newDocx"),
-		docx4js=require("../dist/openxml/docx/document"),
+		docx4js=require("../lib/openxml/docx/document"),
 		going={visit:a=>1}
 	
 	function check(docx,model,done){
@@ -14,6 +14,8 @@ describe("docx4js model factory can identify", function(){
 		}))
 	}
 	describe("controls", function(){
+		it("Table of Contents always within a docPartsGallery, but right now parsed as a richtext")
+		
 		it("checkbox",done=>
 			docx4js.load(newDocx(`
 				<w:sdt>

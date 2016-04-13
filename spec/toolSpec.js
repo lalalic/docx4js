@@ -1,5 +1,5 @@
 describe("node tool",function(){
-	require('../dist/tool')
+	require('../lib/tool')
 
 	Function.prototype.extractComment=function(input){
 		var content=this.toString()
@@ -121,7 +121,7 @@ describe("node tool",function(){
 			})
 
 			it("xml with namespeces")
-				.pend("use node localName to test and query, attribute use nodename with namespace. nodeName and tagName are different in nodejs (without namespace) and browser(with namespace)")
+				.pend("****use node localName to test and query, attribute use nodename with namespace. nodeName and tagName are different in nodejs (without namespace) and browser(with namespace)")
 
 
 			describe("query", function(){

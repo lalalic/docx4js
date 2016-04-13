@@ -1,5 +1,5 @@
 describe("docx4js",function(){
-	var docx4js=require("../dist/openxml/docx/document")
+	var docx4js=require("../lib/openxml/docx/document")
 		,newDocx=require("./newDocx")
 		,aDocx=`./spec/test/models.docx`
 	

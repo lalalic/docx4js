@@ -2,7 +2,7 @@
 
 describe("docx4js model factory can identify", function(){
 	let newDocx=require("./newDocx"),
-		docx4js=require("../dist/openxml/docx/document"),
+		docx4js=require("../lib/openxml/docx/document"),
 		going={visit:a=>1}
 	
 	function check(docx,model,done){
@@ -15,13 +15,19 @@ describe("docx4js model factory can identify", function(){
 	}
 		
 	describe("shapes", function(){
-		it("picture")
+		it("image")
 		
 		it("line")
 		
 		it("rect")
 		
+		it("chart")
 		
+		it("diagram")
+		
+		describe("group", function(){
+			
+		})
 	})
 	
 })

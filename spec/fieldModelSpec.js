@@ -2,7 +2,7 @@
 
 describe("docx4js model factory can identify", function(){
 	let newDocx=require("./newDocx"),
-		docx4js=require("../dist/openxml/docx/document"),
+		docx4js=require("../lib/openxml/docx/document"),
 		going={visit(){}}
 	
 	function check(docx,model,done){
