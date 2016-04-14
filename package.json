@@ -28,6 +28,7 @@
     "karma-chrome-launcher": "^0.2.3",
     "karma-jasmine": "^0.3.8",
     "watchify": ">=3.0.0 <4.0.0",
+	"uglify-js": "^2.6.2",
     "jasmine-core": "^2.4.1"
   },
   "dependencies": {
@@ -47,7 +48,8 @@
   "scripts": {
     "build": "babel src -d lib --source-maps inline",
     "dist": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/docx4js.debug.js -i jquery",
-    "prepublish": "browserify -g uglifyify -r ./lib/openxml/docx/document.js:docx4js -o dist/docx4js.min.js -i jquery",
+	"dist.min": "uglifyjs dist/docx4js.debug.js -o dist/docx4js.min.js"
+    "prepublish": "npm run dist.min",
     "test": "jasmine",
     "test.debug": "node --debug-brk .jasmine.js",
     "karma": "karma start"
