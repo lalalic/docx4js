@@ -4,7 +4,8 @@ var naming=Object.assign({},Style.Properties.naming,{
 		pgSz:'size',
 		pgMar:'margin'
 	})
-export default class section extends Style{
+	
+export default class section extends Style.Properties{
 	static get naming(){return naming}
 	
 	pgSz(x){
