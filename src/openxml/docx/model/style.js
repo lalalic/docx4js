@@ -20,12 +20,10 @@ export default class Style extends require('../model'){
 	getOutlineLevel(){
 		return -1
 	}
-
-	static get Properties(){return Properties}
 }
 
 var naming={}
-class Properties extends require('../model'){
+Style.Properties=class Properties extends require('../model'){
 	static get type(){return null}
 	static get naming(){return naming}
 

@@ -26,14 +26,9 @@ export default class Table extends Style{
 	}
 
 	static get type(){return 'style.table'}
-
-	static get Properties(){return Properties}
-
-	static get RowProperties(){return RowProperties}
-
-	static get CellProperties(){return CellProperties}
 }
-class Properties extends Style.Properties{
+
+Table.Properties=class Properties extends Style.Properties{
 	tblBorders(x){
 		var value={};
 		for(var borders=x.childNodes,border,i=0,len=borders.length;i<len;i++){
@@ -46,7 +41,7 @@ class Properties extends Style.Properties{
 	tblCellMar(x){
 		var value={};
 		for(var borders=x.childNodes,i=0,len=borders.length,v;i<len;i++)
-			value[borders[i].localName]=parseInt(borders[i].attr('w:w'))/20
+			borders[i].nodeType==1 && (value[borders[i].localName]=parseInt(borders[i].attr('w:w'))/20)
 		return value
 	}
 	tblLook(x){
@@ -74,14 +69,14 @@ class Properties extends Style.Properties{
 	static get type(){return 'table'}
 }
 
-class RowProperties extends Style.Properties{
+Table.RowProperties=class RowProperties extends Style.Properties{
 	cnfStyle(x){
 		return x.attr('w:val')
 	}
 	static get type(){return 'row'}
 }
 
-class CellProperties extends Style.Properties{
+Table.CellProperties=class CellProperties extends Style.Properties{
 	tcBorders(x){
 		var value={};
 		for(var borders=x.childNodes,border,i=0,len=borders.length;i<len;i++){

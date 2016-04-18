@@ -1,14 +1,14 @@
-import Style from "./style/table"
+import TableStyle from "./style/table"
 
 export default class table extends require('../model'){
 	getStyleId(a){
 		return this._val('>tblPr>tblStyle')
 	}
 	getNamedStyle(){
-		return this.wDoc.style.get(this.getStyleId())|| this.wDoc.style.getDefault(Style.type)
+		return this.wDoc.style.get(this.getStyleId())|| this.wDoc.style.getDefault(TableStyle.type)
 	}
 	getDirectStyle(pr){
-		return (pr=this.wXml.$1('>tblPr')) && new require('./style/table').Properties(pr,this.wDoc,this)
+		return (pr=this.wXml.$1('>tblPr')) && new TableStyle.Properties(pr,this.wDoc,this)
 	}
 	getColWidth(){
 		var widths=[], sum=0
