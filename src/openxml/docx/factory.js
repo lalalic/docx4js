@@ -6,9 +6,9 @@ function attr(node,name){
 
 export default	function factory(wXml, doc, parent, more){
 	var tag=wXml.localName, swap;
-	
+
 	let extended=factory.extend(...arguments)
-	
+
 	if(extended)
 		return extended
 	else if('document'==tag)
@@ -39,17 +39,33 @@ export default	function factory(wXml, doc, parent, more){
 		if(wXml.$1('>pPr>numPr') || (style && style.getNumId()!=-1))
 			return new (require('./model/list'))(wXml,doc,parent)
 
-		if(style && style.getOutlineLevel()!=-1)
-			return new (require('./model/heading'))(wXml,doc, parent)
+		let outlineLvl=-1,tmp
+		if(style)
+			outlineLvl=style.getOutlineLevel()
+		else if(tmp=wXml.$1('>pPr>outlineLvl')){
+			tmp=parseInt(attr(tmp))
+			outlineLvl=parseInt(tmp)
+		}
 
-
+		if(outlineLvl!=-1)
+			return new (require('./model/heading'))(wXml,doc, parent,outlineLvl)
 
 		return new (require('./model/paragraph'))(wXml,doc,parent)
 	}else if('r'==tag){
-		var style=doc.style.get(attr(wXml.$1('>rPr>rStyle'),'w:val'))
-		if(style && style.getOutlineLevel()!=-1)
-			return new (require('./model/headingInline'))(wXml,doc,parent)
-		else if(wXml.childNodes.length==1 || (wXml.childNodes==2 && wXml.firstChild.localName=='rPr')){
+		let style=doc.style.get(attr(wXml.$1('>rPr>rStyle'),'w:val'))
+
+		let outlineLvl=-1, tmp
+		if(style)
+			outlineLvl=style.getOutlineLevel()
+		else if(tmp=wXml.$1('>rPr>outlineLvl')){
+			tmp=attr(tmp)
+			outlineLvl=parseInt(tmp)
+		}
+
+		if(outlineLvl!=-1)
+			return new (require('./model/headingInline'))(wXml,doc,parent,outlineLvl)
+
+		if(wXml.childNodes.length==1 || (wXml.childNodes==2 && wXml.firstChild.localName=='rPr')){
 			switch(wXml.lastChild.localName){
 			case 'fldChar':
 			case 'instrText':
@@ -120,9 +136,9 @@ export default	function factory(wXml, doc, parent, more){
 		}else {//controls
 			var elType=wXml.$1('>sdtPr').$1("text, picture, docPartList, comboBox, dropDownList, date, checkbox")
 			tag=elType ? elType.localName : 'richtext'
-			
+
 			extended=factory.extendControl(tag,...arguments)
-			
+
 			if(extended)
 				return extended
 			else if('text'==tag)
@@ -146,7 +162,7 @@ export default	function factory(wXml, doc, parent, more){
 		return new (require('./model/bookmarkStart'))(wXml,doc,parent)
 	else if('bookmarkEnd'==tag)
 		return new (require('./model/bookmarkEnd'))(wXml,doc,parent)
-	else if('oMathPara'==tag)
+	else if('oMath'==tag)
 		return new (require('./model/equation'))(wXml,doc,parent)
 	else if('object'==tag)
 		return new (require('./model/OLE'))(wXml,doc,parent)
