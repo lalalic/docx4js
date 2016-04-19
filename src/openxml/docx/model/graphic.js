@@ -1,23 +1,26 @@
 import Drawing from './drawing'
 
-export default class graphic extends Drawing{
+export default class Graphic extends Drawing{
 	constructor(wXml){
 		super(...arguments)
 		this.wDrawing=wXml
 	}
-
-	static get Properties(){return Properties}
 }
 
-var naming=Object.assign({},Drawing.Properties.naming,Drawing.SpProperties.naming)
+var naming=null;
 
-class Properties extends Drawing.Properties{
-	static get naming(){return naming}
-}
-
-Object.assign(Properties.prototype,Drawing.SpProperties.prototype,{
+Graphic.Properties=class Properties extends Drawing.Properties{
+	static get naming(){
+		if(!naming)
+			naming=Object.assign({},Drawing.Properties.naming,Drawing.SpProperties.naming)
+		return naming
+	}
+	
 	_getValidChildren(t){
-		return Drawing.Properties.prototype._getValidChildren.call(this,...arguments)
+		return super._getValidChildren(...arguments)
 			.concat(this.wXml.$1('spPr').childNodes.asArray())
 	}
-})
+}
+
+
+Graphic.Properties.mixinSpProperties()

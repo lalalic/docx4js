@@ -1,6 +1,6 @@
 import Model from './model'
 
-function attr(node,name){
+function attr(node,name='w:val'){
 	return node?node.attr(name):undefined
 }
 
