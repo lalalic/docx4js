@@ -38,7 +38,7 @@ describe("docx4js model factory can identify", function(){
 			`})).then(docx=>check(docx,"style.inline",done))
 		)
 		
-		it("list", done=>
+		it("list is from <w:num>", done=>
 			docx4js.load(newDocx({"word/numbering.xml":`
 				<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" >
 					<w:abstractNum w:abstractNumId="0">

@@ -157,44 +157,149 @@ describe("docx4js model factory can identify", function(){
 		      </m:oMath>
 		    </w:p>`)).then(docx=>check(docx,"equation",done))
 	})
+	
+	describe("heading", function(){
+		describe("from inline style", function(){
+			it("heading", done=>{
+				docx4js.load(newDocx(`
+					<w:p>
+					  <w:pPr>
+						<w:outlineLvl w:val="0"/>
+					  </w:pPr>
+					  <w:r>
+						<w:t xml:space="preserve">The quick </w:t>
+					  </w:r>
+					  <w:r>
+						<w:t xml:space="preserve">brown fox jumps </w:t>
+					  </w:r>
+					  <w:r>
+						<w:t>over the lazy dog.</w:t>
+					  </w:r>
+					</w:p>`)).then(docx=>check(docx,"heading",done))
+			})
 
-	it("heading", done=>{
-		docx4js.load(newDocx(`
-			<w:p>
-		      <w:pPr>
-		        <w:outlineLvl w:val="0"/>
-		      </w:pPr>
-		      <w:r>
-		        <w:t xml:space="preserve">The quick </w:t>
-		      </w:r>
-		      <w:r>
-		        <w:t xml:space="preserve">brown fox jumps </w:t>
-		      </w:r>
-		      <w:r>
-		        <w:t>over the lazy dog.</w:t>
-		      </w:r>
-		    </w:p>`)).then(docx=>check(docx,"heading",done))
-	})
+			it("headingChar", done=>{
+				docx4js.load(newDocx(`
+					<w:p>
+					  <w:r>
+						 <w:rPr>
+						  <w:outlineLvl w:val="0"/>
+						</w:rPr>
+						<w:t xml:space="preserve">The quick </w:t>
+					  </w:r>
+					  <w:r>
+						<w:t xml:space="preserve">brown fox jumps </w:t>
+					  </w:r>
+					  <w:r>
+						<w:t>over the lazy dog.</w:t>
+					  </w:r>
+					</w:p>`)).then(docx=>check(docx,"headingChar",done))
+			})
+		})
+		
+		describe("from named style", function(){
+			it("heading", done=>{
+				docx4js.load(newDocx({"word/document.xml":`
+					<w:p>
+					  <w:pPr>
+						<w:pStyle w:val="Heading"/>
+					  </w:pPr>
+					  <w:r>
+						<w:t xml:space="preserve">The quick </w:t>
+					  </w:r>
+				</w:p>`,"word/styles.xml":`
+					<w:style w:type="paragraph" w:styleId="Heading">
+						<w:name w:val="Heading"/>
+						<w:basedOn w:val="Normal"/>
+						<w:uiPriority w:val="34"/>
+						<w:qFormat/>
+						<w:rsid w:val="00031D5F"/>
+						<w:pPr>
+							<w:ind w:left="720"/>
+							<w:contextualSpacing/>
+							<w:outlineLvl w:val="0"/>
+						</w:pPr>
+					</w:style>
+				`})).then(docx=>check(docx,"heading",done))
+			})
+			
+			xit("headingChar", done=>{
+				docx4js.load(newDocx({"word/document.xml":`
+					<w:p>
+					  <w:r>
+						  <w:rPr>
+							<w:rStyle w:val="HeadingChar"/>
+						  </w:rPr>
+						<w:t>The quick </w:t>
+					  </w:r>
+					</w:p>`,"word/styles.xml":`
+					<w:style w:type="character" w:styleId="HeadingChar">
+						<w:name w:val="HeadingChar"/>
+						<w:rPr>
+							<w:outlineLvl w:val="0"/>
+						</w:rPr>
+					</w:style>
+				`})).then(docx=>check(docx,"headingChar",done))
+			}).pend("doesn't mean paragrah containing it is a heading")
 
-	it("headingChar", done=>{
-		docx4js.load(newDocx(`
-			<w:p>
-		      <w:r>
-				 <w:rPr>
-				  <w:outlineLvl w:val="0"/>
-				</w:rPr>
-				<w:t xml:space="preserve">The quick </w:t>
-		      </w:r>
-		      <w:r>
-		        <w:t xml:space="preserve">brown fox jumps </w:t>
-		      </w:r>
-		      <w:r>
-		        <w:t>over the lazy dog.</w:t>
-		      </w:r>
-		    </w:p>`)).then(docx=>check(docx,"headingChar",done))
+		})
 	})
+	
 
 	describe("list", function(){
-
+		it("from inline", done=>{
+			docx4js.load(newDocx(`
+				<w:p>
+					<w:pPr>
+						<w:pStyle w:val="ListParagraph"/>
+						<w:numPr>
+							<w:ilvl w:val="0"/>
+							<w:numId w:val="1"/>
+						</w:numPr>
+					</w:pPr>
+					<w:r>
+						<w:t>On the Insert tab, the galleries include items that are designed to coordin</w:t>
+					</w:r>
+				</w:p>
+			`))
+			.then(docx=>check(docx,"list",done))
+			.catch(e=>{fail(e);done()})
+		})
+		
+		it("from named style", done=>{
+			docx4js.load(newDocx({"word/document.xml":`
+				<w:p>
+					<w:pPr>
+						<w:pStyle w:val="ListParagraph"/>
+						<w:numPr>
+							<w:ilvl w:val="0"/>
+							<w:numId w:val="1"/>
+						</w:numPr>
+					</w:pPr>
+					<w:r>
+						<w:t>On the Insert tab, the galleries include items that are designed to coordin</w:t>
+					</w:r>
+				</w:p>
+			`,"word/styles.xml":`
+					<w:style w:type="paragraph" w:styleId="ListParagraph">
+						<w:name w:val="List Paragraph"/>
+						<w:basedOn w:val="Normal"/>
+						<w:uiPriority w:val="34"/>
+						<w:qFormat/>
+						<w:rsid w:val="00031D5F"/>
+						<w:pPr>
+							<w:ind w:left="720"/>
+							<w:contextualSpacing/>
+							<w:numPr>
+								<w:ilvl w:val="0"/>
+								<w:numId w:val="1"/>
+							</w:numPr>
+						</w:pPr>
+					</w:style>
+			`}))
+			.then(docx=>check(docx,"list",done))
+			.catch(e=>{fail(e);done()})
+		})
 	})
+	
 })
