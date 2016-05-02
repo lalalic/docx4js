@@ -1,6 +1,6 @@
 var isNode=false
 try {
-	isNode = Object.prototype.toString.call(global.process) === '[object process]' 
+	isNode = Object.prototype.toString.call(global.process) === '[object process]'
 } catch(e) {
 
 }
@@ -187,6 +187,12 @@ if(!isNode){
 			el.tagName=el.nodeName=el.localName
 			return el
 		}
+
+		Object.defineProperty(Element.prototype,"outerHTML", {
+			get: function(){
+				return new xmldom.XMLSerializer().serializeToString(this)
+			}
+		})
 
 
 		return [parse, Document, Element, NodeList, false]
