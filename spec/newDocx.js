@@ -125,10 +125,15 @@ xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w14">
     <w:docDefaults>
 		<w:rPrDefault>
-			<w:rPr/>
+			<w:rPr>
+				<w:rFonts w:ascii="arial"/>
+				<w:sz w:val="22"/>
+			</w:rPr>
 		</w:rPrDefault>
 		<w:pPrDefault>
-			<w:pPr/>
+			<w:pPr>
+				<w:spacing w:after="200" w:line="276" w:lineRule="auto"/>
+			</w:pPr>
 		</w:pPrDefault>
 	</w:docDefaults>
 

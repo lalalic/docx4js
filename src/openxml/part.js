@@ -14,6 +14,7 @@ export default class part{
 		}
 
 		if(!doc.parts[relName]) return;
+		this.relName=relName
 		//console.log("part:"+name+",relName:"+relName+",folder:"+folder+", text:"+doc.parts[relName].asText())
 		$.parseXML(doc.parts[relName].asText())
 			.documentElement

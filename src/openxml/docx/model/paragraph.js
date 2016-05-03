@@ -1,10 +1,10 @@
 import Style from "./style/paragraph"
 export default class paragraph extends require('../model'){
 	getStyleId(a){
-		return this._val('>pPr>pStyle')
+		return this._val('>pPr>pStyle')||this.wDoc.style.getDefault(Style.type).id
 	}
 	getNamedStyle(){
-		return this.wDoc.style.get(this.getStyleId()) || this.wDoc.style.getDefault(Style.type)
+		return this.wDoc.style.get(this.getStyleId())
 	}
 	getDirectStyle(pr){
 		if(pr=this.wXml.$1('>pPr'))

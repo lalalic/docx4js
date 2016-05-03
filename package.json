@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "1.2.7",
+  "version": "1.3.0",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -47,8 +47,8 @@
   "main": "./lib/openxml/docx/document.js",
   "scripts": {
     "build": "babel src -d lib --source-maps inline",
-    "dist": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/docx4js.debug.js -i jquery",
-	"dist.min": "uglifyjs dist/docx4js.debug.js -o dist/docx4js.min.js",
+    "dist": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/index.js -i jquery",
+	"dist.min": "uglifyjs dist/index.js -o dist/index.min.js",
     "prepublish": "npm run dist.min",
     "test": "jasmine",
     "test.debug": "node --debug-brk .jasmine.js",
