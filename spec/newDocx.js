@@ -126,7 +126,7 @@ xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w
     <w:docDefaults>
 		<w:rPrDefault>
 			<w:rPr>
-				<w:rFonts w:ascii="arial"/>
+				<w:rFonts w:ascii="Arial"/>
 				<w:sz w:val="22"/>
 			</w:rPr>
 		</w:rPrDefault>

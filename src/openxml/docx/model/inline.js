@@ -1,8 +1,8 @@
 import Style from './style/inline'
 
 export default class inline extends require('../model'){
-	getStyleId(){
-		return this._val('>rPr>rStyle') || this.wDoc.style.getDefault(Style.type).id
+	getStyleId(a){
+		return this._val('>rPr>rStyle') || ((a=this.wDoc.style.getDefault(Style.type)) && a.id)
 	}
 	getNamedStyle(){
 		return this.wDoc.style.get(this.getStyleId()) 

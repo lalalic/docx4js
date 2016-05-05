@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="index.js"></script>
+	<script>
+		var docx4js=require("docx4js")
+		function test(input){
+			docx4js.load(input.files[0]).then(function(docx){
+				var models=[], go={visit(){}}
+				docx.parse(docx4js.createVisitorFactory(function(identifiedWordModel){
+					if(identifiedWordModel.type)
+						models.push(identifiedWordModel.type)
+					return go
+				}))
+				
+				text.value=models.join(",")
+			})
+		}
+	</script>
+</head>
+<body>
+	<input type="file" style="position:absolute;top:0" onchange="test(this)">
+	<br/>
+	<br/>
+	<textarea id="text"></textarea>
+</body>
+</html>
