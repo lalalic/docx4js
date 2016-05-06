@@ -71,6 +71,12 @@ class Properties extends Style.Properties{
 		o.lineRule=x.lineRule
 		return o
 	}
+	pBdr(x){
+		let r={}
+		let bdr=Inline.Properties.prototype.bdr.bind(this)
+		Array.from(x.childNodes).forEach(a=>a.localName && (r[a.localName]=bdr(a)))
+		return r
+	}
 	static get type(){return 'paragraph'}
 }
 

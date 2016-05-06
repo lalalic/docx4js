@@ -32,6 +32,7 @@ Table.Properties=class Properties extends Style.Properties{
 	tblBorders(x){
 		var value={};
 		for(var borders=x.childNodes,border,i=0,len=borders.length;i<len;i++){
+			if(borders[i].nodeType!==1) continue
 			border=value[(border=borders[i]).localName]=this.asObject(border)
 			border.sz && (border.sz=border.sz/8);
 			border.color && (border.color=this.asColor(border.color))
@@ -80,6 +81,7 @@ Table.CellProperties=class CellProperties extends Style.Properties{
 	tcBorders(x){
 		var value={};
 		for(var borders=x.childNodes,border,i=0,len=borders.length;i<len;i++){
+			if(borders[i].nodeType!==1) continue
 			border=value[(border=borders[i]).localName]=this.asObject(border)
 			border.sz && (border.sz=border.sz/8);
 			border.color && (border.color=this.asColor(border.color))

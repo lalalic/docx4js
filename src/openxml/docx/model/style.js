@@ -30,13 +30,17 @@ Style.Properties=class Properties extends require('../model'){
 	get EMPTY(){return -999}
 	//use parent visitor to visitor style nodes and attributes
 	parse(visitors){
-		var values={}, naming=this.constructor.naming, type=this.constructor.type
+		var values={}, naming=this.constructor.naming, type=this.constructor.type, t
 		visitors.forEach((visitor)=>{
 			[this._getValidChildren(),this.wXml.attributes].forEach((children)=>{
 				for(var len=children.length,i=0;i<len;i++){
 					var node=children[i], name=node.localName
-					if(values[name]==undefined && typeof(this[name])=='function')
-						values[name]=this[name](node);
+					if(values[name]==undefined){
+						if(typeof(this[name])=='function')
+							values[name]=this[name](node)
+						else if(node.attr && (t=node.attr("w:val")))//lazy default
+							values[name]=t
+					}
 					values[name]!=this.EMPTY && visitor.visit(values[name],naming[name]||name,type)
 				}
 			})

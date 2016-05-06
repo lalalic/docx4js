@@ -29,10 +29,10 @@ export default class part{
 	}
 	getRel(id){
 		var rel=this.rels[id]
+		if(rel.targetMode=='External')
+			return rel.target
 		switch(rel.type){
 		case 'image':
-			if(rel.targetMode=='External')
-				return rel.target
 			return this.doc.getImagePart(rel.target)
 		default:
 			return this.doc.getPart(rel.target)

@@ -2,7 +2,7 @@ import TableStyle from "./style/table"
 
 export default class table extends require('../model'){
 	getStyleId(a){
-		return this._val('>tblPr>tblStyle') || this.wDoc.style.getDefault(TableStyle.type).id
+		return this._val('>tblPr>tblStyle') || ((a=this.wDoc.style.getDefault(TableStyle.type)) && a.id)
 	}
 	getNamedStyle(){
 		return this.wDoc.style.get(this.getStyleId())
