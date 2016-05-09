@@ -26,11 +26,15 @@ var naming={}
 Style.Properties=class Properties extends require('../model'){
 	static get type(){return null}
 	static get naming(){return naming}
+	constructor(){
+		super(...arguments)
+		this.values={}
+	}
 
 	get EMPTY(){return -999}
 	//use parent visitor to visitor style nodes and attributes
 	parse(visitors){
-		var values={}, naming=this.constructor.naming, type=this.constructor.type, t
+		var values=this.values, naming=this.constructor.naming, type=this.constructor.type, t
 		visitors.forEach((visitor)=>{
 			[this._getValidChildren(),this.wXml.attributes].forEach((children)=>{
 				for(var len=children.length,i=0;i<len;i++){

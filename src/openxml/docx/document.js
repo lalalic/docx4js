@@ -3,6 +3,9 @@ import FontTheme from './theme/font'
 import ColorTheme from './theme/color'
 import FormatTheme from './theme/format'
 
+import Table from "./model/table"
+import List from "./model/list"
+
 export default class document extends require('../document'){
 	constructor(){
 		super(...arguments)
@@ -16,6 +19,8 @@ export default class document extends require('../document'){
 			section: new ParseContext(),
 			part:new ParseContext(this.partMain),
 			bookmark: new ParseContext(),
+			numbering: new List.Context(this),
+			table: new Table.Context(this),
 			field: (function(ctx){
 				ctx.instruct=function(t){
 					this[this.length-1].instruct(t)

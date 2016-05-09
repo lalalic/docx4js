@@ -1,3 +1,4 @@
+//<styls><style type="numbering">
 export default class Numbering extends require('../style'){
 	static get type(){return 'style.numbering'}
 

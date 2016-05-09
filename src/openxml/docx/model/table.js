@@ -22,4 +22,8 @@ export default class table extends require('../model'){
 		return wXml.localName=='tblPr'||wXml.localName=='tblGrid'
 	}
 	static get type(){return 'table'}
+	
+	static Context=class{
+		
+	}
 }
