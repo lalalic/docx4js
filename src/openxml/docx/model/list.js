@@ -28,7 +28,7 @@ export default class list extends require('./paragraph'){
 		return this.wDoc.style.get(Style.asStyleId(this.getNumberingId()))
 	}
 
-	get label(){
+	getLabel(){
 		return this.wDoc.parseContext.numbering.getLabel(this.getNumberingId(), parseInt(this.getLevel()))
 	}
 	
