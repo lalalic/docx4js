@@ -1,6 +1,12 @@
 import TableStyle from "./style/table"
 
 export default class table extends require('../model'){
+	parse(){
+		this.wDoc.parseContext.table.push(this)
+		super.parse(...arguments)
+		this.wDoc.parseContext.table.pop(this)
+	}
+	
 	getStyleId(a){
 		return this._val('>tblPr>tblStyle') || ((a=this.wDoc.style.getDefault(TableStyle.type)) && a.id)
 	}
@@ -24,6 +30,91 @@ export default class table extends require('../model'){
 	static get type(){return 'table'}
 	
 	static Context=class{
+		constructor(doc){
+			this.wDoc=doc
+			this._stack=[]
+			this._current=null
+		}
 		
+		push(table){
+			this._stack.push(this._current=new TableContext(table))
+		}
+		
+		pushRow(row){
+			this._current.pushRow(row)
+		}
+		
+		pushCell(cell){
+			this._current.pushCell(cell)
+		}
+		
+		pop(){
+			this._stack.pop()
+		}
+		
+		popRow(){
+			this._current.popRow()
+		}
+		
+		popCell(){
+			this._current.popCell()
+		}
+		
+		isFirstRow(){
+			return this._current.isFirstRow()
+		}
+		
+		isLastRow(){
+			return this._current.isLastRow()
+		}
+		
+		isFirstCol(){
+			return this._current.isFirstCol()
+		}
+		
+		isLastCol(){
+			return this._current.isLastCol()
+		}
+	}
+}
+
+class TableContext{
+	constructor(converter){
+		this.rows=converter.wXml.$('tr').length//@todo:nested table not work
+		this.cols=converter.wXml.$('>tblGrid>gridCol').length
+		this.currentRow=0
+		this.currentCell=0
+	}
+	pushRow(row){
+		this.currentRow++
+	}
+	
+	pushCell(cell){
+		this.currentCell++
+	}
+	
+	popRow(row){
+		this.currentCell=0
+	}
+	
+	popCell(cell){
+		
+	}
+	
+	isFirstRow(){
+		return this.currentRow==1
+	}
+	
+	isLastRow(){
+		return this.currentRow==this.rows
+	}
+	
+	isFirstCol(){
+		return this.currentCell==1
+	}
+	
+	isLastCol(){
+		debugger
+		return this.currentCell==this.cols
 	}
 }

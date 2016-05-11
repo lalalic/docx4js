@@ -1,5 +1,15 @@
 import Style from "./style/list"
 
+/**
+* numbering style is a normal paragraph style, plus
+* numId Style with override/direct level style, 
+* which inherit from abstract numbering definition
+* rPr, and attribute of level style is on label only
+* pPr of level style is on paragraph
+list label: numId.level + abstract.level
+list content: numId.level.pPr + abstract.level.pPr
+priority: list style > p direct style >named style 
+*/
 export default class list extends require('./paragraph'){
 	constructor(){
 		super(...arguments)
