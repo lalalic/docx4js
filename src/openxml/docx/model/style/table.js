@@ -70,9 +70,24 @@ Table.Properties=class Properties extends Style.Properties{
 	static get type(){return 'table'}
 }
 
+var StyleNameMap={
+	firstRow:"firstRow",
+	lastRow:"lastRow",
+	firstColumn:"firstCol",
+	lastColumn:"lastCol", 
+	oddVBand:"band1Vert" ,
+	evenVBand:"band2Vert" ,
+	oddHBand:"band1Horz" ,
+	evenHBand:"band2Horz" ,
+	firstRowFirstColumn:"nwCell" ,
+	firstRowLastColumn:"neCell" ,
+	lastRowFirstColumn:"swCell" ,
+	lastRowLastColumn:"seCell"
+}
+
 Table.RowProperties=class RowProperties extends Style.Properties{
-	cnfStyle(x){
-		return x.attr('w:val')
+	cnfStyle(x,t){
+		return Object.keys(t=this.asObject(x)).map(a=>t[a]=='1' && StyleNameMap[a]).filter(a=>a)
 	}
 	static get type(){return 'row'}
 }
@@ -91,8 +106,8 @@ Table.CellProperties=class CellProperties extends Style.Properties{
 	shd(x){
 		return this.asColor(x.attr('w:fill'))
 	}
-	cnfStyle(x){
-		return x.attr('w:val')
+	cnfStyle(x,t){
+		return Object.keys(t=this.asObject(x)).map(a=>t[a]=='1' && StyleNameMap[a]).filter(a=>a)
 	}
 	gridSpan(x){
 		return x.attr('w:val')

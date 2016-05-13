@@ -114,7 +114,6 @@ class TableContext{
 	}
 	
 	isLastCol(){
-		debugger
 		return this.currentCell==this.cols
 	}
 }
