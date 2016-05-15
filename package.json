@@ -34,7 +34,7 @@
     "jasmine-core": "^2.4.1"
   },
   "dependencies": {
-    "jszip": ">=2.4.0",
+    "jszip": "^2.6.0",
     "nwmatcher": "^1.3.4",
     "xmldom": "^0.1.19"
   },
