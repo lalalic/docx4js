@@ -1,3 +1,6 @@
+![](https://api.travis-ci.org/lalalic/docx4js.svg?branch=master)
+
+# docx4js
 **docx4js** is a javascript docx parser.
 
 The original goal is to support docx, pptx, and xlsx, but it's a huge work, so I limited to docx so far.
@@ -8,8 +11,11 @@ There are lots of information in docx, but the client application usually only c
 
 Attributes of word model usually affects styles, but I don't understand all of them, so I'm lazy just to iterate every attribute, and some unknown child elements, so client application is possible to catch all information you know.
 
-##featurs
-**environment**
+# Features
+
+
+## environment
+
 
 * nodejs
 * browser
@@ -74,17 +80,17 @@ Attributes of word model usually affects styles, but I don't understand all of t
 * section
 * table
 
-##API
+## API
 `require("docx4js")` return a docx converter, which has following two functions.
 
-###load(file): return Promise resolved by parsed document
+### load(file): return Promise resolved by parsed document
 **file** is a file path string in nodejs, as for browser, it is a file from input[type=file].
 
 **Parsed Document interface**
 
 * parse(visitorFactory1, visitorFactory2, ...)
 
-###createVisitorFactory(factory, option)
+### createVisitorFactory(factory, option)
 It's to create a factory function that to create a visitor specific to word model types
 
 * factory: it could be following type
@@ -95,7 +101,7 @@ It's to create a factory function that to create a visitor specific to word mode
 	* undefined: a default factory just to info type of word model in console
 * option: a global option to all visitor instances created by the factory, refered by visitor.options
 
-###Visitor
+### Visitor
 * constructor(wordModel, parentVisitor)
 * visit() : calls when a specific word model found
 
@@ -146,3 +152,5 @@ It's to create a factory function that to create a visitor specific to word mode
 
 			doc.parse(nothingFactory, textFactory, complexFactory)
 		})
+# License
+GPL
