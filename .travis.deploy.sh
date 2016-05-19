@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #built-in env variables for connection to remote host with ssh, you have to set value in .travis.yml, or travis-ci.org
 #DEPLOY_HOST, DEPLOY_USER, DEPLOY_PASSWORD, TARGET_DEPLOY_FILE[optional, default [DEPLOY_USER's home/__deploy.sh]]
 
@@ -12,4 +10,3 @@ echo "start" >> a.log
 #whatever you want to do on deployment target host
 echo "you are right"
 echo "end"
-exit 0
