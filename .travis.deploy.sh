@@ -5,8 +5,3 @@
 #and it will be replaced with value defined in .travis.yml when deploying, such as
 # cd ${git_repository_on_deploy_host} # git_repository_on_deploy_host should be defined in .travis.yml
 # git pull
-
-echo "start" >> a.log
-#whatever you want to do on deployment target host
-echo "you are right"
-echo "end"

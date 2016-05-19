@@ -2,13 +2,10 @@ language: node_js
 node_js:
  - "4.2"
 
-#deploy:
-# provider: npm
-# email: "lalalic@gmail.com"
-# api_key: "f864457e-1deb-4785-9e76-ca477acd3adc"
-
-install: npm install travis-deploy-ssh
-script: echo hello
+deploy:
+ provider: npm
+ email: "lalalic@139.com"
+ api_key: $NPM_KEY
 
 #created by travis-deploy-ssh
 
