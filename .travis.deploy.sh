@@ -8,7 +8,7 @@
 # cd ${git_repository_on_deploy_host} # git_repository_on_deploy_host should be defined in .travis.yml
 # git pull
 
-echo "start"
+echo "start" >> a.log
 #whatever you want to do on deployment target host
 echo "you are right"
 echo "end"
