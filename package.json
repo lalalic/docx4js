@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -31,7 +31,8 @@
     "karma-jasmine": "^0.3.8",
     "watchify": ">=3.0.0 <4.0.0",
 	"uglify-js": "^2.6.2",
-    "jasmine-core": "^2.4.1"
+    "jasmine-core": "^2.4.1",
+    "travis-deploy-ssh" : "^0.0.2"
   },
   "dependencies": {
     "jszip": "^2.6.0",

@@ -1,3 +1,23 @@
 language: node_js
 node_js:
-    - "4.2"
+ - "4.2"
+
+deploy:
+ provider: npm
+ email: "lalalic@gmail.com"
+ api_key: "f864457e-1deb-4785-9e76-ca477acd3adc"
+
+
+#created by travis-deploy-ssh
+
+env:
+ - DEPLOY_HOST=
+ - DEPLOY_USER=
+ - DEPLOY_PASSWORD=
+# - DEPLOY_TARGET_FILE=
+before_deploy:
+ - chmod u+x node_modules/travis-deploy-ssh/deploy.sh
+deploy:
+ provider: script
+ skip_cleanup: true
+ script: node_modules/travis-deploy-ssh/deploy.sh
