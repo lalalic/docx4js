@@ -32,7 +32,7 @@
     "watchify": ">=3.0.0 <4.0.0",
 	"uglify-js": "^2.6.2",
     "jasmine-core": "^2.4.1",
-    "travis-deploy-ssh" : "^0.0.2"
+    "travis-deploy-ssh" : ">=0.0.2"
   },
   "dependencies": {
     "jszip": "^2.6.0",
