@@ -32,7 +32,9 @@
     "watchify": ">=3.0.0 <4.0.0",
 	"uglify-js": "^2.6.2",
     "jasmine-core": "^2.4.1",
-    "travis-deploy-ssh" : "^1.0.0"
+    "travis-deploy-ssh" : "^1.0.0",
+    "esdoc":"^0.4.7",
+    "esdoc-es7-plugin":"0.03"
   },
   "dependencies": {
     "jszip": "^2.6.0",
@@ -57,6 +59,7 @@
     "prepublish": "npm run dist.min",
     "test": "jasmine",
     "test.debug": "node --debug-brk .jasmine.js",
-    "karma": "karma start"
+    "karma": "karma start",
+    "doc": "esdoc -c esdoc.json"
   }
 }

@@ -1,0 +1,10 @@
+{
+    "title":"docx4js",
+    "source":"src",
+    "destination":"doc",
+    "includeSource":false,
+    "undocumentIdentifier":false,
+    "plugins":[
+        {"name":"esdoc-es7-plugin"}
+    ]
+}

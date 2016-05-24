@@ -1,9 +1,11 @@
-export default class Date extends require('./field'){
+import Field, {FieldCode as Code} from "./field"
+
+export default class Date extends Field{
 	static get type(){return 'field.date'}
 	static get FieldCode(){return FieldCode}
 }
 
-class FieldCode extends require('./field').FieldCode{
+class FieldCode extends Code{
 	parse(){
 		var option=null;
 		while(option=this.nextSwitch()){

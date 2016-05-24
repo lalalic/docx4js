@@ -1,11 +1,9 @@
 import "./tool"
-/**
- *  a type of document parser
- *  @class Document
- *  @requires module:JSZip
- */
 import JSZip from 'jszip'
 
+/**
+ *  a type of document parser
+ */
 export default class Document{
 	constructor(parts,raw,props){
 		this.parts=parts
