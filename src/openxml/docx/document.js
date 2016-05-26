@@ -6,6 +6,7 @@ import FormatTheme from './theme/format'
 import Table from "./model/table"
 import List from "./model/list"
 
+
 export default class document extends require('../document'){
 	constructor(){
 		super(...arguments)
@@ -35,6 +36,7 @@ export default class document extends require('../document'){
 			})([])
 		};
 	}
+	
 	static get ext(){return 'docx'}
 
 	parse(visitFactories){

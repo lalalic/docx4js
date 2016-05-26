@@ -2,7 +2,11 @@ import "./tool"
 import JSZip from 'jszip'
 
 /**
- *  a type of document parser
+ *  document parser
+ *  
+ *  @example
+ *  Document.load(file)
+ *  	.then(doc=>doc.parse([visitors]))
  */
 export default class Document{
 	constructor(parts,raw,props){
@@ -29,7 +33,12 @@ export default class Document{
 	factory(){
 		return this.constructor.factory.apply(this,arguments)
 	}
+	/**
+	 *  a helper to load document file
 
+	 *  @param inputFile {File} - a html input file, or nodejs file
+	 *  @return {Promise}
+	 */
 	static load(inputFile){
 		var DocumentSelf=this
 		return new Promise((resolve, reject)=>{

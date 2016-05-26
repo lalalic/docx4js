@@ -34,7 +34,7 @@
     "jasmine-core": "^2.4.1",
     "travis-deploy-ssh" : "^1.0.0",
     "esdoc":"^0.4.7",
-    "esdoc-es7-plugin":"0.03"
+    "esdoc-es7-plugin":"0.0.3"
   },
   "dependencies": {
     "jszip": "^2.6.0",
