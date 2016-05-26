@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -33,7 +33,8 @@
 	"uglify-js": "^2.6.2",
     "jasmine-core": "^2.4.1",
     "esdoc":"^0.4.7",
-    "esdoc-es7-plugin":"0.0.3"
+    "esdoc-es7-plugin":"0.0.3",
+	"uglifyify": "^3.0.1"
   },
   "dependencies": {
     "jszip": "^2.6.0",
@@ -54,8 +55,8 @@
   "scripts": {
     "build": "babel src -d lib --source-maps inline",
     "dist": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/index.js -i jquery",
-	"dist.min": "uglifyjs dist/index.js -o dist/index.min.js",
-    "prepublish": "npm run dist.min",
+	"dist.min": "browserify -g uglifyify -r ./lib/openxml/docx/document.js:docx4js -o dist/docx4js.js -i jquery",
+
     "test": "jasmine",
     "test.debug": "node --debug-brk .jasmine.js",
     "karma": "karma start",
