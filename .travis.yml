@@ -1,17 +1,8 @@
 language: node_js
 node_js:
- - "4.2"
+ - 4.2
 
 deploy:
  provider: npm
  email: "lalalic@139.com"
  api_key: $NPM_KEY
-
-#created by travis-deploy-ssh
-
-before_deploy:
- - chmod u+x node_modules/travis-deploy-ssh/deploy.sh
-deploy:
- provider: script
- skip_cleanup: true
- script: node_modules/travis-deploy-ssh/deploy.sh
