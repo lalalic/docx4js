@@ -24,14 +24,32 @@ export default class Document{
 		buffer.crc32=part._data.crc32=crc32
 		return buffer
 	}
-	parse(){
+	
+	/**
+	 *  parse docx with visitors created from visitor factories one by one
+	 */
+	parse(visitorFactories){
 
 	}
+	
+	/**
+	 * release resources after parse
+	 */
 	release(){
 
 	}
-	factory(){
-		return this.constructor.factory.apply(this,arguments)
+	
+	/**
+	 *  create parser for a word model
+	 */
+	factory(wordXml, docParser, parentParser){
+		if(!this._factory){
+			let a=new this.constructor.Factory
+			this._factory=function(){
+				return a.create(...arguments)
+			}
+		}
+		return this._factory(...arguments)
 	}
 	/**
 	 *  a helper to load document file
@@ -80,5 +98,9 @@ export default class Document{
 		})
 	}
 
-	static get factory(){return null}
+	static Factory=class {
+		create(wordXml, docParser, parentParser){
+			
+		}
+	}
 }

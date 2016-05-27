@@ -29,9 +29,15 @@ export default class fieldBegin extends require('../model'){
 	_iterate(f, factories, visitors){//delay to find real model
 		this.end=function(endModel, endVisitors){
 			this.endModel=endModel
-			this.field=this.constructor.factory(this.commands.join('').trim(),this.wDoc, this)
+			let instruct=this.commands.join('').trim(),
+				index=instruct.indexOf(' '),
+				type=(index!=-1 ?  instruct.substring(0,index) : instruct).toLowerCase()
+		
+			this.field=this.constructor.factory(instruct,this.wDoc, this, type)
 			if(this.field)
-				this.field.parse(factories)
+				this.field=new basic(instruct,this.wDoc,this,type)
+			
+			this.field.parse(factories)
 		}
 	}
 	
@@ -41,14 +47,11 @@ export default class fieldBegin extends require('../model'){
 
 	static get type(){return 'fieldBegin'}
 
-	static factory(instruct, wDoc, mParent){
-		var index=instruct.indexOf(' '),
-			type=index!=-1 ?  instruct.substring(0,index) : instruct
-		type=type.toLowerCase()
+	static factory(instruct, wDoc, mParent, type){
 		try{
 			return new (fields[type])(instruct, wDoc, mParent)
 		}catch(e){
-			return new basic(instruct,wDoc,mParent,type)
+			return null
 		}
 	}
 }

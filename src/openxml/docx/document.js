@@ -1,11 +1,10 @@
-import factory from './factory'
+import Factory from './factory'
 import FontTheme from './theme/font'
 import ColorTheme from './theme/color'
 import FormatTheme from './theme/format'
 
 import Table from "./model/table"
 import List from "./model/list"
-
 
 export default class document extends require('../document'){
 	constructor(){
@@ -72,8 +71,8 @@ export default class document extends require('../document'){
 	static get type(){return "Word"}
 
 	static get Style(){return Style}
-
-	static get factory(){return factory}
+	
+	static Factory=Factory
 }
 
 function Style(){
