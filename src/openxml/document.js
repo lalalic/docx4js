@@ -8,7 +8,6 @@ export default class Document extends require('../document'){
 			rels[rel.type]=rel.target
 		})
 		this.partMain=new Part(this.rels['officeDocument'],this)
-		this.content=[]
 	}
 	get vender(){"Microsoft"}
 

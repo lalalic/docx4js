@@ -3,7 +3,7 @@ import JSZip from 'jszip'
 
 /**
  *  document parser
- *  
+ *
  *  @example
  *  Document.load(file)
  *  	.then(doc=>doc.parse([visitors]))
@@ -24,21 +24,21 @@ export default class Document{
 		buffer.crc32=part._data.crc32=crc32
 		return buffer
 	}
-	
+
 	/**
 	 *  parse docx with visitors created from visitor factories one by one
 	 */
 	parse(visitorFactories){
 
 	}
-	
+
 	/**
 	 * release resources after parse
 	 */
 	release(){
 
 	}
-	
+
 	/**
 	 *  create parser for a word model
 	 */
@@ -51,12 +51,18 @@ export default class Document{
 		}
 		return this._factory(...arguments)
 	}
+
+	static clone(doc){
+		let {parts,raw,props}=doc
+		return new Document(parts,raw,props)
+	}
 	/**
 	 *  a helper to load document file
 
 	 *  @param inputFile {File} - a html input file, or nodejs file
 	 *  @return {Promise}
 	 */
+
 	static load(inputFile){
 		var DocumentSelf=this
 		return new Promise((resolve, reject)=>{
@@ -100,7 +106,7 @@ export default class Document{
 
 	static Factory=class {
 		create(wordXml, docParser, parentParser){
-			
+
 		}
 	}
 }

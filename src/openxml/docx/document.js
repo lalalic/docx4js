@@ -14,6 +14,17 @@ export default class document extends require('../document'){
 		$.each(this.partMain.rels,function(id,rel){
 			builtIn.indexOf(rel.type)!=-1 && (rels[rel.type]=rel.target)
 		})
+	}
+
+	static clone(doc){
+		let {parts,raw,props,rels,partMain}=doc
+		return new document(parts,raw,props)
+	}
+
+	static get ext(){return 'docx'}
+
+	parse(visitFactories){
+		super.parse(...arguments)
 		this.style=new this.constructor.Style()
 		this.parseContext={
 			section: new ParseContext(),
@@ -33,13 +44,7 @@ export default class document extends require('../document'){
 				}
 				return ctx
 			})([])
-		};
-	}
-	
-	static get ext(){return 'docx'}
-
-	parse(visitFactories){
-		super.parse(...arguments)
+		}
 		this.content=this.factory(this.partMain.documentElement, this)
 		var roots=this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments))
 		this.release()
@@ -65,13 +70,14 @@ export default class document extends require('../document'){
 	}
 	release(){
 		delete this.parseContext
+
 		super.release(...arguments)
 	}
 
 	static get type(){return "Word"}
 
 	static get Style(){return Style}
-	
+
 	static Factory=Factory
 }
 
