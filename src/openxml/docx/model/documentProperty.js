@@ -6,5 +6,5 @@ export default class documentProperty extends require('./sdt'){
 		if(!this.wDoc.props[this.key])
 			this.wDoc.props[this.key]=this.value
 	}
-	static get type(){'documentProperty'}
+	static get type(){return 'documentProperty'}
 }
