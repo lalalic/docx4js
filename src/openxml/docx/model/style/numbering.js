@@ -9,4 +9,8 @@ export default class Numbering extends require('../style'){
 	asNumberingStyle(){
 		return this.wDoc.style.get(require('./list').asStyleId(this.getNumId()))
 	}
+
+	_iterate(){
+		
+	}
 }
