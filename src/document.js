@@ -66,16 +66,12 @@ export default class Document{
 	static load(inputFile){
 		var DocumentSelf=this
 		return new Promise((resolve, reject)=>{
-			function parse(data, name){
+			function parse(data, props={}){
 				var raw=new JSZip(data),parts={}
 				raw.filter(function(path,file){
 					parts[path]=file
 				})
-				resolve(new DocumentSelf(parts,raw,{
-					name:name,
-					lastModified:inputFile.lastModified,
-					size:inputFile.size
-				}))
+				resolve(new DocumentSelf(parts,raw,props))
 			}
 
 
@@ -85,7 +81,7 @@ export default class Document{
 						if(error)
 							reject(error);
 						else if(data){
-							parse(data, inputFile.split(/[\/\\]/).pop().replace(/\.docx$/i,''))
+							parse(data, {name:inputFile.split(/[\/\\]/).pop().replace(/\.docx$/i,'')})
 						}
 					})
 				}else {
@@ -94,7 +90,13 @@ export default class Document{
 			}else{//browser
 				if(inputFile instanceof Blob){
 					var reader=new FileReader();
-					reader.onload=function(e){parse(e.target.result, inputFile.name.replace(/\.docx$/i,''))}
+					reader.onload=function(e){
+						parse(e.target.result, {
+								name:inputFile.name.replace(/\.docx$/i,''),
+								lastModified:inputFile.lastModified,
+								size:inputFile.size
+							})
+					}
 					reader.readAsArrayBuffer(inputFile);
 				}else {
 					parse(inputFile)
