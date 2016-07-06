@@ -19,7 +19,7 @@ export default class table extends require('../model'){
 	getColWidth(){
 		var widths=[], sum=0
 		for(var cols=this.wXml.$('>tblGrid>gridCol'),len=cols.length,i=0,a;i<len;i++){
-			widths.push(a=parseInt(cols[i].attr('w:w')))
+			widths.push(a=parseInt(cols[i].attr('w:w'))/20)
 			sum+=a
 		}
 		return {sum:sum, cols:widths};
