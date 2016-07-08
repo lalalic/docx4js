@@ -41,20 +41,20 @@ class Properties extends Style.Properties{
 		return x.attr('w:val')
 	}
 	ind(x){
-		return this.asObject(x, this.asPt)
+		return this.asObject(x, a=>this.pt2Px(this.asPt(a)))
 	}
 	spacing(x){
 		var r=this.asObject(x), o={}
 
 		if(!r.beforeAutospacing && r.beforeLines)
-			o.top=this.asPt(r.beforeLines)
+			o.top=this.pt2Px(this.asPt(r.beforeLines))
 		else (r.before)
-			o.top=this.asPt(r.before)
+			o.top=this.pt2Px(this.asPt(r.before))
 
 		if(!r.afterAutospacing && r.afterLines)
-			o.bottom=this.asPt(r.afterLines)
+			o.bottom=this.pt2Px(this.asPt(r.afterLines))
 		else (r.after)
-			o.bottom=this.asPt(r.after)
+			o.bottom=this.pt2Px(this.asPt(r.after))
 
 		if(!r.line)
 			return o
@@ -62,7 +62,7 @@ class Properties extends Style.Properties{
 		switch(x.lineRule){
 		case 'atLeast':
 		case 'exact':
-			o.lineHeight=this.asPt(x.line)+'pt'
+			o.lineHeight=this.pt2Px(this.asPt(x.line))
 			break
 		case 'auto':
 		default:

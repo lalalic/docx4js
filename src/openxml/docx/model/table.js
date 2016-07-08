@@ -1,5 +1,7 @@
 import TableStyle from "./style/table"
 
+
+
 export default class table extends require('../model'){
 	parse(){
 		this.wDoc.parseContext.table.push(this)
@@ -17,9 +19,11 @@ export default class table extends require('../model'){
 		return (pr=this.wXml.$1('>tblPr')) && new TableStyle.Properties(pr,this.wDoc,this)
 	}
 	getColWidth(){
+		let asPt=TableStyle.Properties.prototype.asPt
+		let pt2Px=TableStyle.Properties.prototype.pt2Px
 		var widths=[], sum=0
 		for(var cols=this.wXml.$('>tblGrid>gridCol'),len=cols.length,i=0,a;i<len;i++){
-			widths.push(a=parseInt(cols[i].attr('w:w'))/20)
+			widths.push(a=pt2Px(asPt(cols[i].attr('w:w'))))
 			sum+=a
 		}
 		return {sum:sum, cols:widths};

@@ -28,7 +28,7 @@ export default class Inline extends Style{
 			return {}
 		}
 		sz(x){
-			return parseFloat(x.attr('w:val'))/2
+			return this.pt2Px(parseFloat(x.attr('w:val'))/2)
 		}
 		color(x){
 			return this.asColor((x.attr('w:val') || this.wDoc.getColorTheme().get(x.attr('w:themeColor'))))
@@ -64,11 +64,11 @@ export default class Inline extends Style{
 		}
 		
 		spacing(x){//char spacing
-			return this.asPt(x.attr("w:val"))
+			return this.pt2Px(this.asPt(x.attr("w:val")))
 		}
 		
 		position(x){//baseline shift
-			return this.asPt(x.attr("w:val"))
+			return this.pt2Px(this.asPt(x.attr("w:val")))
 		}
 		
 		smallCaps(){

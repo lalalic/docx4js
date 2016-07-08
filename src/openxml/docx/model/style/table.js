@@ -42,7 +42,7 @@ Table.Properties=class Properties extends Style.Properties{
 	tblCellMar(x){
 		var value={};
 		for(var borders=x.childNodes,i=0,len=borders.length,v;i<len;i++)
-			borders[i].nodeType==1 && (value[borders[i].localName]=parseInt(borders[i].attr('w:w'))/20)
+			borders[i].nodeType==1 && (value[borders[i].localName]=this.pt2Px(this.asPt(borders[i].attr('w:w'))))
 		return value
 	}
 	tblLook(x){
@@ -61,11 +61,11 @@ Table.Properties=class Properties extends Style.Properties{
 		case 'auto':
 			return 'auto'
 		default:
-			this.asPt(x.attr('w:w'))+'pt'
+			return this.pt2Px(this.asPt(x.attr('w:w')))
 		}
 	}
 	tblInd(x){
-		return this.asPt(x.attr('w:w'))
+		return this.pt2Px(this.asPt(x.attr('w:w')))
 	}
 	static get type(){return 'table'}
 }

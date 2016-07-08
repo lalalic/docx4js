@@ -36,12 +36,12 @@ class Properties extends  Drawing.Properties{
 
 	positionH(x){
 		var o={relativeFrom:x.attr('relativeFrom')}
-		o[x.firstChild.localName]= x.firstChild.localName=='posOffset' ? this.asPt(x.firstChild.textContent.trim(),'cm') : x.firstChild.textContent.trim()
+		o[x.firstChild.localName]= x.firstChild.localName=='posOffset' ? this.pt2Px(this.asPt(x.firstChild.textContent.trim(),'cm')) : x.firstChild.textContent.trim()
 		return o
 	}
 	positionV(x){
 		var o={relativeFrom:x.attr('relativeFrom')}
-		o[x.firstChild.localName]= x.firstChild.localName=='posOffset' ? this.asPt(x.firstChild.textContent.trim(),'cm') : x.firstChild.textContent.trim()
+		o[x.firstChild.localName]= x.firstChild.localName=='posOffset' ? this.pt2Px(this.asPt(x.firstChild.textContent.trim(),'cm')) : x.firstChild.textContent.trim()
 		return o
 	}
 	wrapNone(){

@@ -61,7 +61,7 @@ Shape.Properties=class Properties extends Style.Properties{
 	}
 	lIns(x){
 		if(x=parseInt(x.value))
-			return this.asPt(x,'cm')
+			return this.pt2Px(this.asPt(x,'cm'))
 		return this.EMPTY
 	}
 	tIns(x){
