@@ -45,6 +45,9 @@ Table.Properties=class Properties extends Style.Properties{
 			borders[i].nodeType==1 && (value[borders[i].localName]=this.pt2Px(this.asPt(borders[i].attr('w:w'))))
 		return value
 	}
+	tblCellSpacing(x){
+		return this.pt2Px(this.asPt(x.attr('w:val')))
+	}
 	tblLook(x){
 		return this.asObject(x,function(x){return parseInt(x)})
 	}
@@ -88,6 +91,9 @@ var StyleNameMap={
 Table.RowProperties=class RowProperties extends Style.Properties{
 	cnfStyle(x,t){
 		return Object.keys(t=this.asObject(x)).map(a=>t[a]=='1' && StyleNameMap[a]).filter(a=>a)
+	}
+	tblCellSpacing(x){
+		return this.pt2Px(this.asPt(x.attr('w:val')))
 	}
 	static get type(){return 'row'}
 }

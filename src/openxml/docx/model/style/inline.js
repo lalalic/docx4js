@@ -12,20 +12,21 @@ export default class Inline extends Style{
 		static get type(){return 'inline'}
 
 		rFonts(x){
-			var v={},t;
+			var t, ascii, asia
 			if(t=x.attr('w:ascii'))
-				v.ascii=t
+				ascii=t
 			else if(t=x.attr('w:asciiTheme'))
-				v.ascii=this.wDoc.getFontTheme().get(t)
+				ascii=this.wDoc.getFontTheme().get(t)
 
 			if(t=x.attr('w:eastAsia'))
-				v.asia=t
+				asia=t
 			else if(t=x.attr('w:eastAsiaTheme'))
-				v.asia=this.wDoc.getFontTheme().get(t)
-			return v
+				asia=this.wDoc.getFontTheme().get(t)
+			if(ascii || asia)
+				return {ascii, asia}
 		}
 		b(x){
-			return {}
+			return this.asToggle(x)
 		}
 		sz(x){
 			return this.pt2Px(parseFloat(x.attr('w:val'))/2)
@@ -34,7 +35,10 @@ export default class Inline extends Style{
 			return this.asColor((x.attr('w:val') || this.wDoc.getColorTheme().get(x.attr('w:themeColor'))))
 		}
 		i(x){
-			return {}
+			return this.asToggle(x)
+		}
+		vanish(x){
+			return this.asToggle(x)
 		}
 		u(x){
 			return this.asObject(x)
@@ -73,6 +77,15 @@ export default class Inline extends Style{
 		
 		smallCaps(){
 			return true
+		}
+		
+		asToggle(x){
+			let val=x.attr('w:val')
+			if(!val){
+				return -1
+			}else{
+				return parseInt(val)
+			}
 		}
 	}
 }
