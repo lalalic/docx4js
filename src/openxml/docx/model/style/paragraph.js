@@ -48,12 +48,12 @@ class Properties extends Style.Properties{
 
 		if(!r.beforeAutospacing && r.beforeLines)
 			o.top=this.pt2Px(this.asPt(r.beforeLines))
-		else (r.before)
+		else if(r.before)
 			o.top=this.pt2Px(this.asPt(r.before))
 
 		if(!r.afterAutospacing && r.afterLines)
 			o.bottom=this.pt2Px(this.asPt(r.afterLines))
-		else (r.after)
+		else if(r.after)
 			o.bottom=this.pt2Px(this.asPt(r.after))
 
 		if(!r.line)
