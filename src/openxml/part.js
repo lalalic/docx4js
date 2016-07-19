@@ -1,8 +1,10 @@
-export default class part{
+import {parseString as parse} from "xml2js"
+
+export default class{
 	constructor(name,doc){
 		this.name=name
 		this.doc=doc
-		this.documentElement=doc.parts[name] && $.parseXML(doc.parts[name].asText()).documentElement
+		this.data=doc.parts[name]
 		this.rels={}
 
 		var folder="",
@@ -15,18 +17,18 @@ export default class part{
 
 		if(!doc.parts[relName]) return;
 		this.relName=relName
-		//console.log("part:"+name+",relName:"+relName+",folder:"+folder+", text:"+doc.parts[relName].asText())
-		$.parseXML(doc.parts[relName].asText())
-			.documentElement
-			.$("Relationship")
-			.asArray()
-			.forEach(function(a, i){
-				this.rels[a.getAttribute('Id')]={
-					type:a.getAttribute('Type').split('/').pop(),
-					targetMode: a.getAttribute('TargetMode'),
-					target:(a.getAttribute('TargetMode')!="External" ? (folder ? (folder+"/") : '') : '')+a.getAttribute('Target')}
-			},this)
+		
+		parse(doc.parts[relName].asText(),{mergeAttrs:true,explicitArray:false}, (error, doc)=>{
+			doc.Relationships.Relationship.forEach((a, i)=>{
+				this.rels[a.Id]={
+					type:a.Type.split('/').pop(),
+					targetMode: a.TargetMode,
+					target:(a.TargetMode!="External" ? (folder ? (folder+"/") : '') : '')+a.Target}
+			})
+		})
+			
 	}
+	
 	getRel(id){
 		var rel=this.rels[id]
 		if(rel.targetMode=='External')

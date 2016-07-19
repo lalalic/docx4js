@@ -16,10 +16,19 @@
 				text.value=models.join(",")
 			})
 		}
+		
+		function test2(input){
+			docx4js.load(input.files[0]).then(docx=>{
+				input.value=""
+				docx.parse().then(element=>{
+					console.dir(element)
+				})
+			})
+		}
 	</script>
 </head>
 <body>
-	<input type="file" style="position:absolute;top:0" onchange="test(this)">
+	<input type="file" style="position:absolute;top:0" onchange="test2(this)">
 	<br/>
 	<br/>
 	<textarea id="text"></textarea>

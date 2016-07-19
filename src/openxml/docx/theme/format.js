@@ -1,5 +1,3 @@
-import Shape from '../model/shape'
-
 export default class format{
 	constructor(wXml, wDoc){
 		this.wXml=wXml

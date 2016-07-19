@@ -1,63 +1,37 @@
-import Factory from './factory'
+import {PassThrough} from "stream"
+import sax from "sax"
+
+import Base from "../document"
+
 import FontTheme from './theme/font'
 import ColorTheme from './theme/color'
 import FormatTheme from './theme/format'
 
-import Table from "./model/table"
-import List from "./model/list"
+import Factory from "./event-factory"
 
-export default class document extends require('../document'){
+export default class extends Base{
+	static get ext(){return 'docx'}
+	
 	constructor(){
 		super(...arguments)
 		var rels=this.rels,
 			builtIn='settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',')
-		$.each(this.partMain.rels,function(id,rel){
-			builtIn.indexOf(rel.type)!=-1 && (rels[rel.type]=rel.target)
+		Object.keys(this.partMain.rels).forEach(id=>{
+			let rel=this.partMain.rels[id]
+			if(builtIn.indexOf(rel.type)!=-1)
+				this.getObjectPart(rel.target)
+					.then(parsed=>{
+						this[rel.type]=parsed	
+					})
 		})
 	}
 
-	static clone(doc){
-		let {parts,raw,props,rels,partMain}=doc
-		return new document(parts,raw,props)
-	}
-
-	static get ext(){return 'docx'}
-
-	parse(visitFactories){
-		super.parse(...arguments)
-		this.style=new this.constructor.Style()
-		this.parseContext={
-			section: new ParseContext(),
-			part:new ParseContext(this.partMain),
-			bookmark: new ParseContext(),
-			numbering: new List.Context(this),
-			table: new Table.Context(this),
-			field: (function(ctx){
-				ctx.instruct=function(t){
-					this[this.length-1].instruct(t)
-				}
-				ctx.seperate=function(model){
-					this[this.length-1].seperate(model)
-				}
-				ctx.end=function(endModel, endVisitors){
-					this.pop().end(...arguments)
-				}
-				return ctx
-			})([])
-		}
-		this.content=this.factory(this.partMain.documentElement, this)
-		var roots=this.content.parse($.isArray(visitFactories) ? visitFactories : $.toArray(arguments))
-		this.release()
-		return roots.length==1 ? roots[0] : roots
-	}
-	getRel(id){
-		return this.parseContext.part.current.getRel(id)
-	}
 	getColorTheme(){
 		if(this.colorTheme)
 			return this.colorTheme
 		return this.colorTheme=new ColorTheme(this.getPart('theme').documentElement.$1('clrScheme'), this.getPart('settings').documentElement.$1('clrSchemeMapping'))
 	}
+	
 	getFontTheme(){
 		if(this.fontTheme)
 			return this.fontTheme
@@ -68,39 +42,95 @@ export default class document extends require('../document'){
 			return this.formatTheme
 		return this.formatTheme=new FormatTheme(this.getPart('theme').documentElement.$1('fmtScheme'), this)
 	}
-	release(){
-		delete this.parseContext
-
-		super.release(...arguments)
+	
+	createElement(node){
+		return node
 	}
+	
+	isProperty(name){
+		return name.substr(-2)=='Pr'
+	}
+	
+	toProperty(node){
+		let {attributes, children}=node;
+		(children||[]).forEach(a=>attributes[a.name]=this.toProperty(a))
+		return attributes
+	}
+	
+	parse(){
+		return new Promise((resolve, reject)=>{
+			let docx={
+				name:"docx", 
+				attributes:{
+					styles: this.styles['w:styles'],
+					numbering: this.numbering['w:numbering']
+				}, 
+				children:[]
+			}
+			let body=null, sect=null, pr=null, current=docx
+			let sections=[]
 
-	static get type(){return "Word"}
-
-	static get Style(){return Style}
-
-	static Factory=Factory
-}
-
-function Style(){
-	var ids={},defaults={}
-	Object.assign(this,{
-		setDefault: function(style){
-			defaults[style.type]=style
-		},
-		getDefault: function(type){
-			return defaults[type]
-		},
-		get: function(id){
-			return ids[id]
-		},
-		set: function(style, id){
-			ids[id||style.id]=style
-		}
-	})
-}
-
-class ParseContext{
-	constructor(current){
-		this.current=current
+			let stream=new PassThrough()
+			stream.end(new Buffer(this.partMain.data.asUint8Array()))
+			stream.pipe(sax.createStream(true,{xmlns:false}))
+			.on("opentag", node=>{
+				node.children=[]
+				
+				current.children.push(node)
+				node.parent=current
+				
+				current=node
+				
+				switch(node.name){
+				case 'w:body':
+					body=current
+				break
+				case 'w:sectPr':
+					pr=sect=current
+				break
+				default:
+					if(this.isProperty(node.name) && pr==null)
+						pr=current
+				}
+			})
+			.on("closetag",tag=>{
+				const {attributes, parent, children, local,name}=current
+				if(pr==null){
+					let index=parent.children.indexOf(current)
+					attributes.key=index
+					let element=this.createElement(current)
+					
+					parent.children.splice(index,1,element)
+					current=parent
+				}else if(current==pr){
+					let property=this.toProperty(current)
+					current=parent
+					if(pr!=sect)
+						current.attributes.contentStyle=property
+					else
+						sect=property
+					pr=null
+				}else
+					current=parent
+				
+				if(current==body && sect!=null){
+					sections.push(this.createElement({name:'section', attributes: sect, children: body.children.splice(0)}))
+					sect=null
+				}
+				
+			})
+			.on("end", a=>{
+				if(current!=docx)
+					throw new Error("it should be docx")
+				
+				docx.children[0].children=sections
+				resolve(this.createElement(docx))
+			})
+			.on("text", text=>{
+				if(current.parent && current.parent.name=="w:t")
+					current.children.push(text)
+			})
+		})
 	}
 }
+
