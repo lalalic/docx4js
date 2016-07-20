@@ -37,6 +37,7 @@
     "uglifyify": "^3.0.1"
   },
   "dependencies": {
+    "immutable": "^3.8.1",
     "jszip": "^2.6.0",
     "nwmatcher": "^1.3.4",
     "xml2js": "^0.4.17",
@@ -55,11 +56,12 @@
   "main": "./lib/openxml/docx/document.js",
   "scripts": {
     "build": "babel src -d lib --source-maps inline",
-    "dist": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/index.js -i jquery",
+    "dist.watch": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/index.js -i jquery",
     "dist.min": "browserify -g uglifyify -r ./lib/openxml/docx/document.js:docx4js -o dist/docx4js.js -i jquery",
-    "test": "jasmine",
-    "test.debug": "node --debug-brk .jasmine.js",
+    "jasmine": "jasmine",
+    "jasmine.debug": "node --debug-brk .jasmine.js",
     "karma": "karma start",
+    "test": "http-server dist -c-1",
     "doc": "esdoc -c esdoc.json"
   }
 }

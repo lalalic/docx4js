@@ -14,11 +14,11 @@ export default class{
 		this.raw=raw
 		this.props=props
 	}
-	
+
 	getPart(name){
 		return this.parts[name]
 	}
-	
+
 	getImagePart(name){
 		var part=this.parts[name]
 		var crc32=part._data.crc32
@@ -26,22 +26,22 @@ export default class{
 		buffer.crc32=part._data.crc32=crc32
 		return buffer
 	}
-	
-	getObjectPart(name){
+
+	getObjectPart(name, option){
 		return new Promise((resolve,reject)=>{
 			if(this.parts[name])
 				xml2js(this.parts[name].asText(),
-					{mergeAttrs:true, explicitArray:false}, 
+					Object.assign({mergeAttrs:true, explicitArray:false},option||{}),
 					(error, result)=>resolve(result))
 			else
 				resolve({})
 		})
 	}
-	
+
 	parse(){
-		
+
 	}
-	
+
 	/**
 	 *  a helper to load document file
 
