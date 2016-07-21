@@ -1,6 +1,7 @@
 import {PassThrough} from "stream"
 import sax from "sax"
 import Part from "../part"
+import Styles from "./styles"
 
 const builtIn='settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',')
 export default class extends Part{
@@ -13,6 +14,7 @@ export default class extends Part{
 					.then(parsed=>this[rel.type]=parsed)
 			}
 		}).filter(a=>a)).then(a=>{
+			this.styles=new Styles(this.styles)
 			return new Promise(resolve=>{
 				let root={
 					name:this.doc.constructor.ext,
@@ -57,7 +59,7 @@ export default class extends Part{
 						let property=this.doc.toProperty(current)
 						current=parent
 						if(pr!=sect)
-							current.attributes.contentStyle=property
+							current.attributes.directStyle=property
 						else
 							sect=property
 						pr=null

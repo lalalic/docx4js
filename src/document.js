@@ -1,6 +1,8 @@
 import JSZip from 'jszip'
 import {parseString as xml2js} from "xml2js"
 
+import {getable} from "./xmlObject"
+
 /**
  *  document parser
  *
@@ -31,9 +33,9 @@ export default class{
 		return new Promise((resolve,reject)=>{
 			if(this.parts[name])
 				xml2js(this.parts[name].asText(),
-					(error, result)=>resolve(result))
+					(error, result)=>resolve(getable(result)))
 			else
-				resolve({})
+				resolve()
 		})
 	}
 
