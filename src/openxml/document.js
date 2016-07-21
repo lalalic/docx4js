@@ -1,5 +1,4 @@
 import Base from "../document"
-
 import Part from './part'
 
 export default class extends Base{
@@ -11,21 +10,40 @@ export default class extends Base{
 			let rel=rels[id]
 			this.rels[rel.type]=rel.target
 		})
-		this.partMain=new Part(this.rels['officeDocument'],this)
+		this.officeDocument=new this.constructor.OfficeDocument(this.rels['officeDocument'],this)
 	}
 	get vender(){"Microsoft"}
 
 	get product(){return 'Office 2010'}
-
-	getPart(name){
-		var part=this.parts[name] || ((name=this.rels[name])&&this.parts[name])
-		if(!part)
-			return null
-
-		if(Part.is(part))
-			return part
-
-		return this.parts[name]=new Part(name,this)
+	
+	createElement(node){
+		return node
 	}
+
+	isProperty(tag){
+		return tag.substr(-2)=='Pr'
+	}
+
+	toProperty(node){
+		let {attributes, children}=node;
+		(children||[]).forEach(a=>attributes[a.name]=this.toProperty(a))
+		return attributes
+	}
+	
+	parse(){
+		const parts=this.parts
+		let p1=this.getObjectPart("[Content_Types].xml")
+			.then(o=>parts["[Content_Types].xml"]=o)
+			
+		let p2=Promise.all(Object.keys(this.rels).map(key=>{
+			let target=this.rels[key]
+			return this.getObjectPart(target)
+				.then(o=>parts[target]=this.rels[key]=o)
+		}))
+				
+		return Promise.all([p1, p2]).then(a=>this.officeDocument.parse())
+	}
+	
+	static OfficeDocument=Part
 }
 

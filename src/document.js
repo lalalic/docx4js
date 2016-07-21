@@ -19,7 +19,7 @@ export default class{
 		return this.parts[name]
 	}
 
-	getImagePart(name){
+	getBufferPart(name){
 		var part=this.parts[name]
 		var crc32=part._data.crc32
 		var buffer=part.asNodeBuffer()
@@ -31,7 +31,6 @@ export default class{
 		return new Promise((resolve,reject)=>{
 			if(this.parts[name])
 				xml2js(this.parts[name].asText(),
-					Object.assign({mergeAttrs:true, explicitArray:false},option||{}),
 					(error, result)=>resolve(result))
 			else
 				resolve({})

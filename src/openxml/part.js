@@ -40,8 +40,8 @@ export default class{
 			return this.doc.getPart(rel.target)
 		}
 	}
-
-	static is(o){
-		return o && o.getRel
+	
+	parse(){
+		Promise.resolve(this.doc.createElement({name:this.doc.constructor.ext,attributes:this}))
 	}
 }
