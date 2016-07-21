@@ -51,6 +51,8 @@ export default class extends Part{
 					if(pr==null){
 						let index=parent.children.indexOf(current)
 						attributes.key=index
+						if(tag=='w:document')
+							current.children=sections
 						let element=this.doc.createElement(current,...args)
 
 						parent.children.splice(index,1,element)
@@ -73,7 +75,6 @@ export default class extends Part{
 
 				})
 				.on("end", a=>{
-					current.children[0].children=sections
 					current.attributes=this
 					resolve(this.doc.createElement(current,...args))
 				})
