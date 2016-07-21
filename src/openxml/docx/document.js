@@ -14,21 +14,13 @@ export default class extends Base{
 		const {styles}=this.officeDocument
 		let {name, attributes:{directStyle}, children}=node
 		let tag=name.split(':').pop()
-		switch(){
+		switch(tag){
 		case "p":
-			if(directStyle && directStyle['w:numPr']){
-				return onCreateElement(node, "list")
-			}
-		break
-		case "r":
-			
-		break
-		case "tbl":
-		break
-		case "std":
+			if(directStyle && directStyle['w:numPr'])
+				tag="list"
 		break
 		}
 		
-		return onCreateElement(node, tag)
+		return this.onCreateElement(node, tag)
 	}
 }
