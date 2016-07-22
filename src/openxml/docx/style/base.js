@@ -1,7 +1,10 @@
+import {getable} from "../../../xmlObject"
+
 export default class Style{
-	constructor(style, styles){
-		this.raw=style
+	constructor(style, styles, basedOn="basedOn"){
+		this.raw=style.get ? style : getable(style)
 		this.styles=styles
+		this.basedOn=basedOn
 	}
 	
 	get(path){
@@ -12,7 +15,7 @@ export default class Style{
 	}
 	
 	getBasedOn(){
-		return this.styles[this.get('basedOn')]
+		return typeof(this.basedOn)=='string' ? this.styles[this.raw.get(this.basedOn)] : this.basedOn
 	}
 	
 	getFromBasedOn(path){

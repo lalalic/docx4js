@@ -18,8 +18,8 @@ export default class Styles{
 		
 		let docDefault=styles.get('styles.docDefaults')
 		this['document_default']=new Style({
-			'w:pPr':docDefault.get('pPrDefault'),
-			'w:rPr':docDefault.get('rPrDefault')
+			'w:pPr':docDefault.get('pPrDefault.pPr'),
+			'w:rPr':docDefault.get('rPrDefault.rPr') 
 		}, this)
 	}
 	

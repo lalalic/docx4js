@@ -3,6 +3,11 @@ import sax from "sax"
 import Part from "../part"
 import Styles from "./styles"
 
+import FontTheme from "./theme/font"
+import ColorTheme from "./theme/color"
+import FormatTheme from "./theme/format"
+
+
 const builtIn='settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',')
 export default class extends Part{
 	parse(){
@@ -14,7 +19,12 @@ export default class extends Part{
 					.then(parsed=>this[rel.type]=parsed)
 			}
 		}).filter(a=>a)).then(a=>{
-			this.styles=new Styles(this.styles)
+			
+			this.styles=new Styles(this.styles, this.doc)
+			this.fontTheme=new FontTheme(this.theme.get('theme.themeElements.fontScheme'),this.settings.get('settings.themeFontLang').$)
+			this.colorTheme=new ColorTheme(this.theme.get('theme.themeElements.clrScheme'),this.settings.get('settings.clrSchemeMapping').$)
+			this.formatTheme=new FormatTheme(this.theme.get('theme.themeElements.fmtScheme'))
+			
 			return new Promise(resolve=>{
 				let root={
 					name:this.doc.constructor.ext,
@@ -48,22 +58,27 @@ export default class extends Part{
 				})
 				.on("closetag",tag=>{
 					const {attributes, parent, children, local,name}=current
+					let index=parent.children.indexOf(current)
 					if(pr==null){
-						let index=parent.children.indexOf(current)
 						attributes.key=index
-						if(tag=='w:document')
+						if(tag=='w:document'){
 							current.children=sections
+							builtIn.forEach(a=>attributes[a]=this[a])
+							attributes.directStyle=this.styles.getDefault("document")
+						}
 						let element=this.doc.createElement(current,...args)
 
 						parent.children.splice(index,1,element)
 						current=parent
 					}else if(current==pr){
 						let property=this.doc.toProperty(current)
+						parent.children.splice(index,1)
 						current=parent
 						if(pr!=sect)
 							current.attributes.directStyle=property
 						else
 							sect=property
+						
 						pr=null
 					}else
 						current=parent
@@ -75,8 +90,7 @@ export default class extends Part{
 
 				})
 				.on("end", a=>{
-					current.attributes=this
-					resolve(this.doc.createElement(current,...args))
+					resolve(root.children[0])
 				})
 				.on("text", text=>{
 					if(current.parent && current.parent.name=="w:t")

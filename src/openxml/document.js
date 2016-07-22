@@ -1,4 +1,5 @@
 import Base from "../document"
+import {getable} from "../xmlObject"
 import Part from './part'
 
 export default class extends Base{
@@ -23,11 +24,19 @@ export default class extends Base{
 	isProperty(tag){
 		return tag.substr(-2)=='Pr'
 	}
+	
+	onToProperty(node){
+		let {attributes, children}=node;
+		(children||[]).forEach(a=>{
+			let v=this.onToProperty(a)
+			if(v!=undefined)
+				attributes[a.name]=v
+		})
+		return attributes
+	}
 
 	toProperty(node){
-		let {attributes, children}=node;
-		(children||[]).forEach(a=>attributes[a.name]=this.toProperty(a))
-		return attributes
+		return getable(this.onToProperty(node))
 	}
 	
 	parse(){

@@ -1,6 +1,7 @@
 var RGB=/([a-fA-F0-9]{2}?){3}?/;
 export default class color {
 	constructor(wXml, xMapping){
+		return
 		this.wXml=wXml
 		this.map={}
 		for(var i=0,map=xMapping.attributes,len=map.length, attr;i<len;i++)

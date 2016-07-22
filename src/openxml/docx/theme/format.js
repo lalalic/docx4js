@@ -1,5 +1,6 @@
 export default class format{
 	constructor(wXml, wDoc){
+		return
 		this.wXml=wXml
 		this.wDoc=wDoc
 		this._converter=new Shape.Properties(null,wDoc,null)
