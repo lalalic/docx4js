@@ -16,7 +16,7 @@ export default class extends Base{
 	get vender(){"Microsoft"}
 
 	get product(){return 'Office 2010'}
-	
+
 	createElement(node){
 		return node
 	}
@@ -24,35 +24,26 @@ export default class extends Base{
 	isProperty(tag){
 		return tag.substr(-2)=='Pr'
 	}
-	
+
 	onToProperty(node){
-		let {attributes, children}=node;
-		(children||[]).forEach(a=>{
-			let v=this.onToProperty(a)
-			if(v!=undefined)
-				attributes[a.name]=v
-		})
-		return attributes
+		let pr=Object.assign({},node)
+		pr.$=pr.attributes
+		delete pr.attributes
+		delete pr.name
+		delete pr.parent
+		return pr
 	}
 
 	toProperty(node){
 		return getable(this.onToProperty(node))
 	}
-	
+
 	parse(){
 		const parts=this.parts
-		let p1=this.getObjectPart("[Content_Types].xml")
+		return this.getObjectPart("[Content_Types].xml")
 			.then(o=>parts["[Content_Types].xml"]=o)
-			
-		let p2=Promise.all(Object.keys(this.rels).map(key=>{
-			let target=this.rels[key]
-			return this.getObjectPart(target)
-				.then(o=>parts[target]=this.rels[key]=o)
-		}))
-				
-		return Promise.all([p1, p2]).then(a=>this.officeDocument.parse())
+			.then(a=>this.officeDocument.parse())
 	}
-	
+
 	static OfficeDocument=Part
 }
-

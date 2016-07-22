@@ -4,7 +4,7 @@ import Styles from "./styles"
 
 export default class extends Base{
 	static get ext(){return 'docx'}
-	
+
 	static OfficeDocument=OfficeDocument
 
 	createElement(node){
@@ -17,14 +17,15 @@ export default class extends Base{
 				tag="list"
 		break
 		}
-		
+
 		return this.onCreateElement(node, tag)
 	}
-	
+
 	toProperty(node){
+		const {name}=node
 		let pr=super.toProperty(node)
-		
-		switch(node.name){
+
+		switch(name){
 		case 'w:pPr':
 			return new Styles.paragraph(pr, this.officeDocument.styles, 'pStyle')
 		break
@@ -38,7 +39,7 @@ export default class extends Base{
 			return pr
 		}
 	}
-	
+
 	onToProperty(node){
 		const {name, attributes:x, children}=node
 		let tag=name.split(':').pop(), value
@@ -46,7 +47,7 @@ export default class extends Base{
 		case 'rFonts':
 			let ascii=x['w:ascii']||this.officeDocument.fontTheme.get(x['w:asciiTheme'])
 			let asia=x['w:eastAsia']||this.officeDocument.fontTheme.get(x['w:eastAsiaTheme'])
-			
+
 			if(ascii || asia)
 				return {ascii, asia}
 		break
@@ -63,25 +64,25 @@ export default class extends Base{
 		break
 		case 'cols':
 			value={space:this.dxa2Px(x['w:space'])}
-			if(x.col){	
+			if(x.col){
 				value.data=x.col.map(col=>({
 					width:this.dxa2Px(col['w:w']),
 					space:this.dxa2Px(col['w:space'])
 				}))
 			}
-			
+
 			return value
 		break
-		
+
 		default:
 			return super.onToProperty(node)
-		}		
+		}
 	}
-	
+
 	dxa2Px(a){
 		return this.pt2Px(parseInt(a)/20.0)
 	}
-	
+
 	pt2Px(pt){
 		return pt*96/92
 	}

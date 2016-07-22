@@ -19,12 +19,12 @@ export default class extends Part{
 					.then(parsed=>this[rel.type]=parsed)
 			}
 		}).filter(a=>a)).then(a=>{
-			
+
 			this.styles=new Styles(this.styles, this.doc)
 			this.fontTheme=new FontTheme(this.theme.get('theme.themeElements.fontScheme'),this.settings.get('settings.themeFontLang').$)
 			this.colorTheme=new ColorTheme(this.theme.get('theme.themeElements.clrScheme'),this.settings.get('settings.clrSchemeMapping').$)
 			this.formatTheme=new FormatTheme(this.theme.get('theme.themeElements.fmtScheme'))
-			
+
 			return new Promise(resolve=>{
 				let root={
 					name:this.doc.constructor.ext,
@@ -37,29 +37,29 @@ export default class extends Part{
 				stream.end(new Buffer(this.data.asUint8Array()))
 				stream.pipe(sax.createStream(true,{xmlns:false}))
 				.on("opentag", node=>{
-					node.children=[]
+					if(this.doc.isProperty(node.name) && pr==null)
+						pr=node
 
-					current.children.push(node)
 					node.parent=current
-
 					current=node
 
+					if(pr==null){
+						node.children=[]
+						node.parent.children.push(node)
+					}
 					switch(node.name){
 					case 'w:body':
 						body=current
 					break
 					case 'w:sectPr':
-						pr=sect=current
+						sect=current
 					break
-					default:
-						if(this.doc.isProperty(node.name) && pr==null)
-							pr=current
 					}
 				})
 				.on("closetag",tag=>{
 					const {attributes, parent, children, local,name}=current
-					let index=parent.children.indexOf(current)
 					if(pr==null){
+						let index=parent.children.indexOf(current)
 						attributes.key=index
 						if(tag=='w:document'){
 							current.children=sections
@@ -72,16 +72,17 @@ export default class extends Part{
 						current=parent
 					}else if(current==pr){
 						let property=this.doc.toProperty(current)
-						parent.children.splice(index,1)
 						current=parent
 						if(pr!=sect)
 							current.attributes.directStyle=property
 						else
 							sect=property
-						
+
 						pr=null
-					}else
+					}else{
+						parent[tag.split(':').pop()]=this.doc.onToProperty(current)
 						current=parent
+					}
 
 					if(current==body && sect!=null){
 						sections.push(this.doc.createElement({name:'section', attributes: sect, children: body.children.splice(0)},...args))
