@@ -1,24 +1,12 @@
-var RGB=/([a-fA-F0-9]{2}?){3}?/;
 export default class color {
-	constructor(wXml, xMapping){
-		return
-		this.wXml=wXml
-		this.map={}
-		for(var i=0,map=xMapping.attributes,len=map.length, attr;i<len;i++)
-			this.map[(attr=xMapping.attributes[i]).localName]=attr.value
+	constructor(scheme, xMapping){
+		this.map=xMapping
+		this.scheme=scheme
 	}
-	get(name, t){
+	get(name){
 		if(name=='phClr')//placeholder color, witch will be replaced with direct style
 			return name
 		name=this.map[name]||name
-		if(t=this.wXml.$1(name)){
-			switch(t.firstChild.localName){
-			case 'sysClr':
-				return '#'+t.firstChild.attr('lastClr')
-			default:
-				return '#'+t.firstChild.attr('val')
-			}
-		} else
-			return 'black'
+		return '#'+(this.scheme.get(`${name}.srgbClr`)||this.scheme.get(`${name}.sysClr.$.lastClr`)||'000000')
 	}
 }

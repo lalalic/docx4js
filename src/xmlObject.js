@@ -24,7 +24,7 @@ export default class XmlObject{
 	}
 
 	static getable(xmlobj){
-		xmlobj.get=function(path,trim=true){
+		typeof(xmlobj)=='object' && (xmlobj.get=function(path,trim=true){
 			let value=XmlObject.get(path,xmlobj)
 
 			if(trim){
@@ -38,7 +38,7 @@ export default class XmlObject{
 			if(value && typeof(value)=='object')
 				return XmlObject.getable(value)
 			return value
-		}
+		})
 
 		return xmlobj
 	}
