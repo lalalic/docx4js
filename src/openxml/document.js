@@ -40,5 +40,12 @@ export default class extends Base{
 			.then(a=>this.officeDocument.parse())
 	}
 
+	dxa2Px(a){
+		return this.pt2Px(parseInt(a)/20.0)
+	}
+
+	pt2Px(pt){
+		return Math.ceil(pt*96/92)
+	}
 	static OfficeDocument=Part
 }

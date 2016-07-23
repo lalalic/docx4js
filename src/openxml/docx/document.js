@@ -77,12 +77,4 @@ export default class extends Base{
 			return super.onToProperty(...arguments)
 		}
 	}
-
-	dxa2Px(a){
-		return this.pt2Px(parseInt(a)/20.0)
-	}
-
-	pt2Px(pt){
-		return Math.ceil(pt*96/92)
-	}
 }

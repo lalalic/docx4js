@@ -28,7 +28,7 @@ export default class extends Part{
 		}
 
 		return this._parse1("settings").then(a=>this._parse1("theme",transPr)).then(a=>{
-			this.fontTheme=new FontTheme(this.theme.get('theme.themeElements.fontScheme'),this.settings.get('settings.themeFontLang').$)
+			this.fontTheme=new FontTheme(this.theme.get('theme.themeElements.fontScheme'),this.settings.get('settings.themeFontLang',false)[0].$)
 			this.colorTheme=new ColorTheme(this.theme.get('theme.themeElements.clrScheme'),this.settings.get('settings.clrSchemeMapping').$)
 			this.formatTheme=new FormatTheme(this.theme.get('theme.themeElements.fmtScheme'))
 		}).then(a=>{
@@ -46,10 +46,17 @@ export default class extends Part{
 	parse(){
 		let args=arguments
 		function asXmlObject(node){
-			node.$=node.attributes
+			let $=node.$=node.attributes
 			delete node.attributes
 			delete node.parent
 			delete node.name
+			Object.keys($).forEach(a=>{
+				let as=a.split(':')
+				if(as.length==2){
+					$[as[1]]=$[a]
+					delete $[a]
+				}
+			})
 			return node
 		}
 		return this._parseNonContent().then(a=>{
@@ -124,8 +131,8 @@ export default class extends Part{
 					resolve(root.children[0])
 				})
 				.on("text", text=>{
-					if(current.parent && current.parent.name=="w:t")
-						current.children.push(text)
+					if(current.name=="w:t")
+						current.children=text
 				})
 			})
 		})
