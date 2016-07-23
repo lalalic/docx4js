@@ -3,6 +3,9 @@ import {parseString as xml2js} from "xml2js"
 
 import {getable} from "./xmlObject"
 
+function stripPrefix(name){
+	return name.split(':').pop()
+}
 /**
  *  document parser
  *
@@ -33,7 +36,12 @@ export default class{
 		return new Promise((resolve,reject)=>{
 			if(this.parts[name])
 				xml2js(this.parts[name].asText(),
-					(error, result)=>resolve(getable(result)))
+					Object.assign({tagNameProcessors:[stripPrefix],attrNameProcessors:[stripPrefix]},option||{}),
+					(error, result)=>{
+						error && console.log(`parsing ${name} with error: ${error.message}`)
+
+						resolve(getable(result))
+					})
 			else
 				resolve()
 		})

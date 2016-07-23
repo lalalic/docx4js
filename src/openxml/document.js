@@ -25,16 +25,11 @@ export default class extends Base{
 		return tag.substr(-2)=='Pr'
 	}
 
-	onToProperty(node){
-		let pr=Object.assign({},node)
-		pr.$=pr.attributes
-		delete pr.attributes
-		delete pr.name
-		delete pr.parent
-		return pr
+	onToProperty(node, type){
+		return node
 	}
 
-	toProperty(node){
+	toProperty(node,type){
 		return getable(this.onToProperty(node))
 	}
 

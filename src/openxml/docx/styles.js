@@ -10,29 +10,28 @@ export default class Styles{
 			let type=a.get('$.type')
 			let id=a.get('$.styleId')
 			let isDefault=a.get('$.default')
-			
+
 			let style=this[id]=new Styles[type](a,this)
 			if(isDefault)
 				this[`${type}_default`]=style
 		})
-		
+
 		let docDefault=styles.get('styles.docDefaults')
 		this['document_default']=new Style({
-			'w:pPr':docDefault.get('pPrDefault.pPr'),
-			'w:rPr':docDefault.get('rPrDefault.rPr') 
+			'pPr':docDefault.get('pPrDefault.pPr'),
+			'rPr':docDefault.get('rPrDefault.rPr') 
 		}, this)
 	}
-	
+
 	getDefault(type){
 		return this[`${type}_default`]
 	}
-	
+
 	static paragraph=Style
-	
+
 	static character=Style
-	
+
 	static numbering=Style
-	
+
 	static table=TableStyle
 }
-

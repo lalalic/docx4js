@@ -8,23 +8,51 @@ import ColorTheme from "./theme/color"
 import FormatTheme from "./theme/format"
 
 
-const builtIn='settings,webSettings,theme,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',')
+const builtIn='webSettings,styles,stylesWithEffects,fontTable,numbering,footnotes,endnotes'.split(',')
 export default class extends Part{
-	parse(){
-		let args=arguments
+	_parse1(type){
 		return Promise.all(Object.keys(this.rels).map(id=>{
 			let rel=this.rels[id]
-			if(builtIn.indexOf(rel.type)!=-1){
+			if(rel.type==type){
 				return this.doc.getObjectPart(rel.target)
-					.then(parsed=>this[rel.type]=parsed)
+					.then(parsed=>this[type]=parsed)
 			}
-		}).filter(a=>a)).then(a=>{
+		}))
+	}
+	_parseNonContent(){
+		let doc=this.doc
+		let transPr={
+			validator(xpath,currentValue, newValue){
+				return doc.onToProperty(newValue, xpath.split('/').pop())
+			}
+		}
 
-			this.styles=new Styles(this.styles, this.doc)
+		return this._parse1("settings").then(a=>this._parse1("theme",transPr)).then(a=>{
 			this.fontTheme=new FontTheme(this.theme.get('theme.themeElements.fontScheme'),this.settings.get('settings.themeFontLang').$)
 			this.colorTheme=new ColorTheme(this.theme.get('theme.themeElements.clrScheme'),this.settings.get('settings.clrSchemeMapping').$)
 			this.formatTheme=new FormatTheme(this.theme.get('theme.themeElements.fmtScheme'))
-
+		}).then(a=>{
+			return Promise.all(Object.keys(this.rels).map(id=>{
+				let rel=this.rels[id]
+				if(builtIn.indexOf(rel.type)!=-1){
+					return this.doc.getObjectPart(rel.target, (rel.type=='styles' || rel.type=='numbering') ? transPr : null)
+						.then(parsed=>this[rel.type]=parsed)
+				}
+			}).filter(a=>a)).then(a=>{
+				this.styles=new Styles(this.styles, this.doc)
+			})
+		})
+	}
+	parse(){
+		let args=arguments
+		function asXmlObject(node){
+			node.$=node.attributes
+			delete node.attributes
+			delete node.parent
+			delete node.name
+			return node
+		}
+		return this._parseNonContent().then(a=>{
 			return new Promise(resolve=>{
 				let root={
 					name:this.doc.constructor.ext,
@@ -37,8 +65,9 @@ export default class extends Part{
 				stream.end(new Buffer(this.data.asUint8Array()))
 				stream.pipe(sax.createStream(true,{xmlns:false}))
 				.on("opentag", node=>{
-					if(this.doc.isProperty(node.name) && pr==null)
+					if(this.doc.isProperty(node.name) && pr==null){
 						pr=node
+					}
 
 					node.parent=current
 					current=node
@@ -71,7 +100,7 @@ export default class extends Part{
 						parent.children.splice(index,1,element)
 						current=parent
 					}else if(current==pr){
-						let property=this.doc.toProperty(current)
+						let property=this.doc.toProperty(asXmlObject(current),tag.split(':').pop())
 						current=parent
 						if(pr!=sect)
 							current.attributes.directStyle=property
@@ -80,7 +109,8 @@ export default class extends Part{
 
 						pr=null
 					}else{
-						parent[tag.split(':').pop()]=this.doc.onToProperty(current)
+						let type=tag.split(':').pop()
+						parent[type]=this.doc.onToProperty(asXmlObject(current),type)
 						current=parent
 					}
 

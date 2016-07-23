@@ -13,7 +13,7 @@ export default class extends Base{
 		let tag=name.split(':').pop()
 		switch(tag){
 		case "p":
-			if(directStyle && directStyle['w:numPr'])
+			if(directStyle && directStyle['numPr'])
 				tag="list"
 		break
 		}
@@ -21,18 +21,17 @@ export default class extends Base{
 		return this.onCreateElement(node, tag)
 	}
 
-	toProperty(node){
-		const {name}=node
+	toProperty(node, type){
 		let pr=super.toProperty(node)
 
-		switch(name){
-		case 'w:pPr':
+		switch(type){
+		case 'pPr':
 			return new Styles.paragraph(pr, this.officeDocument.styles, 'pStyle')
 		break
-		case 'w:rPr':
+		case 'rPr':
 			return new Styles.character(pr, this.officeDocument.styles, 'rStyle')
 		break
-		case 'w:tblPr':
+		case 'tblPr':
 			return new Styles.table(pr, this.officeDocument.styles, 'tblStyle')
 		break
 		default:
@@ -40,22 +39,22 @@ export default class extends Base{
 		}
 	}
 
-	onToProperty(node){
-		const {name, attributes:x, children}=node
-		let tag=name.split(':').pop(), value
-		switch(tag){
+	onToProperty(node, type){
+		const {$:x}=node
+		let value
+		switch(type){
 		case 'rFonts':
-			let ascii=x['w:ascii']||this.officeDocument.fontTheme.get(x['w:asciiTheme'])
-			let asia=x['w:eastAsia']||this.officeDocument.fontTheme.get(x['w:eastAsiaTheme'])
+			let ascii=x['ascii']||this.officeDocument.fontTheme.get(x['asciiTheme'])
+			let asia=x['eastAsia']||this.officeDocument.fontTheme.get(x['eastAsiaTheme'])
 
 			if(ascii || asia)
 				return {ascii, asia}
 		break
 		case 'sz':
-			return this.pt2Px(parseInt(x['w:val'])/2)
+			return this.pt2Px(parseInt(x['val'])/2)
 		break
 		case 'pgSz':
-			return {width:this.dxa2Px(x['w:w']), height:this.dxa2Px(x['w:h'])}
+			return {width:this.dxa2Px(x['w']), height:this.dxa2Px(x['h'])}
 		break
 		case 'pgMar':
 			value={}
@@ -63,11 +62,11 @@ export default class extends Base{
 			return value
 		break
 		case 'cols':
-			value={space:this.dxa2Px(x['w:space'])}
+			value={space:this.dxa2Px(x['space'])}
 			if(x.col){
 				value.data=x.col.map(col=>({
-					width:this.dxa2Px(col['w:w']),
-					space:this.dxa2Px(col['w:space'])
+					width:this.dxa2Px(col['w']),
+					space:this.dxa2Px(col['space'])
 				}))
 			}
 
@@ -75,7 +74,7 @@ export default class extends Base{
 		break
 
 		default:
-			return super.onToProperty(node)
+			return super.onToProperty(...arguments)
 		}
 	}
 
@@ -84,6 +83,6 @@ export default class extends Base{
 	}
 
 	pt2Px(pt){
-		return pt*96/92
+		return Math.ceil(pt*96/92)
 	}
 }
