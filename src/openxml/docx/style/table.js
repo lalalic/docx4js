@@ -7,7 +7,7 @@ import {getable} from "../../../xmlObject"
  * conditional formatting: http://officeopenxml.com/WPstyleTableStylesCond.php
  * The conditional formats are applied in the following order:
 	>Whole table/table
-	>Banded columns/band1Vert , even column banding/band2Vert 
+	>Banded columns/band1Vert , even column banding/band2Vert
 	>Banded rows/band1Horz , even row banding/band2Horz
 	>First row/firstRow , last row/lastRow
 	>First column/firstCol, last column/lastCol
@@ -16,61 +16,32 @@ import {getable} from "../../../xmlObject"
 let PRIORIZED='seCell,swCell,neCell,nwCell,lastCol,firstCol,lastRow,firstRow,band2Horz,band1Horz,band2Vert,band1Vert'.split(',')
 
 class WithBorder extends Style{
-	getBorder(conditions){
-		return {
-			right:this._right(...arguments)||{sz:0},
-			left: this._left(...arguments)||{sz:0},
-			top: this._top(...arguments)||{sz:0},
-			bottom: this._bottom(...arguments)||{sz:0}
-		}
-	}
-	_get(path){
-		return this.raw.get(path)
-	}
-	
+
 	_1border(type){
-		let value=this._get(type)
+		let value=this.raw.get(type,false)
 		if(value!=undefined){
 			if(value.val=='nil')
 				return {sz:0}
 			return value
 		}
+
+		return undefined
 	}
-	
+
 	_right(conditions){
-		let v=this._1border('border.right')
-		if(v!=undefined)
-			return v
-		let basedOn=this.getBasedOn()
-		if(basedOn && basedOn._right)
-			return basedOn._right(...arguments)
+		return this._1border('tcPr.tcBorders.right')
 	}
-	
+
 	_left(conditions){
-		let v=this._1border('border.left')
-		if(v!=undefined)
-			return v
-		let basedOn=this.getBasedOn()
-		if(basedOn && basedOn._left)
-			return basedOn._left(...arguments)
+		return this._1border('tcPr.tcBorders.left')
 	}
-	
+
 	_top(){
-		let v=this._1border('border.top')
-		if(v!=undefined)
-			return v
-		let basedOn=this.getBasedOn()
-		if(basedOn && basedOn._top)
-			return basedOn._top(...arguments)
+		return this._1border('tcPr.tcBorders.top')
 	}
-	
+
 	_bottom(){
-		let v=this._1border('border.bottom')
-		if(v!=undefined)
-			return v
-		let basedOn=this.getBasedOn()
-		if(basedOn && basedOn._bottom)
-			return basedOn._bottom(...arguments)
+		return this._1border('tcPr.tcBorders.bottom')
 	}
 }
 
@@ -80,37 +51,24 @@ class RowStyle extends WithBorder{
 		if(conditions.includes('lastCol'))
 			value=super._right(...arguments)
 		else
-			value=this._1border('border.insideV')
-		
-		if(value==undefined){
-			let basedOn=this.getBasedOn()
-			if(basedOn && basedOn._right)
-				value=basedOn._right(...arguments)
-		}
-		
+			value=this._1border('tcPr.tcBorders.insideV')
+
 		return value
-			
 	}
-	
+
 	_left(conditions){
 		let value
 		if(conditions.includes('firstCol'))
 			value=super._right(...arguments)
 		else
-			value=this._1border('border.insideV')
-		
-		if(value==undefined){
-			let basedOn=this.getBasedOn()
-			if(basedOn && basedOn._left)
-				value=basedOn._left(...arguments)
-		}
-		
+			value=this._1border('tcPr.tcBorders.insideV')
+
 		return value
 	}
 }
 
 class CellStyle extends WithBorder{
-	
+
 }
 
 class ColStyle extends WithBorder{
@@ -118,7 +76,7 @@ class ColStyle extends WithBorder{
 		if(conds.includes('firstRow'))
 			return super._top(...arguments)
 	}
-	
+
 	_bottom(conds){
 		if(conds.includes('lastRow'))
 			return super._bottom(...arguments)
@@ -127,98 +85,157 @@ class ColStyle extends WithBorder{
 
 
 class BandHStyle extends RowStyle{
-	
+
 }
 class BandVStyle extends ColStyle{
-	
+
 }
 
+
+let types={}
+types.seCell=CellStyle
+types.swCell=CellStyle
+types.neCell=CellStyle
+types.nwCell=CellStyle
+types.lastCol=ColStyle
+types.firstCol=ColStyle
+types.lastRow=RowStyle
+types.firstRow=RowStyle
+types.band2Horz=BandHStyle
+types.band1Horz=BandHStyle
+types.band2Vert=BandVStyle
+types.band1Vert=BandVStyle
+types.row=RowStyle
+types.cell=CellStyle
+
 export default class TableStyle extends WithBorder{
-	constructor(){
+	constructor(style,styles,basedOn){
 		super(...arguments)
-		this.conditions={}
-		
+
 		;(this.raw.get('tblStylePr')||[]).forEach(a=>{
 			a=getable(a)
 			let type=a.get('$.type')
-			this.conditions[type]=new TableStyle[type](a)
+			this[type]=new types[type](a)
 		})
 	}
-	
+
+	getBorder(conditions){
+		return {
+			right:this._right(...arguments)||{sz:0},
+			left: this._left(...arguments)||{sz:0},
+			top: this._top(...arguments)||{sz:0},
+			bottom: this._bottom(...arguments)||{sz:0}
+		}
+	}
+
 	get(path, conditions=[]){
-		let conditionStyles=this.conditions
 		let value=this.priorize(conditions).reduce((found, condition)=>{
 			if(found!=undefined)
 				return found
-			if(conditionStyles){
-				let conditionStyle=conditionStyles[condition]
-				if(conditionStyle)
-					return conditionStyle.get(path)
-			}
+			let conditionStyle=conditionStyles[condition]
+			if(conditionStyle)
+				return conditionStyle.get(path,conditions)
 			return found
 		},undefined)
-		
-		if(value==undefined)
-			return super.get(...arguments)
-		else
-			return value
+
+		if(value==undefined){
+			if(this.tcPr && undefined==(value=this.tcPr.get(...arguments))){
+				if(this.trPr && undefined==(value=this.trPr.get(...arguments))){
+					if(this.tblPr && undefined==(value=this.tblPr.get(...arguments))){
+						return super.get(...arguments)
+					}
+				}
+			}
+		}
+
+		return value
 	}
-	
+
 	priorize(conditions){
 		conditions.sort((a,b)=>PRIORIZED.indexOf(a)-PRIORIZED.indexOf(b))
 		return conditions
 	}
-	
+
+	/**
+	 * 1. conditional formatting
+	 * 2. table.tcPr
+	 * 3. table.trPr=tblPrEx
+	 * 4. table.tblPr
+	 */
 	_right(conditions){
-		let value=this.priorize(conditions).reduce((found, cond)=>{
+		let value=this.priorize(conditions).reduce((found, cond)=>{//1. conditional
 			if(found!=undefined)
 				return found
 			let condStyle=this.conditions[cond]
 			if(condStyle && condStyle._right)
 				return condStyle._right(...arguments)
 		},undefined)
-		
-		if(value==undefined){
+
+		let pr=null
+		if(value==undefined && (pr=this.raw.get('tcPr')))
+			value=super._right(...arguments)//2. table.tcPr
+
+		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
 			if(conditions.includes('lastCol'))
-				value=super._right(...arguments)
+				value=this._1border('tblPrEx.tblBorders.right')
 			else
-				value=this._1border('border.insideV')
+				value=this._1border('tblPrEx.tblBorders.insideV')
 		}
-		
+
+		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
+			if(conditions.includes('lastCol'))
+				value=this._1border('tblPr.tblBorders.right')
+			else
+				value=this._1border('tblPr.tblBorders.insideV')
+		}
+
+
 		if(value==undefined){
 			let basedOn=this.getBasedOn()
 			if(basedOn && basedOn._right)
 				value=basedOn._right(...arguments)
 		}
-		
+
 		return value
 	}
-	
+
 	_left(conditions){
-		let value=this.priorize(conditions).reduce((found, cond)=>{
+		let value=this.priorize(conditions).reduce((found, cond)=>{//1. conditional
 			if(found!=undefined)
 				return found
 			let condStyle=this.conditions[cond]
 			if(condStyle && condStyle._left)
 				return condStyle._left(...arguments)
 		},undefined)
-		
-		if(value==undefined){
+
+		let pr=null
+		if(value==undefined && (pr=this.raw.get('tcPr')))
+			value=super._left(...arguments)//2. table.tcPr
+
+		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
 			if(conditions.includes('firstCol'))
-				value=super._left(...arguments)
+				value=this._1border('tblPrEx.tblBorders.left')
 			else
-				value=this._1border('border.insideV')
+				value=this._1border('tblPrEx.tblBorders.insideV')
 		}
-		
+
+		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
+			if(conditions.includes('firstCol'))
+				value=this._1border('tblPr.tblBorders.left')
+			else
+				value=this._1border('tblPr.tblBorders.insideV')
+		}
+
+
 		if(value==undefined){
 			let basedOn=this.getBasedOn()
 			if(basedOn && basedOn._left)
 				value=basedOn._left(...arguments)
 		}
-		
+
 		return value
 	}
-	
+
 	_top(conditions){
 		let value=this.priorize(conditions).reduce((found, cond)=>{
 			if(found!=undefined)
@@ -227,23 +244,34 @@ export default class TableStyle extends WithBorder{
 			if(condStyle && condStyle._top)
 				return condStyle._top(...arguments)
 		},undefined)
-		
-		if(value==undefined){
+
+		let pr=null
+		if(value==undefined && (pr=this.raw.get('tcPr')))
+			value=super._top(...arguments)//2. table.tcPr
+
+		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
 			if(conditions.includes('firstRow'))
-				value=super._top(...arguments)
+				value=this._1border('tblPrEx.tblBorders.top')
 			else
-				value=this._1border('border.insideH')
+				value=this._1border('tblPrEx.tblBorders.insideH')
 		}
-		
+
+		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
+			if(conditions.includes('firstRow'))
+				value=this._1border('tblPr.tblBorders.top')
+			else
+				value=this._1border('tblPr.tblBorders.insideH')
+		}
+
 		if(value==undefined){
 			let basedOn=this.getBasedOn()
 			if(basedOn && basedOn._top)
 				value=basedOn._top(...arguments)
 		}
-		
+
 		return value
 	}
-	
+
 	_bottom(conditions){
 		let value=this.priorize(conditions).reduce((found, cond)=>{
 			if(found!=undefined)
@@ -252,35 +280,32 @@ export default class TableStyle extends WithBorder{
 			if(condStyle && condStyle._bottom)
 				return condStyle._bottom(...arguments)
 		},undefined)
-		
-		
-		if(value==undefined){
+
+
+		let pr=null
+		if(value==undefined && (pr=this.raw.get('tcPr')))
+			value=super._top(...arguments)//2. table.tcPr
+
+		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
 			if(conditions.includes('lastRow'))
-				value=super._bottom(...arguments)
+				value=this._1border('tblPrEx.tblBorders.bottom')
 			else
-				value=this._1border('border.insideH')
+				value=this._1border('tblPrEx.tblBorders.insideH')
 		}
-		
+
+		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
+			if(conditions.includes('lastRow'))
+				value=this._1border('tblPr.tblBorders.bottom')
+			else
+				value=this._1border('tblPr.tblBorders.insideH')
+		}
+
 		if(value==undefined){
 			let basedOn=this.getBasedOn()
 			if(basedOn && basedOn._bottom)
 				value=basedOn._bottom(...arguments)
 		}
-		
+
 		return value
 	}
-	
-	static seCell=CellStyle
-	static swCell=CellStyle
-	static neCell=CellStyle
-	static nwCell=CellStyle
-	static lastCol=ColStyle
-	static firstCol=ColStyle
-	static lastRow=RowStyle
-	static firstRow=RowStyle
-	static band2Horz=BandHStyle
-	static band1Horz=BandHStyle
-	static band2Vert=BandVStyle
-	static band1Vert=BandVStyle
 }
-

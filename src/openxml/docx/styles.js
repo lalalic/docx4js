@@ -19,12 +19,34 @@ export default class Styles{
 		let docDefault=styles.get('styles.docDefaults')
 		this['document_default']=new Style({
 			'pPr':docDefault.get('pPrDefault.pPr'),
-			'rPr':docDefault.get('rPrDefault.rPr') 
+			'rPr':docDefault.get('rPrDefault.rPr')
 		}, this)
 	}
 
 	getDefault(type){
 		return this[`${type}_default`]
+	}
+
+	createDirectStyle(pr, type){
+		switch(type){
+		case 'pPr':
+			return new Styles.paragraph({pPr:pr}, this, 'pPr.pStyle')
+		break
+		case 'rPr':
+			return new Styles.character({rPr:pr}, this, 'rPr.rStyle')
+		break
+		case 'tblPr':
+			return new Styles.table({tblPr:pr}, this, 'tblPr.tblStyle')
+		break
+		case 'tcPr':
+			return new Styles.table({tcPr:pr})
+		case 'trPr':
+			return new Styles.table({trPr:pr})
+		case 'tblPrEx':
+			return new Styles.table({tblPrEx:pr})
+		default:
+			return pr
+		}
 	}
 
 	static paragraph=Style

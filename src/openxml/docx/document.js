@@ -16,27 +16,22 @@ export default class extends Base{
 			if(directStyle && directStyle['numPr'])
 				tag="list"
 		break
+
+		case 'gridCol':
+			return this.dxa2Px(node.attributes['w:w'])
+		case 'tblGrid':
+			return children
+		case 'tbl':
+			const [tblGrid, ...rows]=children
+			node.attributes.cols=tblGrid
+			node.children=rows
 		}
 
 		return this.onCreateElement(node, tag)
 	}
 
 	toProperty(node, type){
-		let pr=super.toProperty(node)
-
-		switch(type){
-		case 'pPr':
-			return new Styles.paragraph({pPr:pr}, this.officeDocument.styles, 'pPr.pStyle')
-		break
-		case 'rPr':
-			return new Styles.character({rPr:pr}, this.officeDocument.styles, 'rPr.rStyle')
-		break
-		case 'tblPr':
-			return new Styles.table({tblPr:pr}, this.officeDocument.styles, 'tblPr.tblStyle')
-		break
-		default:
-			return pr
-		}
+		return this.officeDocument.styles.createDirectStyle(super.toProperty(node,type),type)
 	}
 
 	onToProperty(node, type){
@@ -110,6 +105,18 @@ export default class extends Base{
 			return x
 		case 'bdx':
 			return this.toBorder(x)
+		//table
+		case 'tblLook':
+			return x
+		case 'tblGrid':
+			return node.gridCol.map(a=>this.dxa2Px(a.$.w))
+		case 'tcBorders':
+		case 'tblBorders':
+			let value={}
+			Object.keys(node).forEach(a=>{
+				value[a]=this.toBorder(node[a][0].$)
+			})
+			return value;
 		default:
 			return super.onToProperty(...arguments)
 		}

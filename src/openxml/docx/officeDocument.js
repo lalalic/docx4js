@@ -107,11 +107,12 @@ export default class extends Part{
 						parent.children.splice(index,1,element)
 						current=parent
 					}else if(current==pr){
-						let property=this.doc.toProperty(asXmlObject(current),tag.split(':').pop())
+						let type=tag.split(':').pop()
+						let property=this.doc.toProperty(asXmlObject(current),type)
 						current=parent
-						if(pr!=sect)
+						if(pr!=sect){
 							current.attributes.directStyle=property
-						else
+						}else
 							sect=property
 
 						pr=null

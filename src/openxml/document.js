@@ -30,7 +30,7 @@ export default class extends Base{
 	}
 
 	toProperty(node,type){
-		return getable(this.onToProperty(node))
+		return getable(this.onToProperty(node,type))
 	}
 
 	parse(){
