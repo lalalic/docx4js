@@ -132,21 +132,14 @@ export default class TableStyle extends WithBorder{
 		let value=this.priorize(conditions).reduce((found, condition)=>{
 			if(found!=undefined)
 				return found
-			let conditionStyle=conditionStyles[condition]
+			let conditionStyle=this[condition]
 			if(conditionStyle)
 				return conditionStyle.get(path,conditions)
 			return found
 		},undefined)
 
-		if(value==undefined){
-			if(this.tcPr && undefined==(value=this.tcPr.get(...arguments))){
-				if(this.trPr && undefined==(value=this.trPr.get(...arguments))){
-					if(this.tblPr && undefined==(value=this.tblPr.get(...arguments))){
-						return super.get(...arguments)
-					}
-				}
-			}
-		}
+		if(value==undefined)
+			value=super.get(...arguments)
 
 		return value
 	}
@@ -166,7 +159,7 @@ export default class TableStyle extends WithBorder{
 		let value=this.priorize(conditions).reduce((found, cond)=>{//1. conditional
 			if(found!=undefined)
 				return found
-			let condStyle=this.conditions[cond]
+			let condStyle=this[cond]
 			if(condStyle && condStyle._right)
 				return condStyle._right(...arguments)
 		},undefined)
@@ -203,7 +196,7 @@ export default class TableStyle extends WithBorder{
 		let value=this.priorize(conditions).reduce((found, cond)=>{//1. conditional
 			if(found!=undefined)
 				return found
-			let condStyle=this.conditions[cond]
+			let condStyle=this[cond]
 			if(condStyle && condStyle._left)
 				return condStyle._left(...arguments)
 		},undefined)
@@ -240,7 +233,7 @@ export default class TableStyle extends WithBorder{
 		let value=this.priorize(conditions).reduce((found, cond)=>{
 			if(found!=undefined)
 				return found
-			let condStyle=this.conditions[cond]
+			let condStyle=this[cond]
 			if(condStyle && condStyle._top)
 				return condStyle._top(...arguments)
 		},undefined)
@@ -276,7 +269,7 @@ export default class TableStyle extends WithBorder{
 		let value=this.priorize(conditions).reduce((found, cond)=>{
 			if(found!=undefined)
 				return found
-			let condStyle=this.conditions[cond]
+			let condStyle=this[cond]
 			if(condStyle && condStyle._bottom)
 				return condStyle._bottom(...arguments)
 		},undefined)
