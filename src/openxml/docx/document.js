@@ -117,6 +117,8 @@ export default class extends Base{
 				value[a]=this.toBorder(node[a][0].$)
 			})
 			return value;
+		case 'shd':
+			return this.asColor(x.fill)
 		default:
 			return super.onToProperty(...arguments)
 		}
