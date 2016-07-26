@@ -44,40 +44,22 @@ export default class extends Part{
 		})
 	}
 	parse(){
-		let args=arguments
-		function asXmlObject(node){
-			let $=node.$=node.attributes
-			delete node.attributes
-			delete node.parent
-			delete node.name
-			Object.keys($).forEach(a=>{
-				let as=a.split(':')
-				if(as.length==2){
-					$[as[1]]=$[a]
-					delete $[a]
-				}
-			})
-			return node
-		}
 		return this._parseNonContent().then(a=>{
 			return new Promise(resolve=>{
 				let root={
-					name:this.doc.constructor.ext,
 					children:[]
 				}
 				let body=null, sect=null, pr=null, current=root
 				let sections=[]
 
-				let stream=new PassThrough()
-				stream.end(new Buffer(this.data.asUint8Array()))
-				stream.pipe(sax.createStream(true,{xmlns:false}))
+				this.getContentStream()
 				.on("opentag", node=>{
-					if(this.doc.isProperty(node.name) && pr==null){
-						pr=node
-					}
-
 					node.parent=current
 					current=node
+					
+					if(this.doc.isProperty(node) && pr==null){
+						pr=node
+					}
 
 					if(pr==null){
 						node.children=[]
@@ -102,28 +84,38 @@ export default class extends Part{
 							builtIn.forEach(a=>attributes[a]=this[a])
 							attributes.directStyle=this.styles.getDefault("document")
 						}
-						let element=this.doc.createElement(current,...args)
+						let element=this.doc.createElement(current)
 
 						parent.children.splice(index,1,element)
 						current=parent
 					}else if(current==pr){
 						let type=tag.split(':').pop()
-						let property=this.doc.toProperty(asXmlObject(current),type)
+						let property=this.doc.toProperty(this.asXmlObject(current),type)
 						current=parent
 						if(pr!=sect){
-							current.attributes.directStyle=property
+							if(tag.substr(-2)=='Pr')
+								current.attributes.directStyle=property
+							else
+								current.attributes[type]=property
 						}else
 							sect=property
 
 						pr=null
 					}else{
 						let type=tag.split(':').pop()
-						parent[type]=this.doc.onToProperty(asXmlObject(current),type)
+						let value=this.doc.onToProperty(this.asXmlObject(current),type)
+						if(parent[type]==undefined)
+							parent[type]=value
+						else if(Array.isArray(parent[type]))
+							parent[type].push(value)
+						else 
+							parent[type]=[parent[type],value]
+						
 						current=parent
 					}
 
 					if(current==body && sect!=null){
-						sections.push(this.doc.createElement({name:'section', attributes: sect, children: body.children.splice(0)},...args))
+						sections.push(this.doc.createElement({name:'section', attributes: sect, children: body.children.splice(0)}))
 						sect=null
 					}
 

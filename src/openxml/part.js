@@ -1,4 +1,6 @@
 import {parseString as parse} from "xml2js"
+import {PassThrough} from "stream"
+import sax from "sax"
 
 export default class{
 	constructor(name,doc){
@@ -35,13 +37,34 @@ export default class{
 			return rel.target
 		switch(rel.type){
 		case 'image':
-			return this.doc.getImagePart(rel.target)
+			return this.doc.getBufferPart(rel.target)
 		default:
 			return this.doc.getPart(rel.target)
 		}
 	}
 	
+	asXmlObject(node){
+		let $=node.$=node.attributes
+		delete node.attributes
+		delete node.parent
+		delete node.name
+		Object.keys($).forEach(a=>{
+			let as=a.split(':')
+			if(as.length==2){
+				$[as[1]]=$[a]
+				delete $[a]
+			}
+		})
+		return node
+	}
+	
+	getContentStream(){
+		let stream=new PassThrough()
+		stream.end(new Buffer(this.data.asUint8Array()))
+		return stream.pipe(sax.createStream(true,{xmlns:false}))
+	}
+	
 	parse(){
-		Promise.resolve(this.doc.createElement({name:this.doc.constructor.ext,attributes:this}))
+		return Promise.resolve()
 	}
 }

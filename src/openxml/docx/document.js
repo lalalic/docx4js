@@ -1,5 +1,6 @@
 import Base from "../document"
 import OfficeDocument from "./officeDocument"
+import HeaderFooter from "./headerFooter"
 import Styles from "./styles"
 
 export default class extends Base{
@@ -7,6 +8,18 @@ export default class extends Base{
 
 	static OfficeDocument=OfficeDocument
 
+	isProperty(node){
+		let {name,parent}=node
+		let tag=name.split(':').pop()
+		if(super.isProperty(...arguments) || tag=='tblGrid')
+			return true
+		
+		if(parent && parent.name && parent.name.split(':').pop()=='inline')
+			return true
+		
+		return false
+	}
+	
 	createElement(node){
 		const {styles}=this.officeDocument
 		let {name, attributes:{directStyle}, children}=node
@@ -16,18 +29,48 @@ export default class extends Base{
 			if(directStyle && directStyle['numPr'])
 				tag="list"
 		break
-
-		case 'gridCol':
-			return this.dxa2Px(node.attributes['w:w'])
-		case 'tblGrid':
-			return children
-		case 'tbl':
-			const [tblGrid, ...rows]=children
-			node.attributes.cols=tblGrid
-			node.children=rows
+		case "inline":
+			let graphic=node.attributes.graphic
+			switch(graphic.get("graphicData.$.uri").split('/').pop()){
+			case 'picture':
+				tag="image"
+				let id=graphic.get("graphicData.pic.blipFill.blip.$.embed")
+				node.attributes={
+					extent:node.attributes.extent,
+					src:`data:image/jpg;base64,${new Buffer(this.officeDocument.getRel(id)).toString('base64')}`
+				}
+			break
+			}
+		break
+		case "drawing":
+			return node.children[0]
+		break
+		case "section":
+			let props=node.attributes
+			let {headerReference, footerReference}=props
+			if(headerReference){
+				props.header={}
+				if(!Array.isArray(headerReference))
+					headerReference=[headerReference]
+				headerReference.forEach(a=>a.then(({type,root})=>props.header[type]=root))
+				delete props.headerReference
+			}
+			
+			if(footerReference){
+				props.footer={}
+				if(!Array.isArray(footerReference))
+					footerReference=[footerReference]
+				footerReference.forEach(a=>a.then(({type,root})=>props.footer[type]=root))
+				delete props.footerReference
+			}
+		break
 		}
 
 		return this.onCreateElement(node, tag)
+	}
+	
+	onCreateElement(node){
+		return node
 	}
 
 	toProperty(node, type){
@@ -60,6 +103,9 @@ export default class extends Base{
 			}
 			return x
 		break
+		case 'headerReference':
+		case 'footerReference':
+			return this.toHeaderFooter(...arguments)
 		//paragraph, pPr
 		case 'jc':
 			return x.val
@@ -119,6 +165,9 @@ export default class extends Base{
 			return value;
 		case 'shd':
 			return this.asColor(x.fill)
+		//drawing
+		case 'extent':
+			return {width:this.cm2Px(x.cx),height:this.cm2Px(x.cy)}
 		default:
 			return super.onToProperty(...arguments)
 		}
@@ -166,5 +215,11 @@ export default class extends Base{
 		border.sz && (border.sz=border.sz/8);
 		border.color && (border.color=this.asColor(border.color))
 		return border
+	}
+	
+	toHeaderFooter(node,tag){
+		const {$:{id, type}}=node
+		let part=new HeaderFooter(this.officeDocument.rels[id].target, this)
+		return part.parse().then(root=>({root,type}))
 	}
 }

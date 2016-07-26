@@ -21,8 +21,8 @@ export default class extends Base{
 		return node
 	}
 
-	isProperty(tag){
-		return tag.substr(-2)=='Pr'
+	isProperty(node){
+		return node.name.substr(-2)=='Pr'
 	}
 
 	onToProperty(node, type){
@@ -46,6 +46,10 @@ export default class extends Base{
 
 	pt2Px(pt){
 		return Math.ceil(pt*96/92)
+	}
+	
+	cm2Px(cm){
+		return this.pt2Px(parseInt(cm)*28.3464567/360000)
 	}
 
 	asColor(v){
