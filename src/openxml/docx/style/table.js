@@ -48,7 +48,7 @@ class WithBorder extends Style{
 class RowStyle extends WithBorder{
 	_right(conditions){
 		let value
-		if(conditions.includes('lastCol'))
+		if(conditions.some(a=>a=='lastCol' || a=='neCell' || a=='seCell'))
 			value=super._right(...arguments)
 		else
 			value=this._1border('tcPr.tcBorders.insideV')
@@ -58,7 +58,7 @@ class RowStyle extends WithBorder{
 
 	_left(conditions){
 		let value
-		if(conditions.includes('firstCol'))
+		if(conditions.some(a=>a=='firstCol'||a=='nwCell'||a=='swCell'))
 			value=super._right(...arguments)
 		else
 			value=this._1border('tcPr.tcBorders.insideV')
@@ -73,12 +73,12 @@ class CellStyle extends WithBorder{
 
 class ColStyle extends WithBorder{
 	_top(conds){
-		if(conds.includes('firstRow'))
+		if(conds.some(a=>a=='firstRow'||a=='nwCell'||a=='neCell'))
 			return super._top(...arguments)
 	}
 
 	_bottom(conds){
-		if(conds.includes('lastRow'))
+		if(conds.some(a=>a=='lastRow'||a=='swCell'||a=='seCell'))
 			return super._bottom(...arguments)
 	}
 }
@@ -169,14 +169,14 @@ export default class TableStyle extends WithBorder{
 			value=super._right(...arguments)//2. table.tcPr
 
 		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
-			if(conditions.includes('lastCol'))
+			if(conditions.some(a=>a=='lastCol' || a=='neCell' || a=='seCell'))
 				value=this._1border('tblPrEx.tblBorders.right')
 			else
 				value=this._1border('tblPrEx.tblBorders.insideV')
 		}
 
 		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
-			if(conditions.includes('lastCol'))
+			if(conditions.some(a=>a=='lastCol' || a=='neCell' || a=='seCell'))
 				value=this._1border('tblPr.tblBorders.right')
 			else
 				value=this._1border('tblPr.tblBorders.insideV')
@@ -206,14 +206,14 @@ export default class TableStyle extends WithBorder{
 			value=super._left(...arguments)//2. table.tcPr
 
 		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
-			if(conditions.includes('firstCol'))
+			if(conditions.some(a=>a=='firstCol'||a=='nwCell'||a=='swCell'))
 				value=this._1border('tblPrEx.tblBorders.left')
 			else
 				value=this._1border('tblPrEx.tblBorders.insideV')
 		}
 
 		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
-			if(conditions.includes('firstCol'))
+			if(conditions.some(a=>a=='firstCol'||a=='nwCell'||a=='swCell'))
 				value=this._1border('tblPr.tblBorders.left')
 			else
 				value=this._1border('tblPr.tblBorders.insideV')
@@ -243,14 +243,14 @@ export default class TableStyle extends WithBorder{
 			value=super._top(...arguments)//2. table.tcPr
 
 		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
-			if(conditions.includes('firstRow'))
+			if(conditions.some(a=>a=='firstRow'||a=='nwCell'||a=='neCell'))
 				value=this._1border('tblPrEx.tblBorders.top')
 			else
 				value=this._1border('tblPrEx.tblBorders.insideH')
 		}
 
 		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
-			if(conditions.includes('firstRow'))
+			if(conditions.some(a=>a=='firstRow'||a=='nwCell'||a=='neCell'))
 				value=this._1border('tblPr.tblBorders.top')
 			else
 				value=this._1border('tblPr.tblBorders.insideH')
@@ -280,14 +280,14 @@ export default class TableStyle extends WithBorder{
 			value=super._top(...arguments)//2. table.tcPr
 
 		if(value==undefined && (pr=this.raw.get('tblPrEx'))){//3.table.trPr
-			if(conditions.includes('lastRow'))
+			if(conditions.some(a=>a=='lastRow'||a=='swCell'||a=='seCell'))
 				value=this._1border('tblPrEx.tblBorders.bottom')
 			else
 				value=this._1border('tblPrEx.tblBorders.insideH')
 		}
 
 		if(value==undefined && (pr=this.raw.get('tblPr'))){//4.
-			if(conditions.includes('lastRow'))
+			if(conditions.some(a=>a=='lastRow'||a=='swCell'||a=='seCell'))
 				value=this._1border('tblPr.tblBorders.bottom')
 			else
 				value=this._1border('tblPr.tblBorders.insideH')
