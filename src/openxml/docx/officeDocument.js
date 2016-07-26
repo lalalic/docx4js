@@ -2,6 +2,7 @@ import {PassThrough} from "stream"
 import sax from "sax"
 import Part from "../part"
 import Styles from "./styles"
+import HeaderFooter from "./headerFooter"
 
 import FontTheme from "./theme/font"
 import ColorTheme from "./theme/color"
@@ -75,15 +76,14 @@ export default class extends Part{
 					}
 				})
 				.on("closetag",tag=>{
+					if(tag=='w:document')
+						return;
+					
 					const {attributes, parent, children, local,name}=current
 					if(pr==null){
 						let index=parent.children.indexOf(current)
 						attributes.key=index
-						if(tag=='w:document'){
-							current.children=sections
-							builtIn.forEach(a=>attributes[a]=this[a])
-							attributes.directStyle=this.styles.getDefault("document")
-						}
+						
 						let element=this.doc.createElement(current)
 
 						parent.children.splice(index,1,element)
@@ -115,13 +115,20 @@ export default class extends Part{
 					}
 
 					if(current==body && sect!=null){
-						sections.push(this.doc.createElement({name:'section', attributes: sect, children: body.children.splice(0)}))
+						sections.push({name:'section', attributes: sect, children: body.children.splice(0)})
 						sect=null
 					}
 
 				})
 				.on("end", a=>{
-					resolve(root.children[0])
+					this.parseHeaderFooter(sections)
+						.then(a=>{
+							const {attributes}=current
+							current.children=sections
+							builtIn.forEach(a=>attributes[a]=this[a])
+							attributes.directStyle=this.styles.getDefault("document")
+							resolve(this.doc.createElement(current))
+						})
 				})
 				.on("text", text=>{
 					if(current.name=="w:t")
@@ -129,5 +136,37 @@ export default class extends Part{
 				})
 			})
 		})
+	}
+	
+	parseHeaderFooter(sections){
+		return Promise.all(sections.map((section,i)=>{
+			const {attributes:props, children}=section
+			let {headerReference, footerReference}=props
+			let headers=[], footers=[]
+			if(headerReference){
+				if(!Array.isArray(headerReference))
+					headerReference=[headerReference]
+				headers=headerReference.map(a=>{
+					const {$:{id, type}}=a
+					let part=new HeaderFooter(this.rels[id].target, this.doc, type)
+					return part.parse().then(root=>children.splice(0,0,root))
+				})
+				delete props.headerReference
+			}
+			
+			if(footerReference){
+				if(!Array.isArray(footerReference))
+					footerReference=[footerReference]
+				footers=footerReference.map(a=>{
+					const {$:{id, type}}=a
+					let part=new HeaderFooter(this.rels[id].target, this.doc, type)
+					return part.parse().then(root=>children.splice(0,0,root))
+				})
+				delete props.footerReference
+			}
+			
+			return Promise.all([...headers, ...footers])
+				.then(a=>sections.splice(i,1,this.doc.createElement(section)))
+		}))
 	}
 }

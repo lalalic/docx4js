@@ -1,6 +1,10 @@
 import Part from "../part"
 
 export default class extends Part{
+	constructor(name,doc, type){
+		super(name,doc)
+		this.type=type
+	}
 	parse(){
 		return new Promise(resolve=>{
 			let root={
@@ -23,6 +27,10 @@ export default class extends Part{
 			})
 			.on("closetag",tag=>{
 				const {attributes, parent, children, local,name}=current
+				if(tag=='w:hdr' || tag=='w:ftr'){
+					attributes.type=this.type
+				}
+				
 				if(pr==null){
 					let index=parent.children.indexOf(current)
 					attributes.key=index

@@ -1,6 +1,5 @@
 import Base from "../document"
 import OfficeDocument from "./officeDocument"
-import HeaderFooter from "./headerFooter"
 import Styles from "./styles"
 
 export default class extends Base{
@@ -22,7 +21,7 @@ export default class extends Base{
 	
 	createElement(node){
 		const {styles}=this.officeDocument
-		let {name, attributes:{directStyle}, children}=node
+		let {name, attributes:{directStyle}}=node
 		let tag=name.split(':').pop()
 		switch(tag){
 		case "p":
@@ -44,25 +43,6 @@ export default class extends Base{
 		break
 		case "drawing":
 			return node.children[0]
-		break
-		case "section":
-			let props=node.attributes
-			let {headerReference, footerReference}=props
-			if(headerReference){
-				props.header={}
-				if(!Array.isArray(headerReference))
-					headerReference=[headerReference]
-				headerReference.forEach(a=>a.then(({type,root})=>props.header[type]=root))
-				delete props.headerReference
-			}
-			
-			if(footerReference){
-				props.footer={}
-				if(!Array.isArray(footerReference))
-					footerReference=[footerReference]
-				footerReference.forEach(a=>a.then(({type,root})=>props.footer[type]=root))
-				delete props.footerReference
-			}
 		break
 		}
 
@@ -103,9 +83,6 @@ export default class extends Base{
 			}
 			return x
 		break
-		case 'headerReference':
-		case 'footerReference':
-			return this.toHeaderFooter(...arguments)
 		//paragraph, pPr
 		case 'jc':
 			return x.val
@@ -219,7 +196,7 @@ export default class extends Base{
 	
 	toHeaderFooter(node,tag){
 		const {$:{id, type}}=node
-		let part=new HeaderFooter(this.officeDocument.rels[id].target, this)
-		return part.parse().then(root=>({root,type}))
+		let part=new HeaderFooter(this.officeDocument.rels[id].target, this, type)
+		return part.parse()
 	}
 }
