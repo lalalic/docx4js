@@ -126,6 +126,7 @@ export default class extends Part{
 							const {attributes}=current
 							current.children=sections
 							builtIn.forEach(a=>attributes[a]=this[a])
+							attributes.settings=this.settings
 							attributes.directStyle=this.styles.getDefault("document")
 							resolve(this.doc.createElement(current))
 						})
