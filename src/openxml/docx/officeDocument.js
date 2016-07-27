@@ -40,7 +40,7 @@ export default class extends Part{
 						.then(parsed=>this[rel.type]=parsed)
 				}
 			}).filter(a=>a)).then(a=>{
-				this.styles=new Styles(this.styles, this.doc)
+				this.styles=new Styles(this.styles, this.numbering)
 			})
 		})
 	}
