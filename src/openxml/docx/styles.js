@@ -1,6 +1,7 @@
 import {getable} from "../../xmlObject"
 import Style from "./style/base"
 import TableStyle from "./style/table"
+import Numberings from "./style/numbering"
 
 export default class Styles{
 	constructor(styles, numbering){
@@ -21,7 +22,7 @@ export default class Styles{
 			'rPr':docDefault.get('rPrDefault.rPr')
 		}, this)
 		
-		this.numbering=new Numberings(numbering,this)
+		this.numberings=new Numberings(numbering,this)
 	}
 
 	getDefault(type){
@@ -67,62 +68,25 @@ export default class Styles{
 		}
 		
 		get(path,id,level){
-			if(path.substr(0,3)=='rPr')
-				return super.get(path)
+			let value=undefined
+			
+			if(path=="label"){
+				return this.styles.numberings.get(path, id||this.numId,level||this.level)
+			}else if(path.substr(0,6)=='label.'){
+				value=this.styles.numberings.get(path.substr(6), id||this.numId,level||this.level)
+				if(value==undefined)
+					return super.get(path.substr(6), id||this.numId,level||this.level)
+			}else{
+				if(path.substr(0,3)=='rPr')
+					return super.get(path)
+					
+				value=this.styles.numberings.get(path, id||this.numId,level||this.level)
 				
-			let value=this.styles.numbering.get(path, id||this.numId,level||this.level)
-			if(value==undefined)
-				return super.get(...arguments)
+				if(value==undefined)
+					value=super.get(...arguments)
+			}
 			return value
 		}
 	}
 }
 
-
-class Numberings{
-	constructor(numbering, styles){
-		this.num={}
-		numbering.get('numbering.num').forEach(num=>{
-			let id=num.$.numId
-			this.num[id]=new NumStyle(num,styles,this)
-		})
-			
-		this.abstractNum={}
-		numbering.get("numbering.abstractNum").forEach(def=>{
-			let id=def.$.abstractNumId
-			def.lvl.forEach(level=>{
-				this.abstractNum[`${id}.${level.$.ilvl}`]=new Style(level,styles,null)
-			})
-		})
-	}
-	
-	get(path,numId, level){
-		return this.num[numId].get(path,level)
-	}
-}
-
-class NumStyle extends Style{
-	constructor(style, styles, numberings){
-		super(style,styles, null)
-		this.numberings=numberings
-		this.abstractNumId=style.get("abstractNumId")
-		;(style.get('lvlOverride')||[]).forEach(a=>{
-			let level=a.$.ilvl
-			let lvl=a.get('lvl')||{lvl:{$:{ilvl:level}}}, startOverride=a.get('startOverride')
-			if(startOverride)
-				lvl.lvl.start={$:{val:startOverride}}
-			
-			this[level]=new Style(lvl,styles,null)
-		})
-	}
-	
-	get(path,level){
-		let value=undefined, style=this[level]
-		if(style)
-			value=style.get(path)
-		
-		if(value==undefined && (style=this.numberings.abstractNum[`${this.abstractNumId}.${level}`]))
-			value=style.get(path)
-		return value	
-	}
-}

@@ -25,7 +25,7 @@ export default class extends Base{
 		let tag=name.split(':').pop()
 		switch(tag){
 		case "p":
-			if(directStyle && directStyle['numPr'])
+			if(directStyle && directStyle.get('pPr.numPr')!=undefined)
 				tag="list"
 		break
 		case "inline":
