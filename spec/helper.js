@@ -1,1 +1,0 @@
-console.warn=function(){}//to clean xmldom parse warning message

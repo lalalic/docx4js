@@ -80,7 +80,7 @@ Attributes of word model usually affects styles, but I don't understand all of t
 * section
 * table
 
-## API
+## 1.x API
 `require("docx4js")` return a docx converter, which has following two functions.
 
 ### load(file): return Promise resolved by parsed document
