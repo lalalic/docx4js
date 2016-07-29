@@ -44,6 +44,14 @@ export default class extends Base{
 		case "drawing":
 			return node.children[0]
 		break
+		case "sdt":
+			let xpath=directStyle.get("dataBinding.$.xpath")
+			if(xpath){
+				
+			}else{
+				
+			}
+		break
 		}
 
 		return this.onCreateElement(node, type)
