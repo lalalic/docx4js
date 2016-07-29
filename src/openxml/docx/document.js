@@ -30,7 +30,8 @@ export default class extends Base{
 		break
 		case "inline":
 			let graphic=node.attributes.graphic
-			switch(graphic.get("graphicData.$.uri").split('/').pop()){
+			let graphicType=graphic.get("graphicData.$.uri").split('/').pop()
+			switch(graphicType){
 			case 'picture':
 				type="image"
 				let id=graphic.get("graphicData.pic.blipFill.blip.$.embed")
@@ -39,18 +40,18 @@ export default class extends Base{
 					src:`data:image/jpg;base64,${new Buffer(this.officeDocument.getRel(id)).toString('base64')}`
 				}
 			break
+			default:
+				type=graphicType
+			break
 			}
 		break
 		case "drawing":
 			return node.children[0]
-		break
 		case "sdt":
-			let xpath=directStyle.get("dataBinding.$.xpath")
-			if(xpath){
-				
-			}else{
-				
-			}
+			let control=directStyle.get("control")
+			if(control==undefined)
+				control=directStyle.control={type:"container"}
+			type=control.type
 		break
 		}
 
@@ -60,12 +61,39 @@ export default class extends Base{
 	toProperty(node, type){
 		return this.officeDocument.styles.createDirectStyle(super.toProperty(node,type),type)
 	}
+	
+	onToControlProperty(node,type){
+		switch(type){
+		case 'dataBinding':
+			let key=node.$.xpath.split(/[\/\:\[]/).splice(-2,1)
+			node.parent.$.control={type:'documentProperty', key}
+		break
+		case 'text':
+			if(!node.parent.$.control)
+				node.parent.$.control={type}
+		break
+		case 'picture':
+		case 'docPartList': 
+		case 'comboBox': 
+		case 'dropDownList': 
+		case 'date':
+		case 'checkbox':
+			node.parent.$.control={type}
+		break
+		case 'richtext':
+			node.parent.$.control={type:"container"}
+		break
+		}
+		return super.onToProperty(...arguments)
+	}
 
 	onToProperty(node, type){
-		const {$:x}=node
+		const {$:x, parent:{name}}=node
+		if(name=='w:sdtPr')
+			return onToControlProperty(...arguments)
 		let value
 		switch(type){
-		//section, sectPr
+			//section, sectPr
 		case 'pgSz':
 			return {width:this.dxa2Px(x['w']), height:this.dxa2Px(x['h'])}
 		break
