@@ -1,13 +1,5 @@
-export default class XmlObject{
-	constructor(objectFromXml2Js){
-		this.raw=objectFromXml2Js
-	}
-
-	get(path){
-		return XmlObject.get(path,this.raw)
-	}
-
-	static get(path, xmlobj){
+export function getable(xmlobj){
+	typeof(xmlobj)=='object' && (xmlobj.get=function(path,trim=true){
 		let value=path.split(".").reduce((p,key)=>{
 			if(!p)
 				return p
@@ -18,28 +10,20 @@ export default class XmlObject{
 			p=p[key]
 
 			return p
-		},xmlobj)
+		},this)
 
+		if(trim){
+			if(Array.isArray(value) && value.length==1)
+				value=value[0]
+
+			if(value && value.$ && value.$.val!=undefined)
+				value=value.$.val
+		}
+
+		if(value && typeof(value)=='object')
+			return getable(value)
 		return value
-	}
+	})
 
-	static getable(xmlobj){
-		typeof(xmlobj)=='object' && (xmlobj.get=function(path,trim=true){
-			let value=XmlObject.get(path,xmlobj)
-
-			if(trim){
-				if(Array.isArray(value) && value.length==1)
-					value=value[0]
-
-				if(value && value.$ && value.$.val!=undefined)
-					value=value.$.val
-			}
-
-			if(value && typeof(value)=='object')
-				return XmlObject.getable(value)
-			return value
-		})
-
-		return xmlobj
-	}
+	return xmlobj
 }

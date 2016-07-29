@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -24,17 +24,11 @@
     "babel-plugin-transform-object-rest-spread": "^6.6.5",
     "babel-plugin-transform-class-properties": "^6.6.0",
     "browserify": "^13.0.0",
-    "jasmine": "^2.2.1",
-    "karma": "^0.13.22",
-    "karma-browserify": "^5.0.3",
-    "karma-chrome-launcher": "^0.2.3",
-    "karma-jasmine": "^0.3.8",
     "watchify": ">=3.0.0 <4.0.0",
-    "uglify-js": "^2.6.2",
-    "jasmine-core": "^2.4.1",
     "esdoc": "^0.4.7",
     "esdoc-es7-plugin": "0.0.3",
-    "uglifyify": "^3.0.1"
+    "uglifyify": "^3.0.1",
+	"jest":"^14.0.0"
   },
   "dependencies": {
     "jszip": "^2.6.0",
@@ -51,15 +45,17 @@
       "babel-plugin-transform-class-properties"
     ]
   },
-  "main": "./lib/openxml/docx/document.js",
+  "main": "./lib/",
   "scripts": {
     "build": "babel src -d lib --source-maps inline",
-    "dist.watch": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/index.js -i jquery",
-    "dist.min": "browserify -g uglifyify -r ./lib/openxml/docx/document.js:docx4js -o dist/docx4js.js -i jquery",
-    "jasmine": "jasmine",
-    "jasmine.debug": "node --debug-brk .jasmine.js",
+    "dist.watch": "watchify -v -d -r ./lib/index.js:docx4js -o dist/index.js",
+    "dist.min": "browserify -g uglifyify -r ./lib/index.js:docx4js -o dist/docx4js.js",
+   
     "karma": "karma start",
-    "test": "http-server dist -c-1",
+	
+    "test": "jest",
+    "test.http": "http-server dist -c-1",
+	
     "doc": "esdoc -c esdoc.json"
   }
 }

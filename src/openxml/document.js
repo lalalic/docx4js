@@ -18,6 +18,10 @@ export default class extends Base{
 	get product(){return 'Office 2010'}
 
 	createElement(node){
+		return this.onCreateElement(node)
+	}
+	
+	onCreateElement(node,type){
 		return node
 	}
 

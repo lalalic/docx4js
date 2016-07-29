@@ -22,17 +22,17 @@ export default class extends Base{
 	createElement(node){
 		const {styles}=this.officeDocument
 		let {name, attributes:{directStyle}}=node
-		let tag=name.split(':').pop()
-		switch(tag){
+		let type=name.split(':').pop()
+		switch(type){
 		case "p":
 			if(directStyle && directStyle.get('pPr.numPr')!=undefined)
-				tag="list"
+				type="list"
 		break
 		case "inline":
 			let graphic=node.attributes.graphic
 			switch(graphic.get("graphicData.$.uri").split('/').pop()){
 			case 'picture':
-				tag="image"
+				type="image"
 				let id=graphic.get("graphicData.pic.blipFill.blip.$.embed")
 				node.attributes={
 					extent:node.attributes.extent,
@@ -46,11 +46,7 @@ export default class extends Base{
 		break
 		}
 
-		return this.onCreateElement(node, tag)
-	}
-	
-	onCreateElement(node){
-		return node
+		return this.onCreateElement(node, type)
 	}
 
 	toProperty(node, type){
