@@ -25,8 +25,24 @@ export default class extends Base{
 		let type=name.split(':').pop()
 		switch(type){
 		case "p":
+			type="paragraph"
 			if(directStyle && directStyle.get('pPr.numPr')!=undefined)
 				type="list"
+		break
+		case "r":
+			type="inline"
+		break
+		case "t":
+			type="text"
+		break
+		case "tbl":
+			type="table"
+		break
+		case "tr":
+			type="row"
+		break
+		case "tc":
+			type="cell"
 		break
 		case "inline":
 			let graphic=node.attributes.graphic
@@ -50,7 +66,7 @@ export default class extends Base{
 		case "sdt":
 			let control=directStyle.get("control")
 			if(control==undefined)
-				control=directStyle.control={type:"container"}
+				control=directStyle.control={type:"control.richtext"}
 			type=control.type
 		break
 		}
@@ -70,7 +86,7 @@ export default class extends Base{
 		break
 		case 'text':
 			if(!node.parent.$.control)
-				node.parent.$.control={type}
+				node.parent.$.control={type:`control.${type}`}
 		break
 		case 'picture':
 		case 'docPartList': 
@@ -78,10 +94,10 @@ export default class extends Base{
 		case 'dropDownList': 
 		case 'date':
 		case 'checkbox':
-			node.parent.$.control={type}
+			node.parent.$.control={type:`control.${type}`}
 		break
 		case 'richtext':
-			node.parent.$.control={type:"container"}
+			node.parent.$.control={type:"control.richtext"}
 		break
 		}
 		return super.onToProperty(...arguments)
