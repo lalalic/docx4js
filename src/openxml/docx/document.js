@@ -44,6 +44,12 @@ export default class extends Base{
 		case "tc":
 			type="cell"
 		break
+		case "hdr":
+			type="header"
+		break
+		case "ftr":
+			type="footer"
+		break
 		case "inline":
 			let graphic=node.attributes.graphic
 			let graphicType=graphic.get("graphicData.$.uri").split('/').pop()
