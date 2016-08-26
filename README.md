@@ -116,12 +116,12 @@ It's to create a factory function that to create a visitor specific to word mode
 				var visitor=[]
 				visitor.visit=(function(){
 					switch(this.model.type){
-					case 'paragraph':
-						return this.push("\n\r")
-					case 'text':
-						return this.push(this.model.getText())
+						case 'paragraph':
+							return this.push("\n\r")
+						case 'text':
+							return this.push(this.model.getText())
 					}
-				}
+				})
 				return DOCX.createVisitorFactory(function(wordModel){
 					visitor.model=wordModel
 				})
