@@ -108,7 +108,7 @@ It's to create a factory function that to create a visitor specific to word mode
 **example**
 
 	var docx4js=require("docx4js")
-	docx4j.load(fileInput.files[0]) // a file path in nodejs
+	docx4js.load(fileInput.files[0]) // a file path in nodejs
 		.then(function(doc){
 			var nothingFactory=DOCX.createVisitorFactory()
 
