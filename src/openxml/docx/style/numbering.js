@@ -3,19 +3,21 @@ import Style from "./base"
 export default class Numberings{
 	constructor(numbering, styles){
 		this.num={}
-		;(numbering.get('numbering.num')||[]).forEach(num=>{
-			let id=num.$.numId
-			this.num[id]=new NumStyle(num,styles,this)
-		})
-			
 		this.abstractNum={}
-		;(numbering.get("numbering.abstractNum")||[]).forEach(def=>{
-			let id=def.$.abstractNumId
-			def.lvl.forEach(level=>{
-				this.abstractNum[`${id}.${level.$.ilvl}`]=new LevelStyle(level,styles,null, this.numberings)
+		if(numbering){
+			;(numbering.get('numbering.num')||[]).forEach(num=>{
+				let id=num.$.numId
+				this.num[id]=new NumStyle(num,styles,this)
 			})
-		})
-		
+				
+			;(numbering.get("numbering.abstractNum")||[]).forEach(def=>{
+				let id=def.$.abstractNumId
+				def.lvl.forEach(level=>{
+					this.abstractNum[`${id}.${level.$.ilvl}`]=new LevelStyle(level,styles,null, this.numberings)
+				})
+			})
+			
+		}
 		this.numPicBullet={}
 		
 	}

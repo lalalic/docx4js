@@ -38,9 +38,11 @@ export default class{
 				xml2js(this.parts[name].asText(),
 					Object.assign({tagNameProcessors:[stripPrefix],attrNameProcessors:[stripPrefix]},option||{}),
 					(error, result)=>{
-						error && console.log(`parsing ${name} with error: ${error.message}`)
-
-						resolve(getable(result))
+						if(error) {
+							reject(error)
+						}else{
+							resolve(getable(result))
+						}
 					})
 			else
 				resolve()

@@ -30,19 +30,21 @@ export default class Styles{
 	}
 
 	createDirectStyle(pr, type){
+		if(!pr)
+			pr={}
+		if(!pr.get)
+			pr=getable(pr)
+
 		switch(type){
 		case 'pPr':
 			if(pr.get('numPr')==undefined)
 				return new Styles.paragraph({pPr:pr}, this, 'pPr.pStyle')
 			else
 				return new Styles.numbering({pPr:pr}, this, 'pPr.pStyle')
-		break
 		case 'rPr':
 			return new Styles.character({rPr:pr}, this, 'rPr.rStyle')
-		break
 		case 'tblPr':
 			return new Styles.table({tblPr:pr}, this, 'tblPr.tblStyle')
-		break
 		case 'tcPr':
 			return new Styles.table({tcPr:pr})
 		case 'trPr':

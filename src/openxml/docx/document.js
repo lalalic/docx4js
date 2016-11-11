@@ -110,20 +110,18 @@ export default class extends Base{
 	}
 
 	onToProperty(node, type){
-		const {$:x, parent:{name}}=node
-		if(name=='w:sdtPr')
+		const {$:x, parent}=node
+		if(parent && parent.name=='w:sdtPr')
 			return onToControlProperty(...arguments)
 		let value
 		switch(type){
 			//section, sectPr
 		case 'pgSz':
 			return {width:this.dxa2Px(x['w']), height:this.dxa2Px(x['h'])}
-		break
 		case 'pgMar':
 			value={}
 			Object.keys(x).forEach(a=>value[a.split(':').pop()]=this.dxa2Px(x[a]))
 			return value
-		break
 		case 'cols':
 			x.num && (x.num=parseInt(x.num));
 			x.space && (x.space=this.dxa2Px(x.space));
@@ -136,7 +134,6 @@ export default class extends Base{
 				delete x.col
 			}
 			return x
-		break
 		//paragraph, pPr
 		case 'jc':
 			return x.val
