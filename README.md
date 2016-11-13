@@ -108,7 +108,7 @@ It's to create a factory function that to create a visitor specific to word mode
 **example**
 
 	var docx4js=require("docx4js")
-	docx4j.load(fileInput.files[0]) // a file path in nodejs
+	docx4js.load(fileInput.files[0]) // a file path in nodejs
 		.then(function(doc){
 			var nothingFactory=DOCX.createVisitorFactory()
 
@@ -121,11 +121,12 @@ It's to create a factory function that to create a visitor specific to word mode
 					case 'text':
 						return this.push(this.model.getText())
 					}
-				}
+				})
+
 				return DOCX.createVisitorFactory(function(wordModel){
 					visitor.model=wordModel
 				})
-			)();
+			})();
 
 			var complexFactory=(function(){
 				class Visitor{}
@@ -148,7 +149,7 @@ It's to create a factory function that to create a visitor specific to word mode
 						'text': Text,
 						'shape': Shape
 					})
-			)();
+			})();
 
 			doc.parse(nothingFactory, textFactory, complexFactory)
 		})
