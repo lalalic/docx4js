@@ -3,32 +3,32 @@
 <head>
 	<script src="index.js"></script>
 	<script>
-		var docx4js=require("docx4js")
+		var Docx=require("docx4js")
 		function test(input){
-			docx4js.load(input.files[0]).then(function(docx){
-				var models=[], go={visit(){}}
-				docx.parse(docx4js.createVisitorFactory(function(identifiedWordModel){
-					if(identifiedWordModel.type)
-						models.push(identifiedWordModel.type)
-					return go
-				}))
-				
-				text.value=models.join(",")
-			})
-		}
-		
-		function test2(input){
-			docx4js.load(input.files[0]).then(docx=>{
+			var models=[]
+			var text=document.querySelector("#text")
+			class MyDocx extends Docx{
+				onCreateElement(node, type){
+					switch(type){
+						case 'text':
+							text.value+=node.children
+						break
+						case 'paragraph':
+							text.value+="\n\r"
+						break
+					}
+				}
+			}
+			MyDocx.load(input.files[0]).then(function(docx){
 				input.value=""
-				docx.parse().then(element=>{
-					console.dir(element)
-				})
+				docx.parse()
 			})
 		}
 	</script>
 </head>
 <body>
-	<input type="file" style="position:absolute;top:0" onchange="test2(this)">
+
+	<input type="file" style="position:absolute;top:0" onchange="test(this)">
 	<br/>
 	<br/>
 	<textarea id="text"></textarea>

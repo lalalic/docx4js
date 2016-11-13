@@ -11,7 +11,7 @@ function stripPrefix(name){
  *
  *  @example
  *  Document.load(file)
- *  	.then(doc=>doc.parse([visitors]))
+ *  	.then(doc=>doc.parse())
  */
 export default class{
 	constructor(parts,raw,props){

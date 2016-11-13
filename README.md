@@ -1,6 +1,9 @@
 ![](https://api.travis-ci.org/lalalic/docx4js.svg?branch=master)
 
 # docx4js
+
+***please note 2.x is totally different from 1.x**, everything is breaking change.
+
 **docx4js** is a javascript docx parser.
 
 The original goal is to support docx, pptx, and xlsx, but it's a huge work, so I limited to docx so far.
@@ -80,77 +83,40 @@ Attributes of word model usually affects styles, but I don't understand all of t
 * section
 * table
 
-## 1.x API
-`require("docx4js")` return a docx converter, which has following two functions.
+## 2.x API
+`require("docx4js")` return a base docx converter, which has following two functions.
 
-### load(file): return Promise resolved by parsed document
+## static load(file): return Promise resolved by a parsed document
 **file** is a file path string in nodejs, as for browser, it is a file from input[type=file].
 
-**Parsed Document interface**
+## parse ()
+to parse docx document
 
-* parse(visitorFactory1, visitorFactory2, ...)
-
-### createVisitorFactory(factory, option)
-It's to create a factory function that to create a visitor specific to word model types
-
-* factory: it could be following type
-	* function(wordModel, targetParent) : return **Visitor** class
-		* wordModel: identified word model
-		* targetParent: the result created by visitor of srcModel's parent model
-	* object: {'word model type name': Visitor Class}
-	* undefined: a default factory just to info type of word model in console
-* option: a global option to all visitor instances created by the factory, refered by visitor.options
-
-### Visitor
-* constructor(wordModel, parentVisitor)
-* visit() : calls when a specific word model found
+### onCreateElement(node, type)
+handle identified content model from inner/children to outer/parent
 
 **example**
-
-	var docx4js=require("docx4js")
-	docx4js.load(fileInput.files[0]) // a file path in nodejs
-		.then(function(doc){
-			var nothingFactory=DOCX.createVisitorFactory()
-
-			var textFactory=(function(){
-				var visitor=[]
-				visitor.visit=(function(){
-					switch(this.model.type){
-						case 'paragraph':
-							return this.push("\n\r")
-						case 'text':
-							return this.push(this.model.getText())
-					}
-				})
-				return DOCX.createVisitorFactory(function(wordModel){
-					visitor.model=wordModel
-				})
-			)();
-
-			var complexFactory=(function(){
-				class Visitor{}
-				class P extends Visitor{
-					visit(){}
+plese check dist/index.html
+<pre>
+	function test(input){
+		var text=document.querySelector("#text")
+		class MyDocx extends Docx{
+			onCreateElement(node, type){
+				switch(type){
+					case 'text':
+						text.value+=node.children
+					break
+					case 'paragraph':
+						text.value+="\n\r"
+					break
 				}
-				class Image extends Visitor{
-					visit(){}
-				}
-				class Shape extends Visitor{
-					visit(){}
-				}
-				class Text extends Visitor{
-					visit(){}
-				}
+			}
+		}
 
-				return DOCX.createVisitorFactory({
-						'paragraph': P,
-						'image': Image,
-						'text': Text,
-						'shape': Shape
-					})
-			)();
-
-			doc.parse(nothingFactory, textFactory, complexFactory)
+		MyDocx.load(input.files[0]).then(function(docx){
+			docx.parse()
 		})
+	}
+</pre>
 # License
 GPL
