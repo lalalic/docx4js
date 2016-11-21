@@ -158,7 +158,7 @@ export default class extends Base{
 		case 'vertAlign':
 			return x.val
 		case 'sz':
-			return this.pt2Px(parseInt(x['val'])/2)
+			return parseInt(x['val'])/2
 		case 'w':
 			return parseInt(x.val)/100.0
 		case 'kern':
