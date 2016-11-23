@@ -5,12 +5,12 @@ export default class Numberings{
 		this.num={}
 		this.abstractNum={}
 		if(numbering){
-			;(numbering.get('numbering.num')||[]).forEach(num=>{
+			;(numbering.get('numbering.num',false)||[]).forEach(num=>{
 				let id=num.$.numId
 				this.num[id]=new NumStyle(num,styles,this)
 			})
 				
-			;(numbering.get("numbering.abstractNum")||[]).forEach(def=>{
+			;(numbering.get("numbering.abstractNum",false)||[]).forEach(def=>{
 				let id=def.$.abstractNumId
 				def.lvl.forEach(level=>{
 					this.abstractNum[`${id}.${level.$.ilvl}`]=new LevelStyle(level,styles,null, this.numberings)
