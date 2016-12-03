@@ -12,13 +12,13 @@ export default class extends Base{
 		let tag=name.split(':').pop()
 		if(super.isProperty(...arguments) || tag=='tblGrid')
 			return true
-		
+
 		if(parent && parent.name && parent.name.split(':').pop()=='inline')
 			return true
-		
+
 		return false
 	}
-	
+
 	createElement(node){
 		const {styles}=this.officeDocument
 		let {name, attributes:{directStyle}}=node
@@ -83,7 +83,7 @@ export default class extends Base{
 	toProperty(node, type){
 		return this.officeDocument.styles.createDirectStyle(super.toProperty(node,type),type)
 	}
-	
+
 	onToControlProperty(node,type){
 		switch(type){
 		case 'dataBinding':
@@ -95,9 +95,9 @@ export default class extends Base{
 				node.parent.$.control={type:`control.${type}`}
 		break
 		case 'picture':
-		case 'docPartList': 
-		case 'comboBox': 
-		case 'dropDownList': 
+		case 'docPartList':
+		case 'comboBox':
+		case 'dropDownList':
 		case 'date':
 		case 'checkbox':
 			node.parent.$.control={type:`control.${type}`}
@@ -193,6 +193,8 @@ export default class extends Base{
 			return value;
 		case 'shd':
 			return this.asColor(x.fill)
+		case 'tcW':
+			return this.dxa2Px(x.w)
 		//drawing
 		case 'extent':
 			return {width:this.cm2Px(x.cx),height:this.cm2Px(x.cy)}
@@ -240,11 +242,11 @@ export default class extends Base{
 
 	toBorder(x){
 		var border=x
-		border.sz && (border.sz=border.sz/8);
+		border.sz && (border.sz=this.pt2Px(border.sz/8));
 		border.color && (border.color=this.asColor(border.color))
 		return border
 	}
-	
+
 	toHeaderFooter(node,tag){
 		const {$:{id, type}}=node
 		let part=new HeaderFooter(this.officeDocument.rels[id].target, this, type)
