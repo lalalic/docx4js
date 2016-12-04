@@ -185,12 +185,20 @@ export default class extends Base{
 		case 'tblGrid':
 			return node.gridCol.map(a=>this.dxa2Px(a.$.w))
 		case 'tcBorders':
-		case 'tblBorders':
+		case 'tblBorders':{
 			let value={}
 			Object.keys(node).forEach(a=>{
 				value[a]=this.toBorder(node[a][0].$)
 			})
-			return value;
+			return value
+		}
+		case 'tblCellMar':{
+			let value={}
+			Object.keys(node).forEach(a=>{
+				value[a]=this.dxa2Px(node[a][0].$.w)
+			})
+			return value
+		}
 		case 'shd':
 			return this.asColor(x.fill)
 		case 'tcW':
