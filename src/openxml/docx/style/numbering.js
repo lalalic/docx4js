@@ -9,7 +9,6 @@ export default class Numberings{
 				let id=num.$.numId
 				this.num[id]=new NumStyle(num,styles,this)
 			})
-
 			;(numbering.get("numbering.abstractNum",false)||[]).forEach(def=>{
 				let id=def.$.abstractNumId
 				def.lvl.forEach(level=>{
