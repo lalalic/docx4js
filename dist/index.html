@@ -5,23 +5,8 @@
 	<script>
 		var Docx=require("docx4js")
 		function test(input){
-			var models=[]
-			var text=document.querySelector("#text")
-			class MyDocx extends Docx{
-				onCreateElement(node, type){
-					switch(type){
-						case 'text':
-							text.value+=node.children
-						break
-						case 'paragraph':
-							text.value+="\n\r"
-						break
-					}
-				}
-			}
-			MyDocx.load(input.files[0]).then(function(docx){
-				input.value=""
-				docx.parse()
+			Docx.load(input.files[0]).then(function(docx){
+				docx.render(document.querySelector("#docx"))
 			})
 		}
 	</script>
@@ -32,5 +17,7 @@
 	<br/>
 	<br/>
 	<textarea id="text"></textarea>
+	<div id="docx">
+	</div>
 </body>
 </html>

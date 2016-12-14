@@ -1,11 +1,5 @@
 import JSZip from 'jszip'
-import {parseString as xml2js} from "xml2js"
-
-import {getable} from "./xmlObject"
-
-function stripPrefix(name){
-	return name.split(':').pop()
-}
+import parse from "cheerio"
 /**
  *  document parser
  *
@@ -32,24 +26,27 @@ export default class{
 		return buffer
 	}
 
-	getObjectPart(name, option){
-		return new Promise((resolve,reject)=>{
-			if(this.parts[name])
-				xml2js(this.parts[name].asText(),
-					Object.assign({tagNameProcessors:[stripPrefix],attrNameProcessors:[stripPrefix]},option||{}),
-					(error, result)=>{
-						if(error) {
-							reject(error)
-						}else{
-							resolve(getable(result))
-						}
-					})
-			else
-				resolve()
-		})
+	getObjectPart(name){
+		const part=this.parts[name]
+		if(!part)
+			return null
+		else if(part.cheerio)
+			return part
+		else{
+			try{
+				return this.parts[name]=parse(part.asNodeBuffer(),{xmlMode:true})
+			}catch(error){
+				console.error(error)
+				return null
+			}
+		}
 	}
 
 	parse(){
+
+	}
+
+	render(){
 
 	}
 
