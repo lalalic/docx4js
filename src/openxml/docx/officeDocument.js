@@ -1,5 +1,6 @@
 import Part from "../part"
-import parse from "cheerio"
+import {load as parse} from "cheerio"
+import React from "react"
 
 export default class extends Part{
 	_init(){
@@ -10,10 +11,24 @@ export default class extends Part{
 		})
 
 		const buffer=this.doc.getPart(this.name).asNodeBuffer()
-		this.content=parse("w\\:document",buffer,{xmlMode:true})
+		this.content=parse(buffer,{xmlMode:true})
 	}
 
 	render(container){
+		const render=node=>{
+			const {tagName, childNodes}=node
+			return React.createElement(getComponent(tagName),{children: childNodes ? childNodes.map(a=>render(a)) : []})
+		}
 
+		return render(this.content("w\\:document"))
 	}
+}
+
+const getComponent=name=>{
+	let existing=getComponent[name]
+	if(existing)
+		return existing
+	let Type=props=>null
+	Type.displayName=name
+	return getComponent[name]=Type
 }
