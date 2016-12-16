@@ -27,7 +27,12 @@ export default class extends Part{
 	}
 	
 	parse(){
+		const parse=node=>{
+			const {tagName, childeNodes, type}=node
+			
+		}
 		
+		return parse(this.content("w\\:document").get(0))
 	}
 	
 	getComponent(tagName){
