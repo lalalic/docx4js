@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import parse from "cheerio"
+import {load as parse} from "cheerio"
 /**
  *  document parser
  *
@@ -34,7 +34,7 @@ export default class{
 			return part
 		else{
 			try{
-				return this.parts[name]=parse(part.asNodeBuffer(),{xmlMode:true})
+				return this.parts[name]=parse(part.asText(),{xmlMode:true})
 			}catch(error){
 				console.error(error)
 				return null

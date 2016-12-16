@@ -35,11 +35,13 @@
     "babel-runtime": "^6.18.0",
     "cheerio": "^0.22.0",
     "jszip": "^2.6.0",
-    "react": "^15.4.1"
+    "react": "^15.4.1",
+    "react-dom": "^15.4.1"
   },
   "babel": {
     "presets": [
-      "es2015"
+      "es2015",
+      "react"
     ],
     "plugins": [
       "babel-plugin-add-module-exports",

@@ -1,6 +1,7 @@
 import Part from "../part"
 import {load as parse} from "cheerio"
 import React from "react"
+import ReactDOM from "react-dom"
 
 export default class extends Part{
 	_init(){
@@ -14,13 +15,23 @@ export default class extends Part{
 		this.content=parse(buffer,{xmlMode:true})
 	}
 
-	render(container){
-		const render=node=>{
-			const {tagName, childNodes}=node
-			return React.createElement(getComponent(tagName),{children: childNodes ? childNodes.map(a=>render(a)) : []})
+	render(container,customziedComponents={}){
+		const render=(node,key=0)=>{
+			const {tagName, childNodes,type}=node
+			if(type=="text")
+				return <span>{node.data}</span>
+			return React.createElement(customizedComponents[tagName]||getComponent(tagName),{key,children: childNodes ? childNodes.map((a,i)=>render(a,i)) : []})
 		}
 
-		return render(this.content("w\\:document"))
+		return ReactDOM.render(render(this.content("w\\:document").get(0)), container)
+	}
+	
+	parse(){
+		
+	}
+	
+	getComponent(tagName){
+		return getComponent(...arguments)
 	}
 }
 
@@ -28,7 +39,17 @@ const getComponent=name=>{
 	let existing=getComponent[name]
 	if(existing)
 		return existing
-	let Type=props=>null
+	let Type=({children})=>{
+		if(children){
+			if(children.length==1){
+				return children[0]
+			}else{
+				return (<div>{children}</div>)
+			}
+		}else{
+			return null
+		}
+	}
 	Type.displayName=name
 	return getComponent[name]=Type
 }
