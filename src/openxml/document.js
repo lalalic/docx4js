@@ -12,11 +12,11 @@ export default class extends Base{
 	get product(){return 'Office 2010'}
 
 	render(){
-		this.officeDocument.render(...arguments)
+		return this.officeDocument.render(...arguments)
 	}
 
 	parser(){
-		return this.officeDocument.parser()
+		return this.officeDocument.parser(...arguments)
 	}
 
 /*

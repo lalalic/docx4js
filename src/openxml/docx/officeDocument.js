@@ -1,13 +1,20 @@
 import Part from "../part"
-import cheer from "cheerio"
 import React from "react"
-import ReactDOM from "react-dom"
 import EventEmitter from "events"
-import {Parser, DomHandler} from "htmlparser2"
 import defaultIdentify from "./factory"
+
+const getComponent=name=>{
+	let existing=getComponent[name]
+	if(existing)
+		return existing
+	let Type=props=>null
+	Type.displayName=name
+	return getComponent[name]=Type
+}
 
 export default class extends Part{
 	_init(){
+		super._init()
 		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
 			let $=this.rels(rel)
 			let type=$.attr("Type").split("/").pop()
@@ -15,29 +22,38 @@ export default class extends Part{
 		})
 	}
 
-	render(container,customziedComponents={}){
-		const render=(node,key=0)=>{
-			const {tagName, childNodes,type}=node
-			if(type=="text")
-				return <span>{node.data}</span>
-			return React.createElement(customizedComponents[tagName]||getComponent(tagName),{key,children: childNodes ? childNodes.map((a,i)=>render(a,i)) : []})
+	render(createComponent=getComponent){
+		const render=node=>{
+			const {tagName, children,type,id:key, parent}=node
+			if(type=="text"){
+				if(parent.name=="w:t"){
+					return node.data
+				}
+				return null
+			}
+
+			return React.createElement(
+					createComponent(tagName),
+					{key},
+					...(children ? children.map((a,i)=>render(a,i)).filter(a=>!!a) : [])
+				)
 		}
 
-		const buffer=this.doc.getPart(this.name).asNodeBuffer()
-		let content=cheer.load(buffer,{xmlMode:true})
-
-		return ReactDOM.render(render(content("w\\:document").get(0)), container)
+		return render(this.content("w\\:document").get(0))
 	}
 
 	parser(identify=defaultIdentify){
 		let opt={xmlMode:true}
 		let emitter=new EventEmitter()
 		let buffer=this.doc.getPart(this.name).asNodeBuffer()
-		let handler=new DomHandler(opt,el=>{
+		let handler=new DocDomHandler(opt,el=>{
 			if(el.name){
-				if(identify)
+				if(identify){
+					let type=identify(el,this)
+
 					emitter.emit(identify(el,this),el,this)
-				else
+
+				}else
 					emitter.emit(el.name,el,this)
 			}
 		})
@@ -51,29 +67,9 @@ export default class extends Part{
 				emitter.on(...arguments)
 				return this
 			}
-		}
-	}
-
-	getComponent(tagName){
-		return getComponent(...arguments)
-	}
-}
-
-const getComponent=name=>{
-	let existing=getComponent[name]
-	if(existing)
-		return existing
-	let Type=({children})=>{
-		if(children){
-			if(children.length==1){
-				return children[0]
-			}else{
-				return (<div>{children}</div>)
+			,get dom(){
+				return handler.dom
 			}
-		}else{
-			return null
 		}
 	}
-	Type.displayName=name
-	return getComponent[name]=Type
 }

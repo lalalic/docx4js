@@ -1,5 +1,7 @@
 import JSZip from 'jszip'
-import {load as parse} from "cheerio"
+import cheer from "cheerio"
+import {Parser, DomHandler} from "htmlparser2"
+let uuid=0
 /**
  *  document parser
  *
@@ -34,7 +36,10 @@ export default class{
 			return part
 		else{
 			try{
-				return this.parts[name]=parse(part.asText(),{xmlMode:true})
+				let opt={xmlMode:true}
+				let handler=new DomHandler(opt,el=>el.id=uuid++)
+				new Parser(handler,opt).end(part.asText())
+				return this.parts[name]=cheer.load(handler.dom,{xmlMode:true})
 			}catch(error){
 				console.error(error)
 				return null
