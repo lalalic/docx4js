@@ -1,3 +1,5 @@
+import $ from "../tool"
+
 export default class part{
 	constructor(name,doc){
 		this.name=name
