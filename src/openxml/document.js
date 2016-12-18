@@ -15,6 +15,10 @@ export default class extends Base{
 		this.officeDocument.render(...arguments)
 	}
 
+	parser(){
+		return this.officeDocument.parser()
+	}
+
 /*
 	dxa2Px(a){
 		return this.pt2Px(parseInt(a)/20.0)

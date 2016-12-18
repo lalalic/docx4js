@@ -6,7 +6,9 @@
 		var Docx=require("docx4js")
 		function test(input){
 			Docx.load(input.files[0]).then(function(docx){
-				docx.render(document.querySelector("#docx"))
+				//docx.render(document.querySelector("#docx"))
+				docx.parser()
+					.start()
 			})
 		}
 	</script>

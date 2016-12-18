@@ -1,7 +1,10 @@
 import Part from "../part"
-import {load as parse} from "cheerio"
+import cheer from "cheerio"
 import React from "react"
 import ReactDOM from "react-dom"
+import EventEmitter from "events"
+import {Parser, DomHandler} from "htmlparser2"
+import defaultIdentify from "./factory"
 
 export default class extends Part{
 	_init(){
@@ -10,9 +13,6 @@ export default class extends Part{
 			let type=$.attr("Type").split("/").pop()
 			this[type]=this.getRelObject($.attr("Target"))
 		})
-
-		const buffer=this.doc.getPart(this.name).asNodeBuffer()
-		this.content=parse(buffer,{xmlMode:true})
 	}
 
 	render(container,customziedComponents={}){
@@ -23,18 +23,37 @@ export default class extends Part{
 			return React.createElement(customizedComponents[tagName]||getComponent(tagName),{key,children: childNodes ? childNodes.map((a,i)=>render(a,i)) : []})
 		}
 
-		return ReactDOM.render(render(this.content("w\\:document").get(0)), container)
+		const buffer=this.doc.getPart(this.name).asNodeBuffer()
+		let content=cheer.load(buffer,{xmlMode:true})
+
+		return ReactDOM.render(render(content("w\\:document").get(0)), container)
 	}
-	
-	parse(){
-		const parse=node=>{
-			const {tagName, childeNodes, type}=node
-			
+
+	parser(identify=defaultIdentify){
+		let opt={xmlMode:true}
+		let emitter=new EventEmitter()
+		let buffer=this.doc.getPart(this.name).asNodeBuffer()
+		let handler=new DomHandler(opt,el=>{
+			if(el.name){
+				if(identify)
+					emitter.emit(identify(el,this),el,this)
+				else
+					emitter.emit(el.name,el,this)
+			}
+		})
+		let parser=new Parser(handler,opt)
+		return {
+			start(){
+				parser.end(buffer)
+				return this
+			},
+			on(){
+				emitter.on(...arguments)
+				return this
+			}
 		}
-		
-		return parse(this.content("w\\:document").get(0))
 	}
-	
+
 	getComponent(tagName){
 		return getComponent(...arguments)
 	}
