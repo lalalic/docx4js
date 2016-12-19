@@ -9,20 +9,29 @@ export function identify(wXml, officeDocument){
 }
 
 const identities={
+	document(wXml){
+		return {type:"document", children: wXml.firstChildren.children}
+	},
 	p(wXml,officeDocument){
 		let $=cheer.load(wXml,{xmlMode:true})
+		let type="p"
+
 		let pPr=$("w\\:pPr")
 		if(pPr.length){
 			let styleId=$("w\\:pStyle",pPr).attr("w:val")
 
 			if($("w\\:numPr", pPr).length ||
 				(styleId &&  officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr`).length))
-				return "list"
-
-			if($("w\\:outlineLvl", pPr).length ||
+				type="list"
+			else if($("w\\:outlineLvl", pPr).length ||
 				(styleId && officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:outlineLvl`).length))
-				return "heading"
+				type="heading"
+
+			return {type,pr:pPr.get(0),children:wXml.children.filter(({name})=>name!="w:pPr")}
 		}
+	},
+	r(xml){
+		return {type:"r", pr: wXml.children.find(({name})=>name=="w:rPr"), children: wXml.children.filter(({name})=>name!="w:rPr")}
 	},
 	fldChar(wXml){
 		return wXml.attribs["w:fldCharType"]
@@ -46,6 +55,10 @@ const identities={
 			let type=(elType ? elType.name : 'richtext').split(":").pop()
 			return {type:`control.${type}`, children:null}
 		}
+	},
+	hyperlink(wXml){
+		if(wXml.parent.name=="w:p")
+			return "hyperlink"
 	}
 }
 

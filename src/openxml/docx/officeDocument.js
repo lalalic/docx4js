@@ -16,7 +16,7 @@ export default class extends Part{
 	render(){
 		return this.renderNode(this.content("w\\:document").get(0),...arguments)
 	}
-	
+
 	renderNode(node, createComponent=getComponent, identify=defaultIdentify){
 		let {name:tagName, children,id:key, parent}=node
 		if(node.type=="text"){
@@ -25,15 +25,15 @@ export default class extends Part{
 			}
 			return null
 		}
-		
+
 		let type=tagName
 		let props={key}
-		
+
 		if(identify){
 			let model=identify(node,this)
 			if(!model)
 				return null
-			
+
 			if(typeof(model)=="string"){
 				type=model
 			}else{
@@ -50,7 +50,7 @@ export default class extends Part{
 				...(children ? children.map(a=>this.renderNode(a,createComponent,identify)).filter(a=>!!a) : [])
 			)
 	}
- 
+
 	parser(identify=defaultIdentify){
 		let opt={xmlMode:true}
 		let emitter=new EventEmitter()
