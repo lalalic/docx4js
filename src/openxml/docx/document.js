@@ -1,3 +1,4 @@
+import $ from "../../tool"
 import Factory from './factory'
 import FontTheme from './theme/font'
 import ColorTheme from './theme/color'

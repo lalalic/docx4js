@@ -1,3 +1,4 @@
+import $ from "../tool"
 import Part from './part'
 
 export default class Document extends require('../document'){

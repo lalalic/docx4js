@@ -1,4 +1,7 @@
-export default class model extends require('../parser'){
+import $ from "../../tool"
+import Parser from "../parser"
+
+export default class model extends Parser{
 	constructor(wXml,wDoc,mParent){
 		super(...arguments)
 		this.mParent=mParent

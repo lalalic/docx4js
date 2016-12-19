@@ -1,4 +1,4 @@
-import "./tool"
+import {isNode} from "./tool"
 import JSZip from 'jszip'
 
 /**
@@ -17,6 +17,7 @@ export default class Document{
 	getPart(name){
 		return this.parts[name]
 	}
+	
 	getImagePart(name){
 		var part=this.parts[name]
 		var crc32=part._data.crc32
@@ -75,7 +76,7 @@ export default class Document{
 			}
 
 
-			if($.isNode){//node
+			if(isNode){//node
 				if(typeof inputFile=='string'){//file name
 					require('fs').readFile(inputFile,function(error, data){
 						if(error)
