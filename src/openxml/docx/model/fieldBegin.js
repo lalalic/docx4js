@@ -32,15 +32,15 @@ export default class fieldBegin extends require('../model'){
 			let instruct=this.commands.join('').trim(),
 				index=instruct.indexOf(' '),
 				type=(index!=-1 ?  instruct.substring(0,index) : instruct).toLowerCase()
-		
+
 			this.field=this.constructor.factory(instruct,this.wDoc, this, type)
-			if(this.field)
+			if(!this.field)
 				this.field=new basic(instruct,this.wDoc,this,type)
-			
+
 			this.field.parse(factories)
 		}
 	}
-	
+
 	_getValidChildren(){
 		return []
 	}
