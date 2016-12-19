@@ -1,16 +1,7 @@
 import Part from "../part"
 import React from "react"
 import EventEmitter from "events"
-import defaultIdentify from "./factory"
-
-const getComponent=name=>{
-	let existing=getComponent[name]
-	if(existing)
-		return existing
-	let Type=props=>null
-	Type.displayName=name
-	return getComponent[name]=Type
-}
+import {identify as defaultIdentify, getComponent} from "./factory"
 
 export default class extends Part{
 	_init(){
@@ -22,26 +13,44 @@ export default class extends Part{
 		})
 	}
 
-	render(createComponent=getComponent){
-		const render=node=>{
-			const {tagName, children,type,id:key, parent}=node
-			if(type=="text"){
-				if(parent.name=="w:t"){
-					return node.data
-				}
-				return null
+	render(){
+		return this.renderNode(this.content("w\\:document").get(0),...arguments)
+	}
+	
+	renderNode(node, createComponent=getComponent, identify=defaultIdentify){
+		let {name:tagName, children,id:key, parent}=node
+		if(node.type=="text"){
+			if(parent.name=="w:t"){
+				return node.data
 			}
-
-			return React.createElement(
-					createComponent(tagName),
-					{key},
-					...(children ? children.map((a,i)=>render(a,i)).filter(a=>!!a) : [])
-				)
+			return null
+		}
+		
+		let type=tagName
+		let props={key}
+		
+		if(identify){
+			let model=identify(node,this)
+			if(!model)
+				return null
+			
+			if(typeof(model)=="string"){
+				type=model
+			}else{
+				let content;
+				({type, children:content, ...props}=model);
+				if(content!==undefined)
+					children=content
+			}
 		}
 
-		return render(this.content("w\\:document").get(0))
+		return React.createElement(
+				createComponent(type),
+				props,
+				...(children ? children.map(a=>this.renderNode(a,createComponent,identify)).filter(a=>!!a) : [])
+			)
 	}
-
+ 
 	parser(identify=defaultIdentify){
 		let opt={xmlMode:true}
 		let emitter=new EventEmitter()

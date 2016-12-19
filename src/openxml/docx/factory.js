@@ -1,6 +1,6 @@
 import cheer from "cheerio"
 
-export default function identify(wXml, officeDocument){
+export function identify(wXml, officeDocument){
 	const tag=wXml.name.split(":").pop()
 	if(identities[tag])
 		return identities[tag](...arguments)||tag
@@ -11,22 +11,26 @@ export default function identify(wXml, officeDocument){
 const identities={
 	p(wXml,officeDocument){
 		let $=cheer.load(wXml,{xmlMode:true})
-		let styleId=$("w\\:pPr>w\\:pStyle").attr("w:val")
+		let pPr=$("w\\:pPr")
+		if(pPr.length){
+			let styleId=$("w\\:pStyle",pPr).attr("w:val")
 
-		if($("w\\:pPr>w\\:numPr").length ||
-			(styleId &&  officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr`).length))
-			return "list"
+			if($("w\\:numPr", pPr).length ||
+				(styleId &&  officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr`).length))
+				return "list"
 
-		if($("w\\:pPr>w\\:outlineLvl").length ||
-			(styleId && officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:outlineLvl`).length))
-			return "heading"
+			if($("w\\:outlineLvl", pPr).length ||
+				(styleId && officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:outlineLvl`).length))
+				return "heading"
+		}
 	},
 	fldChar(wXml){
 		return wXml.attribs["w:fldCharType"]
 	},
 	inline(wXml){
 		let $=cheer.load(wXml,{xmlMode:true})
-		return $('w\\:graphic>w\\:graphicData').attr('uri').split('/').pop()
+		let type=`inline.${$('a\\:graphic>a\\:graphicData').attr('uri').split('/').pop()}`
+		return {type,children:null}
 	},
 	std(wXml){
 		let $=cheer.load(wXml,{xmlMode:true})
@@ -35,11 +39,22 @@ const identities={
 			let path=elBinding.attribs['w:xpath'],
 				d=path.split(/[\/\:\[]/),
 				name=(d.pop(),d.pop());
-			return `property.${name}`
+			let value=$('w\\:sdtContent:first').text()
+			return {type:"property", name, value, children:null}
 		}else {//controls
 			let elType=$('w\\:sdtPr').find("text, picture, docPartList, comboBox, dropDownList, date, checkbox").get(0)
 			let type=(elType ? elType.name : 'richtext').split(":").pop()
-			return `control.${name}`
+			return {type:`control.${type}`, children:null}
 		}
 	}
+}
+
+
+export const getComponent=name=>{
+	let existing=getComponent[name]
+	if(existing)
+		return existing
+	let Type=props=>null
+	Type.displayName=name
+	return getComponent[name]=Type
 }
