@@ -37,7 +37,7 @@ export default class{
 		else{
 			try{
 				let opt={xmlMode:true}
-				let handler=new DomHandler(opt,el=>el.id=uuid++)
+				let handler=new DomHandler(opt,el=>el.id=`a${uuid++}`)
 				new Parser(handler,opt).end(part.asText())
 				return this.parts[name]=cheer.load(handler.dom,{xmlMode:true})
 			}catch(error){

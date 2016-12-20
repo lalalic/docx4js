@@ -53,7 +53,7 @@
   "main": "./lib/",
   "scripts": {
     "build": "babel src -d lib --source-maps inline",
-    "build-we-edit": "babel src -d ../we-edit/node_modules/docx4js/lib --source-maps inline",
+    "build-superdaddy": "babel src -d ../superdaddy/node_modules/docx4js/lib --source-maps inline",
     "dist.watch": "watchify -v -d -r ./lib/index.js:docx4js -o dist/index.js",
     "dist.min": "browserify -g uglifyify -r ./lib/index.js:docx4js -o dist/docx4js.js",
     "karma": "karma start",

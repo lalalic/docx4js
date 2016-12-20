@@ -33,14 +33,16 @@ export default class{
 	}
 
 	getRel(id){
-		var rel=this.rels[id]
-		if(rel.targetMode=='External')
-			return rel.target
-		switch(rel.type){
+		var rel=this.rels(`Relationship[Id="${id}"]`)
+		var target=rel.attr("Target")
+		if(rel.attr("TargetMode")==='External')
+			return target
+		
+		switch(rel.attr("Type").split("/").pop()){
 		case 'image':
-			return this.doc.getBufferPart(rel.target)
+			return URL.createObjectURL(new Blob([this.doc.getBufferPart(this.folder+target)],{type:"image/*"}))
 		default:
-			return this.doc.getPart(rel.target)
+			return this.getRelObject(target)
 		}
 	}
 }

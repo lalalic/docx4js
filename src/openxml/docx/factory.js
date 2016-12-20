@@ -1,4 +1,4 @@
-import cheer from "cheerio"
+import React from "react"
 
 export function identify(wXml, officeDocument){
 	const tag=wXml.name.split(":").pop()
@@ -10,60 +10,102 @@ export function identify(wXml, officeDocument){
 
 const identities={
 	document(wXml){
-		return {type:"document", children: wXml.firstChildren.children}
+		return {type:"document", children: wXml.children[0].children}
 	},
 	p(wXml,officeDocument){
-		let $=cheer.load(wXml,{xmlMode:true})
+		let $=officeDocument.content(wXml)
 		let type="p"
+		
+		let identity={type,pr:wXml.children.find(({name})=>name=="w:pPr"),children:wXml.children.filter(({name})=>name!="w:pPr")}
 
-		let pPr=$("w\\:pPr")
+		let pPr=$.find("w\\:pPr")
 		if(pPr.length){
-			let styleId=$("w\\:pStyle",pPr).attr("w:val")
-
-			if($("w\\:numPr", pPr).length ||
-				(styleId &&  officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr`).length))
-				type="list"
-			else if($("w\\:outlineLvl", pPr).length ||
-				(styleId && officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:outlineLvl`).length))
-				type="heading"
-
-			return {type,pr:pPr.get(0),children:wXml.children.filter(({name})=>name!="w:pPr")}
+			let styleId=pPr.find("w\\:pStyle").attr("w:val")
+			
+			let numPr=pPr.find("w\\:numPr")
+			if(!numPr.length && styleId){
+				numPr=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr`)
+			}
+			
+			if(numPr.length){
+				identity.type="list"
+				identify.numId=numPr.find("w\\:numId").attr("w:val")
+				identify.level=numPr.find("w\\:ilvl").attr("w:val")
+			}else{
+				let outlineLvl=pPr.find("w\\:outlineLvl").attr("w:val")
+				if(!outlineLvl && styleId)
+					outlineLvl=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:outlineLvl`).attr("w:val")
+				
+				if(outlineLvl){
+					identity.type="heading"
+					identity.level=parseInt(outlineLvl)+1
+				}	
+			}
 		}
+		
+		return identity
 	},
-	r(xml){
+	r(wXml){
 		return {type:"r", pr: wXml.children.find(({name})=>name=="w:rPr"), children: wXml.children.filter(({name})=>name!="w:rPr")}
 	},
 	fldChar(wXml){
 		return wXml.attribs["w:fldCharType"]
 	},
-	inline(wXml){
-		let $=cheer.load(wXml,{xmlMode:true})
-		let type=`inline.${$('a\\:graphic>a\\:graphicData').attr('uri').split('/').pop()}`
-		return {type,children:null}
+	inline(wXml,officeDocument){
+		let $=officeDocument.content(wXml)
+		let type=$.find('a\\:graphic>a\\:graphicData').attr('uri').split('/').pop()
+		let props={type:`inline.${type}`, children:null}
+		switch(type){
+		case "picture":
+			let rid=$.find('a\\:blip').attr('r:embed')
+			props.url=officeDocument.getRel(rid)
+		break
+		}
+		return props
 	},
-	std(wXml){
-		let $=cheer.load(wXml,{xmlMode:true})
-		let elBinding=$('w\\:sdtPr>w\\:dataBinding').get(0)
+	sdt(wXml,officeDocument){
+		let $=officeDocument.content(wXml)
+		let pr=$.find('>w\\:sdtPr')
+		let content=$.find('>w\\:sdtContent')
+		let children=content.children().toArray()
+		
+		let elBinding=pr.find('w\\:dataBinding').get(0)
 		if(elBinding){//properties
 			let path=elBinding.attribs['w:xpath'],
 				d=path.split(/[\/\:\[]/),
 				name=(d.pop(),d.pop());
-			let value=$('w\\:sdtContent:first').text()
-			return {type:"property", name, value, children:null}
+			let value=content.text()
+			
+			return {type:"property", name, value, children}
 		}else {//controls
-			let elType=$('w\\:sdtPr').find("text, picture, docPartList, comboBox, dropDownList, date, checkbox").get(0)
-			let type=(elType ? elType.name : 'richtext').split(":").pop()
-			return {type:`control.${type}`, children:null}
+			let prChildren=pr.get(0).children
+			let elType=prChildren[prChildren.length-1]
+			let name=elType.name.split(":").pop()
+			let type="text, picture, docPartList, comboBox, dropDownList, date, checkbox".split(",")
+				.find(a=>a==name)
+			if(type)
+				return {type:`control.${type}`, children:null}
+			else{//container
+				if(content.has("w\\:p,w\\:tbl")){
+					return {type:"block", children}
+				}else{
+					return {type:"inline", children}
+				}
+			}
 		}
 	},
-	hyperlink(wXml){
-		if(wXml.parent.name=="w:p")
-			return "hyperlink"
+	hyperlink(wXml,officeDocument){
+		let url=officeDocument.getRel(wXml.attribs["r:id"])
+		return {type:"hyperlink", url}
 	}
 }
 
 
-export const getComponent=name=>{
+export const createElement=(type,props,children)=>{
+	return React.createElement(getComponent(type),props,...children)
+}
+
+const getComponent=name=>{
 	let existing=getComponent[name]
 	if(existing)
 		return existing

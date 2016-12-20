@@ -1,7 +1,6 @@
 import Part from "../part"
-import React from "react"
 import EventEmitter from "events"
-import {identify as defaultIdentify, getComponent} from "./factory"
+import {identify as defaultIdentify, createElement as defaultCreateElement} from "./factory"
 
 export default class extends Part{
 	_init(){
@@ -14,11 +13,12 @@ export default class extends Part{
 	}
 
 	render(){
+		Object.freeze(this.content)
 		return this.renderNode(this.content("w\\:document").get(0),...arguments)
 	}
 
-	renderNode(node, createComponent=getComponent, identify=defaultIdentify){
-		let {name:tagName, children,id:key, parent}=node
+	renderNode(node, createElement=defaultCreateElement, identify=defaultIdentify){
+		let {name:tagName, children,id, parent}=node
 		if(node.type=="text"){
 			if(parent.name=="w:t"){
 				return node.data
@@ -27,7 +27,7 @@ export default class extends Part{
 		}
 
 		let type=tagName
-		let props={key}
+		let props={}
 
 		if(identify){
 			let model=identify(node,this)
@@ -43,11 +43,20 @@ export default class extends Part{
 					children=content
 			}
 		}
+		props.key=id
+		props.node=node
+		props.type=type
+		
+		let childElements=[]
+		if(children && children.length){
+			childElements=children.map(a=>a ? this.renderNode(a,createElement,identify) : null)
+				.filter(a=>!!a)
+		}
 
-		return React.createElement(
-				createComponent(type),
+		return createElement(
+				type,
 				props,
-				...(children ? children.map(a=>this.renderNode(a,createComponent,identify)).filter(a=>!!a) : [])
+				childElements
 			)
 	}
 
