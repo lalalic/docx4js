@@ -22,9 +22,8 @@ export default class{
 
 	getBufferPart(name){
 		var part=this.parts[name]
-		var crc32=part._data.crc32
 		var buffer=part.asNodeBuffer()
-		buffer.crc32=part._data.crc32=crc32
+		buffer.crc32=part._data.crc32
 		return buffer
 	}
 
