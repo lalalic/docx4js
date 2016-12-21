@@ -86,7 +86,7 @@ const identities={
 			if(type)
 				return {type:`control.${type}`, children:null}
 			else{//container
-				if(content.has("w\\:p,w\\:tbl")){
+				if(content.find("w\\:p,w\\:tbl").length){
 					return {type:"block", children}
 				}else{
 					return {type:"inline", children}
