@@ -58,7 +58,7 @@ const identities={
 		switch(type){
 		case "picture":
 			let rid=$.find('a\\:blip').attr('r:embed')
-			props.url=officeDocument.getRel(rid)
+			Object.assign(props,officeDocument.getRel(rid))
 		break
 		}
 		return props

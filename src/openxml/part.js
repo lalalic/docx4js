@@ -36,11 +36,13 @@ export default class{
 		var rel=this.rels(`Relationship[Id="${id}"]`)
 		var target=rel.attr("Target")
 		if(rel.attr("TargetMode")==='External')
-			return target
+			return {url:target}
 		
 		switch(rel.attr("Type").split("/").pop()){
 		case 'image':
-			return URL.createObjectURL(new Blob([this.doc.getBufferPart(this.folder+target)],{type:"image/*"}))
+			let buffer=this.doc.getBufferPart(this.folder+target)
+			let url=URL.createObjectURL(new Blob([buffer],{type:"image/*"}))
+			return {url, crc32: buffer.crc32}
 		default:
 			return this.getRelObject(target)
 		}
