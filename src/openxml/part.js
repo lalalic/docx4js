@@ -40,9 +40,9 @@ export default class{
 		
 		switch(rel.attr("Type").split("/").pop()){
 		case 'image':
-			let buffer=this.doc.getBufferPart(this.folder+target)
-			let url=URL.createObjectURL(new Blob([buffer],{type:"image/*"}))
-			return {url, crc32: buffer.crc32}
+			let data=this.doc.getDataPart(this.folder+target)
+			let url=URL.createObjectURL(new Blob([data],{type:"image/*"}))
+			return {url, crc32: data.crc32}
 		default:
 			return this.getRelObject(target)
 		}

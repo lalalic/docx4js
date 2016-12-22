@@ -97,6 +97,34 @@ const identities={
 	hyperlink(wXml,officeDocument){
 		let url=officeDocument.getRel(wXml.attribs["r:id"])
 		return {type:"hyperlink", url}
+	},
+	tbl(wXml){
+		return wXml.children.reduce((state,node)=>{
+			switch(node.name){
+			case "w:tblPr":
+				state.pr=node
+			break
+			case "w:tblGrid":
+				state.cols=node.children
+			break
+			default:
+				state.children.push(node)
+			}
+			return state
+		},{type:"tbl",children:[],pr:null,cols:[]})
+	},
+	tr(wXml){
+		return wXml.children.reduce((state,node)=>{
+			switch(node.name){
+			case "w:trPr":
+				state.pr=node
+				state.isHeader=!!node.children.find(a=>a.name=="w:tblHeader")
+			break
+			default:
+				state.children.push(node)
+			}
+			return state
+		},{type:"tr",children:[],pr:null})
 	}
 }
 
