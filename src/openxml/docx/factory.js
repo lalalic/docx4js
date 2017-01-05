@@ -56,7 +56,7 @@ const identities={
 		switch(type){
 		case "picture":
 			let rid=$.find('a\\:blip').attr('r:embed')
-			props.url=officeDocument.getRel(rid)
+			Object.assign(props,officeDocument.getRel(rid))
 		break
 		}
 		return props
@@ -84,7 +84,7 @@ const identities={
 			if(type)
 				return {type:`control.${type}`, children:null}
 			else{//container
-				if(content.has("w\\:p,w\\:tbl")){
+				if(content.find("w\\:p,w\\:tbl").length){
 					return {type:"block", children}
 				}else{
 					return {type:"inline", children}
@@ -95,6 +95,34 @@ const identities={
 	hyperlink(wXml,officeDocument){
 		let url=officeDocument.getRel(wXml.attribs["r:id"])
 		return {type:"hyperlink", url}
+	},
+	tbl(wXml){
+		return wXml.children.reduce((state,node)=>{
+			switch(node.name){
+			case "w:tblPr":
+				state.pr=node
+			break
+			case "w:tblGrid":
+				state.cols=node.children
+			break
+			default:
+				state.children.push(node)
+			}
+			return state
+		},{type:"tbl",children:[],pr:null,cols:[]})
+	},
+	tr(wXml){
+		return wXml.children.reduce((state,node)=>{
+			switch(node.name){
+			case "w:trPr":
+				state.pr=node
+				state.isHeader=!!node.children.find(a=>a.name=="w:tblHeader")
+			break
+			default:
+				state.children.push(node)
+			}
+			return state
+		},{type:"tr",children:[],pr:null})
 	}
 }
 

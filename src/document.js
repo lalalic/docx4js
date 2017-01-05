@@ -20,12 +20,12 @@ export default class{
 		return this.parts[name]
 	}
 
-	getBufferPart(name){
-		var part=this.parts[name]
-		var crc32=part._data.crc32
-		var buffer=part.asNodeBuffer()
-		buffer.crc32=part._data.crc32=crc32
-		return buffer
+	getDataPart(name){
+		let part=this.parts[name]
+		let crc32=part._data.crc32
+		let data=part.asUint8Array()//unsafe call, part._data is changed 
+		data.crc32=part._data.crc32=crc32//so keep crc32 on part._data for future
+		return data
 	}
 
 	getObjectPart(name){
