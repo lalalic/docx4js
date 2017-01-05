@@ -1,13 +1,13 @@
 language: node_js
 node_js:
- - 4.2
+ - 6
 
 install:
  - npm install --production
  - npm install browserify uglifyify jest
 
 before_deploy:
- - npm run dist.min
+ - npm run build
 
 deploy:
  provider: npm

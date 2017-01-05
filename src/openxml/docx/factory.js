@@ -1,5 +1,3 @@
-import React from "react"
-
 export function identify(wXml, officeDocument){
 	const tag=wXml.name.split(":").pop()
 	if(identities[tag])
@@ -15,18 +13,18 @@ const identities={
 	p(wXml,officeDocument){
 		let $=officeDocument.content(wXml)
 		let type="p"
-		
+
 		let identity={type,pr:wXml.children.find(({name})=>name=="w:pPr"),children:wXml.children.filter(({name})=>name!="w:pPr")}
 
 		let pPr=$.find("w\\:pPr")
 		if(pPr.length){
 			let styleId=pPr.find("w\\:pStyle").attr("w:val")
-			
+
 			let numPr=pPr.find("w\\:numPr")
 			if(!numPr.length && styleId){
 				numPr=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr`)
 			}
-			
+
 			if(numPr.length){
 				identity.type="list"
 				identify.numId=numPr.find("w\\:numId").attr("w:val")
@@ -35,14 +33,14 @@ const identities={
 				let outlineLvl=pPr.find("w\\:outlineLvl").attr("w:val")
 				if(!outlineLvl && styleId)
 					outlineLvl=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:outlineLvl`).attr("w:val")
-				
+
 				if(outlineLvl){
 					identity.type="heading"
 					identity.level=parseInt(outlineLvl)+1
-				}	
+				}
 			}
 		}
-		
+
 		return identity
 	},
 	r(wXml){
@@ -68,14 +66,14 @@ const identities={
 		let pr=$.find('>w\\:sdtPr')
 		let content=$.find('>w\\:sdtContent')
 		let children=content.children().toArray()
-		
+
 		let elBinding=pr.find('w\\:dataBinding').get(0)
 		if(elBinding){//properties
 			let path=elBinding.attribs['w:xpath'],
 				d=path.split(/[\/\:\[]/),
 				name=(d.pop(),d.pop());
 			let value=content.text()
-			
+
 			return {type:"property", name, value, children}
 		}else {//controls
 			let prChildren=pr.get(0).children
@@ -100,16 +98,20 @@ const identities={
 	}
 }
 
+export function createReactElementFactory(React){
+	const getComponent=name=>{
+		let existing=getComponent[name]
+		if(existing)
+			return existing
 
-export const createElement=(type,props,children)=>{
-	return React.createElement(getComponent(type),props,...children)
+		let Type=props=>null
+		Type.displayName=name
+		return getComponent[name]=Type
+	}
+
+	return  (type,props,children)=>React.createElement(getComponent(type),props,...children)
 }
 
-const getComponent=name=>{
-	let existing=getComponent[name]
-	if(existing)
-		return existing
-	let Type=props=>null
-	Type.displayName=name
-	return getComponent[name]=Type
+export function createElement(type,props,children){
+	return {type,props,children}
 }

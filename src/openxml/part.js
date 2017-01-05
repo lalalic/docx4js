@@ -2,7 +2,6 @@ export default class{
 	constructor(name,doc){
 		this.name=name
 		this.doc=doc
-		this.rels={}
 
 		var folder="",
 			relName="_rels/"+name+".rels",
@@ -37,7 +36,7 @@ export default class{
 		var target=rel.attr("Target")
 		if(rel.attr("TargetMode")==='External')
 			return target
-		
+
 		switch(rel.attr("Type").split("/").pop()){
 		case 'image':
 			return URL.createObjectURL(new Blob([this.doc.getBufferPart(this.folder+target)],{type:"image/*"}))

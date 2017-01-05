@@ -46,7 +46,7 @@ export default class extends Part{
 		props.key=id
 		props.node=node
 		props.type=type
-		
+
 		let childElements=[]
 		if(children && children.length){
 			childElements=children.map(a=>a ? this.renderNode(a,createElement,identify) : null)
@@ -58,36 +58,5 @@ export default class extends Part{
 				props,
 				childElements
 			)
-	}
-
-	parser(identify=defaultIdentify){
-		let opt={xmlMode:true}
-		let emitter=new EventEmitter()
-		let buffer=this.doc.getPart(this.name).asNodeBuffer()
-		let handler=new DocDomHandler(opt,el=>{
-			if(el.name){
-				if(identify){
-					let type=identify(el,this)
-
-					emitter.emit(identify(el,this),el,this)
-
-				}else
-					emitter.emit(el.name,el,this)
-			}
-		})
-		let parser=new Parser(handler,opt)
-		return {
-			start(){
-				parser.end(buffer)
-				return this
-			},
-			on(){
-				emitter.on(...arguments)
-				return this
-			}
-			,get dom(){
-				return handler.dom
-			}
-		}
 	}
 }
