@@ -3,8 +3,7 @@ node_js:
  - 6
 
 install:
- - npm install --production
- - npm install browserify uglifyify jest
+ - npm install
 
 before_deploy:
  - npm run build
@@ -13,3 +12,5 @@ deploy:
  provider: npm
  email: "lalalic@139.com"
  api_key: $NPM_KEY
+ on:
+  branch: master
