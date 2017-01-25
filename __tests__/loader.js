@@ -1,11 +1,10 @@
-
 jest.unmock("cheerio")
 jest.unmock("jszip")
-jest.unmock("../lib/document")
-jest.unmock("../lib/openxml/document")
+jest.unmock("../src/document")
+jest.unmock("../src/openxml/document")
 
-const zipDoc=require("../lib/document")
-const openxml=require("../lib/openxml/document")
+const zipDoc=require("../src/document")
+const openxml=require("../src/openxml/document")
 
 describe("loader", function(){
     var loader=`${__dirname}/files/loader`
