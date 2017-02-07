@@ -15,6 +15,26 @@ export class OfficeDocument extends Part{
 		return this.renderNode(this.content("w\\:document").get(0),...arguments)
 	}
 
+	parse(domHandler,identify=officeDocument.identify){
+		const doc={}
+		const createElement=domHandler.createElement.bind(domHandler)
+		function _identify(){
+			let model=identify(...arguments)
+			domHandler.emit("*",model)
+			domHandler.emit(model.type, model)
+			if(domHandler[`on${model.type}`])
+				domHandler[`on${model.type}`](model)
+			return model
+		}
+
+		doc.document=this.renderNode(this.content("w\\:document").get(0),createElement,_identify)
+		if(this.styles)
+			doc.styles=this.renderNode(this.styles("w\\:styles").get(0),createElement,_identify)
+		if(this.numbering)
+			doc.numbering=this.renderNode(this.numbering("w\\:numbering").get(0),createElement,_identify)
+		return doc
+	}
+
 	static identify(wXml, officeDocument){
 		const tag=wXml.name.split(":").pop()
 		if(identities[tag])
@@ -143,5 +163,20 @@ const identities={
 			}
 			return state
 		},{type:"tr",children:[],pr:null})
+	},
+	rPrDefault(wXml){
+		return {type:"style",id:"*p"}
+	},
+	pPrDefault(wXml){
+		return {type:"style",id:"*r"}
+	},
+	style(wXml){
+		return {type:"style"}
+	},
+	abstractNum(wXml){
+		return {type:"numbering",id:wXml.attribs["w:abstractNumId"],children:wXml.children.filter(a=>a.name=="w:lvl")}
+	},
+	latentStyles(){
+		return null
 	}
 }

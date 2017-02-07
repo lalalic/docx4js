@@ -23,7 +23,7 @@ export default class{
 	getDataPart(name){
 		let part=this.parts[name]
 		let crc32=part._data.crc32
-		let data=part.asUint8Array()//unsafe call, part._data is changed 
+		let data=part.asUint8Array()//unsafe call, part._data is changed
 		data.crc32=part._data.crc32=crc32//so keep crc32 on part._data for future
 		return data
 	}
@@ -47,7 +47,7 @@ export default class{
 		}
 	}
 
-	parser(){
+	parse(domHandler){
 
 	}
 
