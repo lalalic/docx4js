@@ -15,8 +15,8 @@ export default class extends Base{
 		return this.officeDocument.render(...arguments)
 	}
 
-	parser(){
-		return this.officeDocument.parser(...arguments)
+	parse(){
+		return this.officeDocument.parse(...arguments)
 	}
 
 /*

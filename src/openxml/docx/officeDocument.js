@@ -20,10 +20,12 @@ export class OfficeDocument extends Part{
 		const createElement=domHandler.createElement.bind(domHandler)
 		function _identify(){
 			let model=identify(...arguments)
-			domHandler.emit("*",model)
-			domHandler.emit(model.type, model)
-			if(domHandler[`on${model.type}`])
-				domHandler[`on${model.type}`](model)
+			if(model && typeof(model)=="object"){
+				domHandler.emit("*",model,...arguments)
+				domHandler.emit(model.type, model,...arguments)
+				if(domHandler[`on${model.type}`])
+					domHandler[`on${model.type}`](model,...arguments)
+			}
 			return model
 		}
 
@@ -67,8 +69,8 @@ const identities={
 
 			if(numPr.length){
 				identity.type="list"
-				identify.numId=numPr.find("w\\:numId").attr("w:val")
-				identify.level=numPr.find("w\\:ilvl").attr("w:val")
+				identity.numId=numPr.find("w\\:numId").attr("w:val")
+				identity.level=numPr.find("w\\:ilvl").attr("w:val")
 			}else{
 				let outlineLvl=pPr.find("w\\:outlineLvl").attr("w:val")
 				if(!outlineLvl && styleId)

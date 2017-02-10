@@ -1,4 +1,4 @@
-import DomHandler from "../../dom-hanlder"
+import DomHandler from "../../dom-handler"
 
 export class ModelHandler extends DomHandler{
 

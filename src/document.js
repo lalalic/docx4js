@@ -54,6 +54,10 @@ export default class{
 	render(){
 
 	}
+	
+	save(){
+		
+	}
 
 	/**
 	 *  a helper to load document file
@@ -93,5 +97,9 @@ export default class{
 				parse(inputFile)
 			}
 		})
+	}
+	
+	static create(){
+		return this.load(`templates/blank.${this.ext}`)
 	}
 }
