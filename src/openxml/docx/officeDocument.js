@@ -117,11 +117,11 @@ const identities={
 			let value=content.text()
 
 			return {type:"property", name, value, children}
-		}else {//controls
+		}else{//controls
 			let prChildren=pr.get(0).children
 			let elType=prChildren[prChildren.length-1]
 			let name=elType.name.split(":").pop()
-			let type="text, picture, docPartList, comboBox, dropDownList, date, checkbox".split(",")
+			let type="text,picture,docPartList,comboBox,dropDownList,date,checkbox".split(",")
 				.find(a=>a==name)
 			if(type)
 				return {type:`control.${type}`, children:null}

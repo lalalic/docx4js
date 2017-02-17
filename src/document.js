@@ -9,7 +9,7 @@ let uuid=0
  *  Document.load(file)
  *  	.then(doc=>doc.parse())
  */
-export default class{
+export default class ZipDocument{
 	constructor(parts,raw,props){
 		this.parts=parts
 		this.raw=raw
@@ -34,17 +34,8 @@ export default class{
 			return null
 		else if(part.cheerio)
 			return part
-		else{
-			try{
-				let opt={xmlMode:true}
-				let handler=new DomHandler(opt,el=>el.id=`a${uuid++}`)
-				new Parser(handler,opt).end(part.asText())
-				return this.parts[name]=cheer.load(handler.dom,{xmlMode:true})
-			}catch(error){
-				console.error(error)
-				return null
-			}
-		}
+		else
+			return this.parts[name]=this.constructor.parseXml(part.asText())
 	}
 
 	parse(domHandler){
@@ -100,6 +91,33 @@ export default class{
 	}
 	
 	static create(){
-		return this.load(`templates/blank.${this.ext}`)
+		return this.load(`${__dirname}/../templates/blank.${this.ext}`)
+	}
+	
+	static parseXml(data){
+		try{
+			let opt={xmlMode:true}
+			let handler=new ContentDomHandler(opt)
+			new Parser(handler,opt).end(data)
+			let parsed=cheer.load(handler.dom,opt)
+			if(typeof(parsed.cheerio)=="undefined")
+				parsed.cheerio="customized"
+			return parsed
+		}catch(error){
+			console.error(error)
+			return null
+		}
+	}
+}
+
+class ContentDomHandler extends DomHandler{
+	_addDomElement(el){
+		if(typeof(el.id)=="undefined") 
+			el.id=`a${uuid++}`
+		
+		if(el.type=="text" && (el.data[0]=='\r' || el.data[0]=='\n'))
+			;//remove format whitespaces
+		else
+			return super._addDomElement(el)
 	}
 }
