@@ -9,7 +9,7 @@ describe("loader", function(){
 			expect(!!doc.render).toBe(true)
 		})
 	})
-	
+
 	it("parsed xml with id, without line-feed text node", function(){
 		const content=`
 		<a>hello</a>
@@ -28,11 +28,18 @@ describe("loader", function(){
 			})
 		expect(doc.getObjectPart("content").root().length)
 			.toBe(doc.getObjectPart("trimed").root().length)
-		
+
 		let root=doc.getObjectPart("content").root().get(0)
 		expect(root.children.length).toBe(1)
 		expect(!!root.children[0].id).toBe(true)
 	})
+
+    fit("can be cloned", function(){
+        return openxml.load(`${loader}.docx`).then(docx=>{
+            let cloned=docx.clone()
+            expect(cloned instanceof openxml).toBe(true)
+        })
+    })
 
 
     describe("openxml", function(){
@@ -52,6 +59,6 @@ describe("loader", function(){
             return openxml.load(`${loader}.pptx`).then(check)
         })
     })
-	
-	
+
+
 })

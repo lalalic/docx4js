@@ -1,4 +1,4 @@
-import JSZip from 'jszip'
+import JSZip, {ZipObject} from 'jszip'
 import cheer from "cheerio"
 import {Parser, DomHandler} from "htmlparser2"
 let uuid=0
@@ -45,9 +45,26 @@ export default class ZipDocument{
 	render(){
 
 	}
-	
+
 	save(){
-		
+
+	}
+
+	clone(){
+		return this
+		let zip=new JSZip()
+		let props= props ? JSON.parse(JSON.stringify(this.props)) : props
+		let parts=Object.keys(this.parts).reduce((state, k)=>{
+			let v=this.parts[k]
+			if(v.cheerio)
+				state[k]=v.root().clone()
+			else{
+
+				state[k]=new v.constructor(v.name, v._data, v.options)
+			}
+			return state
+		},{})
+		return new this.constructor(parts,zip, props)
 	}
 
 	/**
@@ -89,11 +106,11 @@ export default class ZipDocument{
 			}
 		})
 	}
-	
+
 	static create(){
 		return this.load(`${__dirname}/../templates/blank.${this.ext}`)
 	}
-	
+
 	static parseXml(data){
 		try{
 			let opt={xmlMode:true}
@@ -112,9 +129,10 @@ export default class ZipDocument{
 
 class ContentDomHandler extends DomHandler{
 	_addDomElement(el){
-		if(typeof(el.id)=="undefined") 
-			el.id=`a${uuid++}`
-		
+		if(typeof(el.id)=="undefined" && el.type=='tag'){
+			el.attribs.id=`a${uuid++}`
+		}
+
 		if(el.type=="text" && (el.data[0]=='\r' || el.data[0]=='\n'))
 			;//remove format whitespaces
 		else

@@ -37,6 +37,35 @@ export class OfficeDocument extends Part{
 		return doc
 	}
 
+	addImage(data){
+		const type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
+		let id=`rId${Math.max(...this.rels('Relationship').toArray().map(a=>parseInt(a.attribs.Id.substring(3))))+1}`
+
+		let targetName="media/image"+(Math.max(...this.rels("Relationship[Type$='image']").toArray().map(t=>{
+			return parseInt(t.attribs.target.match(/\d+/)[0]||"0")
+		}))+1)+".jpg";
+
+		let partName=`${this.folder}/${targetName}`
+		this.doc.raw.file(partName, data)
+		this.doc.parts[partName]=this.doc.raw.file(partName)
+
+		this.rels("Relationships")
+			.append(`<Relationship Type="${type}" Id="${id}" Target="${partName}"/>`)
+
+		return id
+	}
+
+	addExternalImage(url){
+		const type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
+
+		let id=`rId${Math.max(...this.rels('Relationship').toArray().map(a=>parseInt(a.substring(3))))+1}`
+
+		this.rels("Relationships")
+			.append(`<Relationship Type="${type}" Id="${id}" TargetMode="External" Target="${url}"/>`)
+
+		return id
+	}
+
 	static identify(wXml, officeDocument){
 		const tag=wXml.name.split(":").pop()
 		if(identities[tag])
