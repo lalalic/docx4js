@@ -1,11 +1,12 @@
-export default class{
+export default class Part{
 	constructor(name,doc){
 		this.name=name
 		this.doc=doc
 
-		var folder="",
-			relName="_rels/"+name+".rels",
-			i=name.lastIndexOf('/');
+		let folder=""
+		let relName="_rels/"+name+".rels"
+		let i=name.lastIndexOf('/')
+			
 		if(i!==-1){
 			folder=name.substring(0,i+1)
 			relName=folder+"_rels/"+name.substring(i+1)+".rels";

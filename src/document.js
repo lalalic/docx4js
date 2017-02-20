@@ -46,21 +46,46 @@ export default class ZipDocument{
 
 	}
 
-	save(){
-
+	save(file){
+		file=file||`${Date.now()}.docx`
+		
+		let newDoc=new JSZip()
+		Object.keys(this.parts).forEach(path=>{
+			let part=this.parts[path]
+			if(part.cheerio){
+				newDoc.file(path,part.xml())
+			}else{
+				newDoc.file(path,part._data, part.options)
+			}
+		})
+		let data=newDoc.generate({type:"nodebuffer"})
+		if(typeof(document)!="undefined" && window.URL && window.URL.createObjectURL){
+			let url = window.URL.createObjectURL(data)
+			let link = document.createElement("a");
+			document.body.appendChild(link)
+			link.download = file
+			link.href = url;
+			link.click()
+			document.body.removeChild(link)
+		}else{
+			return new Promise((resolve,reject)=>
+				require("f"+"s").writeFile(file,data,error=>{
+					error ? reject(error) : resolve(data)
+				})
+			)
+		}
 	}
 
 	clone(){
-		return this
 		let zip=new JSZip()
 		let props= props ? JSON.parse(JSON.stringify(this.props)) : props
 		let parts=Object.keys(this.parts).reduce((state, k)=>{
 			let v=this.parts[k]
-			if(v.cheerio)
-				state[k]=v.root().clone()
-			else{
-
-				state[k]=new v.constructor(v.name, v._data, v.options)
+			if(v.cheerio){
+				state[k]=this.constructor.parseXml(v.xml())
+			}else{
+				zip.file(v.name,v._data,v.options)
+				state[k]=zip.file(v.name)
 			}
 			return state
 		},{})

@@ -1,5 +1,6 @@
 const zipDoc=require("../src/document")
 const openxml=require("../src/openxml/document")
+const docx4js=require("../src")
 
 describe("loader", function(){
     var loader=`${__dirname}/files/loader`
@@ -10,7 +11,7 @@ describe("loader", function(){
 		})
 	})
 
-	fit("parsed xml with id, without line-feed text node", function(){
+	it("parsed without line-feed text node", function(){
 		const content=`
 		<a>hello</a>
 		`
@@ -33,12 +34,28 @@ describe("loader", function(){
 		expect(root.children.length).toBe(1)
 	})
 
-    fit("can be cloned", function(){
+    it("can be cloned", function(){
         return openxml.load(`${loader}.docx`).then(docx=>{
             let cloned=docx.clone()
             expect(cloned instanceof openxml).toBe(true)
+
+			expect(Object.keys(docx.parts)).toEqual(Object.keys(cloned.parts))
+			expect(docx.officeDocument.content==cloned.officeDocument.content).toBe(false)
+			expect(docx.officeDocument.content.xml()).toBe(cloned.officeDocument.content.xml())
         })
     })
+	
+	it("can be saved", function(){
+		const fs=require("fs")
+		fs.writeFile=jest.fn((file,data, f)=>f())
+		
+		return openxml.load(`${loader}.docx`).then(docx=>{
+			return docx.save("test.docx").then(data=>{
+				expect(fs.writeFile).toBeCalled()
+				return openxml.load(data) 
+			})
+		})
+	})
 
 
     describe("openxml", function(){
