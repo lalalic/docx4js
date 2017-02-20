@@ -15,13 +15,21 @@ export default class Part{
 		if(doc.parts[relName]){
 			this.folder=folder
 			this.relName=relName
-			this.rels=doc.getObjectPart(relName)
+			Object.defineProperty(this,"rels",{
+				get(){
+					return this.doc.getObjectPart(this.relName)
+				}
+			})
 		}
 		this._init()
 	}
 
 	_init(){
-		this.content=this.doc.getObjectPart(this.name)
+		Object.defineProperty(this,"content",{
+			get(){
+				return this.doc.getObjectPart(this.name)
+			}
+		})
 	}
 
 	getRelTarget(type){

@@ -19,7 +19,6 @@ export default class extends Base{
 		return this.officeDocument.parse(...arguments)
 	}
 
-/*
 	dxa2Px(a){
 		return this.pt2Px(parseInt(a)/20.0)
 	}
@@ -59,7 +58,7 @@ export default class extends Base{
 
 		return "#"+RR+GG+BB;
 	}
-*/
+
 	static OfficeDocument=Part
 }
 let RGB=/([a-fA-F0-9]{2}?){3}?/;

@@ -6,12 +6,15 @@ export class OfficeDocument extends Part{
 		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
 			let $=this.rels(rel)
 			let type=$.attr("Type").split("/").pop()
-			this[type]=this.getRelObject($.attr("Target"))
+			Object.defineProperty(this,type,{
+				get(){
+					this.getRelObject($.attr("Target"))
+				}
+			})
 		})
 	}
 
 	render(createElement, identify=OfficeDocument.identify){
-		Object.freeze(this.content)
 		return this.renderNode(this.content("w\\:document").get(0),...arguments)
 	}
 
