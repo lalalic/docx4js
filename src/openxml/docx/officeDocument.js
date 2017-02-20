@@ -155,7 +155,7 @@ const identities={
 			if(type)
 				return {type:`control.${type}`, children:null}
 			else{//container
-				if(content.find("w\\:p,w\\:tbl").length){
+				if(content.find("w\\:p,w\\:tbl,w\\:tr,w\\:tc").length){
 					return {type:"block", children}
 				}else{
 					return {type:"inline", children}
@@ -196,16 +196,19 @@ const identities={
 		},{type:"tr",children:[],pr:null})
 	},
 	rPrDefault(wXml){
-		return {type:"style",id:"*p"}
-	},
-	pPrDefault(wXml){
 		return {type:"style",id:"*r"}
 	},
+	pPrDefault(wXml){
+		return {type:"style",id:"*p"}
+	},
 	style(wXml){
-		return {type:"style"}
+		return {type:"style", id:wXml.attribs['w:styleId']}
 	},
 	abstractNum(wXml){
 		return {type:"numbering",id:wXml.attribs["w:abstractNumId"],children:wXml.children.filter(a=>a.name=="w:lvl")}
+	},
+	num(wXml){
+		return {type:"style",id:wXml.attribs["w:numId"],numbering:wXml.children.find(a=>a.name=="w:abstractNumId").attribs["w:val"]}
 	},
 	latentStyles(){
 		return null

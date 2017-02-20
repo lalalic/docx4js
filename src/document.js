@@ -1,7 +1,7 @@
 import JSZip, {ZipObject} from 'jszip'
 import cheer from "cheerio"
 import {Parser, DomHandler} from "htmlparser2"
-let uuid=0
+
 /**
  *  document parser
  *
@@ -129,10 +129,6 @@ export default class ZipDocument{
 
 class ContentDomHandler extends DomHandler{
 	_addDomElement(el){
-		if(typeof(el.id)=="undefined" && el.type=='tag'){
-			el.attribs.id=`a${uuid++}`
-		}
-
 		if(el.type=="text" && (el.data[0]=='\r' || el.data[0]=='\n'))
 			;//remove format whitespaces
 		else
