@@ -1,70 +1,101 @@
-import {parseString as parse} from "xml2js"
-import {PassThrough} from "stream"
-import sax from "sax"
-
-export default class{
+export default class Part{
 	constructor(name,doc){
 		this.name=name
 		this.doc=doc
-		this.data=doc.parts[name]
-		this.rels={}
 
-		var folder="",
-			relName="_rels/"+name+".rels",
-			i=name.lastIndexOf('/');
-		if(i!==-1){
-			folder=name.substring(0,i)
-			relName=folder+"/_rels/"+name.substring(i+1)+".rels";
-		}
-
-		if(!doc.parts[relName]) return;
-		this.relName=relName
-		
-		parse(doc.parts[relName].asText(),{mergeAttrs:true,explicitArray:false}, (error, doc)=>{
-			doc.Relationships.Relationship.forEach((a, i)=>{
-				this.rels[a.Id]={
-					type:a.Type.split('/').pop(),
-					targetMode: a.TargetMode,
-					target:(a.TargetMode!="External" ? (folder ? (folder+"/") : '') : '')+a.Target}
-			})
-		})
+		let folder=""
+		let relName="_rels/"+name+".rels"
+		let i=name.lastIndexOf('/')
 			
-	}
-	
-	getRel(id){
-		var rel=this.rels[id]
-		if(rel.targetMode=='External')
-			return rel.target
-		switch(rel.type){
-		case 'image':
-			return this.doc.getBufferPart(rel.target)
-		default:
-			return this.doc.getPart(rel.target)
+		if(i!==-1){
+			folder=name.substring(0,i+1)
+			relName=folder+"_rels/"+name.substring(i+1)+".rels";
 		}
+
+		if(doc.parts[relName]){
+			this.folder=folder
+			this.relName=relName
+			Object.defineProperty(this,"rels",{
+				get(){
+					return this.doc.getObjectPart(this.relName)
+				}
+			})
+		}
+		this._init()
 	}
-	
-	asXmlObject(node){
-		let $=node.$=node.attributes
-		delete node.attributes
-		delete node.parent
-		delete node.name
-		Object.keys($).forEach(a=>{
-			let as=a.split(':')
-			if(as.length==2){
-				$[as[1]]=$[a]
-				delete $[a]
+
+	_init(){
+		Object.defineProperty(this,"content",{
+			get(){
+				return this.doc.getObjectPart(this.name)
 			}
 		})
-		return node
 	}
-	
-	getContentStream(){
-		let stream=new PassThrough()
-		stream.end(new Buffer(this.data.asUint8Array()))
-		return stream.pipe(sax.createStream(true,{xmlns:false}))
+
+	getRelTarget(type){
+		return this.rels(`[Type$="${type}"]`).attr("Target")
 	}
-	
-	parse(){
-		return Promise.resolve()
+
+	getRelObject(target){
+		return this.doc.getObjectPart(this.folder+target)
+	}
+
+	getRel(id){
+		var rel=this.rels(`Relationship[Id="${id}"]`)
+		var target=rel.attr("Target")
+		if(rel.attr("TargetMode")==='External')
+			return {url:target}
+
+		switch(rel.attr("Type").split("/").pop()){
+		case 'image':
+			let data=this.doc.getDataPart(this.folder+target)
+			let url=URL.createObjectURL(new Blob([data],{type:"image/*"}))
+			return {url, crc32: data.crc32}
+		default:
+			return this.getRelObject(target)
+		}
+	}
+
+	renderNode(node, createElement=(type,props,children)=>{type,props,children},identify=node=>node.name.split(":").pop()){
+		let {name:tagName, children,id, parent}=node
+		if(node.type=="text"){
+			if(parent.name=="w:t"){
+				return node.data
+			}
+			return null
+		}
+
+		let type=tagName
+		let props={}
+
+		if(identify){
+			let model=identify(node,this)
+			if(!model)
+				return null
+
+			if(typeof(model)=="string"){
+				type=model
+			}else{
+				let content;
+				({type, children:content, ...props}=model);
+				if(content!==undefined)
+					children=content
+			}
+		}
+		props.key=id
+		props.node=node
+		props.type=type
+
+		let childElements=[]
+		if(children && children.length){
+			childElements=children.map(a=>a ? this.renderNode(a,createElement,identify) : null)
+				.filter(a=>!!a)
+		}
+
+		return createElement(
+				type,
+				props,
+				childElements
+			)
 	}
 }

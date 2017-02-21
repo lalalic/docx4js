@@ -1,47 +1,22 @@
 import Base from "../document"
-import {getable} from "../xmlObject"
 import Part from './part'
 
 export default class extends Base{
 	constructor(){
 		super(...arguments)
-		var rels=new Part("",this).rels
-		this.rels={}
-		Object.keys(rels).forEach(id=>{
-			let rel=rels[id]
-			this.rels[rel.type]=rel.target
-		})
-		this.officeDocument=new this.constructor.OfficeDocument(this.rels['officeDocument'],this)
+		this.main=new Part("",this)
+		this.officeDocument=new this.constructor.OfficeDocument(this.main.getRelTarget("officeDocument"), this)
 	}
 	get vender(){"Microsoft"}
 
 	get product(){return 'Office 2010'}
 
-	createElement(node){
-		return this.onCreateElement(node)
-	}
-	
-	onCreateElement(node,type){
-		return node
-	}
-
-	isProperty(node){
-		return node.name.substr(-2)=='Pr'
-	}
-
-	onToProperty(node, type){
-		return node
-	}
-
-	toProperty(node,type){
-		return getable(this.onToProperty(node,type))
+	render(){
+		return this.officeDocument.render(...arguments)
 	}
 
 	parse(){
-		const parts=this.parts
-		return this.getObjectPart("[Content_Types].xml")
-			.then(o=>parts["[Content_Types].xml"]=o)
-			.then(a=>this.officeDocument.parse())
+		return this.officeDocument.parse(...arguments)
 	}
 
 	dxa2Px(a){
@@ -51,7 +26,7 @@ export default class extends Base{
 	pt2Px(pt){
 		return Math.ceil(pt*96/72)
 	}
-	
+
 	cm2Px(cm){
 		return this.pt2Px(parseInt(cm)*28.3464567/360000)
 	}
@@ -83,6 +58,7 @@ export default class extends Base{
 
 		return "#"+RR+GG+BB;
 	}
+
 	static OfficeDocument=Part
 }
 let RGB=/([a-fA-F0-9]{2}?){3}?/;

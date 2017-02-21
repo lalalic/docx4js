@@ -1,15 +1,19 @@
 language: node_js
 node_js:
- - 4.2
+ - 6
+
+before_install:
+ - npm install yarn -g
 
 install:
- - npm install --production
- - npm install browserify uglifyify jest
+ - yarn install
 
 before_deploy:
- - npm run dist.min
+ - yarn run build
 
 deploy:
  provider: npm
  email: "lalalic@139.com"
  api_key: $NPM_KEY
+ on:
+  branch: master

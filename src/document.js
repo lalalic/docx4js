@@ -1,11 +1,7 @@
-import JSZip from 'jszip'
-import {parseString as xml2js} from "xml2js"
+import JSZip, {ZipObject} from 'jszip'
+import cheer from "cheerio"
+import {Parser, DomHandler} from "htmlparser2"
 
-import {getable} from "./xmlObject"
-
-function stripPrefix(name){
-	return name.split(':').pop()
-}
 /**
  *  document parser
  *
@@ -13,7 +9,7 @@ function stripPrefix(name){
  *  Document.load(file)
  *  	.then(doc=>doc.parse())
  */
-export default class{
+export default class ZipDocument{
 	constructor(parts,raw,props){
 		this.parts=parts
 		this.raw=raw
@@ -24,33 +20,76 @@ export default class{
 		return this.parts[name]
 	}
 
-	getBufferPart(name){
-		var part=this.parts[name]
-		var crc32=part._data.crc32
-		var buffer=part.asNodeBuffer()
-		buffer.crc32=part._data.crc32=crc32
-		return buffer
+	getDataPart(name){
+		let part=this.parts[name]
+		let crc32=part._data.crc32
+		let data=part.asUint8Array()//unsafe call, part._data is changed
+		data.crc32=part._data.crc32=crc32//so keep crc32 on part._data for future
+		return data
 	}
 
-	getObjectPart(name, option){
-		return new Promise((resolve,reject)=>{
-			if(this.parts[name])
-				xml2js(this.parts[name].asText(),
-					Object.assign({tagNameProcessors:[stripPrefix],attrNameProcessors:[stripPrefix]},option||{}),
-					(error, result)=>{
-						if(error) {
-							reject(error)
-						}else{
-							resolve(getable(result))
-						}
-					})
-			else
-				resolve()
+	getObjectPart(name){
+		const part=this.parts[name]
+		if(!part)
+			return null
+		else if(part.cheerio)
+			return part
+		else
+			return this.parts[name]=this.constructor.parseXml(part.asText())
+	}
+
+	parse(domHandler){
+
+	}
+
+	render(){
+
+	}
+
+	save(file){
+		file=file||`${Date.now()}.docx`
+		
+		let newDoc=new JSZip()
+		Object.keys(this.parts).forEach(path=>{
+			let part=this.parts[path]
+			if(part.cheerio){
+				newDoc.file(path,part.xml())
+			}else{
+				newDoc.file(path,part._data, part.options)
+			}
 		})
+		let data=newDoc.generate({type:"nodebuffer"})
+		if(typeof(document)!="undefined" && window.URL && window.URL.createObjectURL){
+			let url = window.URL.createObjectURL(data)
+			let link = document.createElement("a");
+			document.body.appendChild(link)
+			link.download = file
+			link.href = url;
+			link.click()
+			document.body.removeChild(link)
+		}else{
+			return new Promise((resolve,reject)=>
+				require("f"+"s").writeFile(file,data,error=>{
+					error ? reject(error) : resolve(data)
+				})
+			)
+		}
 	}
 
-	parse(){
-
+	clone(){
+		let zip=new JSZip()
+		let props= props ? JSON.parse(JSON.stringify(this.props)) : props
+		let parts=Object.keys(this.parts).reduce((state, k)=>{
+			let v=this.parts[k]
+			if(v.cheerio){
+				state[k]=this.constructor.parseXml(v.xml())
+			}else{
+				zip.file(v.name,v._data,v.options)
+				state[k]=zip.file(v.name)
+			}
+			return state
+		},{})
+		return new this.constructor(parts,zip, props)
 	}
 
 	/**
@@ -91,5 +130,33 @@ export default class{
 				parse(inputFile)
 			}
 		})
+	}
+
+	static create(){
+		return this.load(`${__dirname}/../templates/blank.${this.ext}`)
+	}
+
+	static parseXml(data){
+		try{
+			let opt={xmlMode:true}
+			let handler=new ContentDomHandler(opt)
+			new Parser(handler,opt).end(data)
+			let parsed=cheer.load(handler.dom,opt)
+			if(typeof(parsed.cheerio)=="undefined")
+				parsed.cheerio="customized"
+			return parsed
+		}catch(error){
+			console.error(error)
+			return null
+		}
+	}
+}
+
+class ContentDomHandler extends DomHandler{
+	_addDomElement(el){
+		if(el.type=="text" && (el.data[0]=='\r' || el.data[0]=='\n'))
+			;//remove format whitespaces
+		else
+			return super._addDomElement(el)
 	}
 }
