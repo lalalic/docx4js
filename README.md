@@ -2,6 +2,8 @@
 
 # docx4js
 
+***please note 3.x is totally different from 2.x**, everything is breaking change.
+
 ***please note 2.x is totally different from 1.x**, everything is breaking change.
 
 **docx4js** is a javascript docx parser.
@@ -83,40 +85,44 @@ Attributes of word model usually affects styles, but I don't understand all of t
 * section
 * table
 
-## 2.x API
-`require("docx4js")` return a base docx converter, which has following two functions.
-
-## static load(file): return Promise resolved by a parsed document
-**file** is a file path string in nodejs, as for browser, it is a file from input[type=file].
-
-## parse ()
-to parse docx document
-
-### onCreateElement(node, type)
-handle identified content model from inner/children to outer/parent
-
-**example**
-plese check dist/index.html
+## 3.x API
 <pre>
-	function test(input){
-		var text=document.querySelector("#text")
-		class MyDocx extends Docx{
-			onCreateElement(node, type){
-				switch(type){
-					case 'text':
-						text.value+=node.children
-					break
-					case 'paragraph':
-						text.value+="\n\r"
-					break
-				}
-			}
-		}
+import docx4js from "docx4js"
 
-		MyDocx.load(input.files[0]).then(function(docx){
-			docx.parse()
-		})
+docx4js.load("~/test.docx").then(docx=>{
+	//you can render docx to anything (react elements, tree, dom, and etc) by giving a function
+	docx.render(function createElement(type,props,children){
+		return {type,props,children}
+	})
+	
+	//or use a event handler for more flexible control
+	const ModelHandler=require("docx4js/openxml/docx/model-handler").default
+	class MyModelhandler extends ModelHandler{
+		onp({type,children,node,...}, node, officeDocument){
+		
+		}
 	}
+	let handler=new MyModelhandler()
+	handler.on("*",function({type,children,node,...}, node, officeDocument){
+		console.log("found model:"+type)
+	})
+	handler.on("r",function({type,children,node,...}, node, officeDocument){
+		console.log("found a run")
+	})
+	
+	docx.parse(handler)
+	
+	//you can change content on docx.officeDocument.content, and then save
+	docx.officeDocument.content("w\\:t").text("hello")
+	docx.save("~/changed.docx")
+
+})
+
+//you can create a blank docx
+docx4js.create().then(docx=>{
+	//do anything you want
+	docx.save("~/new.docx")
+})
 </pre>
 # License
 GPL
