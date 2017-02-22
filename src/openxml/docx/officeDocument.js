@@ -61,7 +61,7 @@ export class OfficeDocument extends Part{
 	addExternalImage(url){
 		const type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
 
-		let id=`rId${Math.max(...this.rels('Relationship').toArray().map(a=>parseInt(a.substring(3))))+1}`
+		let id=`rId${Math.max(...this.rels('Relationship').toArray().map(a=>parseInt(a.attribs.Id.substring(3))))+1}`
 
 		this.rels("Relationships")
 			.append(`<Relationship Type="${type}" Id="${id}" TargetMode="External" Target="${url}"/>`)
