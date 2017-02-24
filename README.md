@@ -124,5 +124,7 @@ docx4js.create().then(docx=>{
 	docx.save("~/new.docx")
 })
 </pre>
+# ChangeLog
+	* ~~identify OLE object~~
 # License
 GPL

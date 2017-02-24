@@ -52,7 +52,10 @@ export default class Part{
 			let url=URL.createObjectURL(new Blob([data],{type:"image/*"}))
 			return {url, crc32: data.crc32}
 		default:
-			return this.getRelObject(target)
+			if(target.endsWidth(".xml"))
+				return this.getRelObject(target)
+			else
+				return this.doc.getPart(this.folder+target)
 		}
 	}
 

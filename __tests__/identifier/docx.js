@@ -23,6 +23,11 @@ describe("model identifier", function(){
         it("run",()=>{
 			identify(`<w:r/>`,"r")
         })
+		
+		it("object",()=>{
+			let found=identify('<w:object/>',"object")
+			expect(found.children.length).toBe(0)
+		})
 
         describe("sdt",function(){
 			const sdt=(pr,content)=>`

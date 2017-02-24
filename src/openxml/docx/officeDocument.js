@@ -215,5 +215,8 @@ const identities={
 	},
 	latentStyles(){
 		return null
+	},
+	object(wXml){
+		return {type:"object",children:[]}
 	}
 }
