@@ -103,9 +103,13 @@ export default class ZipDocument{
 		var DocumentSelf=this
 		return new Promise((resolve, reject)=>{
 			function parse(data, props={}){
-				var raw=new JSZip(data),parts={}
-				raw.filter((path,file)=>parts[path]=file)
-				resolve(new DocumentSelf(parts,raw,props))
+				try{
+					let raw=new JSZip(data),parts={}
+					raw.filter((path,file)=>parts[path]=file)
+					resolve(new DocumentSelf(parts,raw,props))
+				}catch(error){
+					reject(error)
+				}
 			}
 
 			if(typeof inputFile=='string'){//file name
@@ -138,7 +142,7 @@ export default class ZipDocument{
 
 	static parseXml(data){
 		try{
-			let opt={xmlMode:true}
+			let opt={xmlMode:true,decodeEntities: false}
 			let handler=new ContentDomHandler(opt)
 			new Parser(handler,opt).end(data)
 			let parsed=cheer.load(handler.dom,opt)

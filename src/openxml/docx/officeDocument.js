@@ -6,9 +6,12 @@ export class OfficeDocument extends Part{
 		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
 			let $=this.rels(rel)
 			let type=$.attr("Type").split("/").pop()
+			if(type=="customXml")
+				return
+			let target=$.attr("Target")
 			Object.defineProperty(this,type,{
 				get(){
-					this.getRelObject($.attr("Target"))
+					return this.getRelObject(target)
 				}
 			})
 		})
@@ -94,9 +97,9 @@ const identities={
 		if(pPr.length){
 			let styleId=pPr.find("w\\:pStyle").attr("w:val")
 
-			let numPr=pPr.find("w\\:numPr")
+			let numPr=pPr.find("w\\:numPr>w\\:numId")
 			if(!numPr.length && styleId){
-				numPr=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr`)
+				numPr=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr>w\\:numId`)
 			}
 
 			if(numPr.length){
