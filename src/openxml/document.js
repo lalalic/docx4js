@@ -37,6 +37,7 @@ export default class extends Base{
 		v=v.split(' ')[0]
 		return v.charAt(0)=='#' ? v : (RGB.test(v) ? '#'+v : v)
 	}
+	
 	shadeColor(color, percent) {
 		if(!RGB.test(color))
 			return color

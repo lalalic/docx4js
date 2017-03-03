@@ -18,7 +18,7 @@ export class OfficeDocument extends Part{
 	}
 
 	render(createElement, identify=OfficeDocument.identify){
-		return this.renderNode(this.content("w\\:document").get(0),...arguments)
+		return this.renderNode(this.content("w\\:document").get(0),createElement, identify)
 	}
 
 	parse(domHandler,identify=officeDocument.identify){
@@ -84,8 +84,20 @@ export class OfficeDocument extends Part{
 export default OfficeDocument
 
 const identities={
-	document(wXml){
-		return {type:"document", children: wXml.children[0].children}
+	document(wXml,officeDocument){
+		let $=officeDocument.content
+		let current=null
+		let children=$("w\\:sectPr").each((i,sect)=>{
+			let end=$(sect).closest('w\\:body>*')
+			sect.content=end.prevUntil(current).toArray().reverse()
+			if(!end.is(sect))
+				sect.content.push(end.get(0))
+			current=end
+		}).toArray()
+		return {type:"document", children}
+	},
+	sectPr(wXml,officeDocument){ 
+		return {type:"section", children:wXml.content}
 	},
 	p(wXml,officeDocument){
 		let $=officeDocument.content(wXml)

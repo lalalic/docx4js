@@ -15,6 +15,57 @@ describe("model identifier", function(){
         it("document", ()=>{
 			identify(`<w:document><w:body/></w:document>`,"document")
         })
+		
+		
+		
+		describe("section", function(){
+			const xml=a=>`
+				<w:document>
+					<w:body>
+						${a||""}
+						<w:sectPr/>
+					</w:body>
+				</w:document>				
+			`
+			it("section",()=>{
+				identify(`<w:sectPr/>`,"section")
+			})
+			
+			it("<w:sectPr/>", ()=>{
+				let {children:sections}=identify(xml(),"document")
+				expect(sections.length).toBe(1)
+				let [first]=sections
+				expect(first.content.length).toBe(0)
+			})
+			
+			it('<w:p id="1"/><w:p id="2"/><w:sectPr/>', ()=>{
+				let {children:sections}=identify(xml('<w:p id="1"/><w:p id="2"/>'),"document")
+				expect(sections.length).toBe(1)
+				let [first]=sections
+				expect(first.content.length).toBe(2)
+				let [p1,p2]=first.content
+				expect(p1.attribs.id).toBe("1")
+				expect(p2.attribs.id).toBe("2")
+			})
+			
+			it('<w:p id="1"/><w:p id="2"/><w:p id="3"><w:sectPr/></w:p><w:p/><w:p/><w:sectPr/>', ()=>{
+				let {children:sections}=identify(xml('<w:p id="1"/><w:p id="2"/><w:p id="3"><w:sectPr/></w:p><w:p id="4"/><w:p id="5"/>'),"document")
+				expect(sections.length).toBe(2)
+				let [first,second]=sections
+				expect(first.content.length).toBe(3)
+				expect(second.content.length).toBe(2)
+				
+				let [p1,p2,p3]=first.content
+				expect(p1.attribs.id).toBe("1")
+				expect(p2.attribs.id).toBe("2")
+				expect(p3.attribs.id).toBe("3")
+				
+				let[p4,p5]=second.content
+				expect(p4.attribs.id).toBe("4")
+				expect(p5.attribs.id).toBe("5")
+			})
+		
+		})
 
         it("paragraph", ()=>{
 			identify(`<w:p/>`,"p")

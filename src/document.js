@@ -123,11 +123,11 @@ export default class ZipDocument{
 			}else if(inputFile instanceof Blob){
 				var reader=new FileReader();
 				reader.onload=function(e){
-					parse(e.target.result, {
+					parse(e.target.result, (inputFile.name ? {
 							name:inputFile.name.replace(/\.docx$/i,''),
 							lastModified:inputFile.lastModified,
 							size:inputFile.size
-						})
+						} : {size:inputFile.size}))
 				}
 				reader.readAsArrayBuffer(inputFile);
 			}else {
