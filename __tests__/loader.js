@@ -74,7 +74,9 @@ describe("loader", function(){
         it("can load pptx", function(){
             return openxml.load(`${loader}.pptx`).then(check)
         })
+		
+		it("can create", function(){
+			return docx4js.create().then(check)
+		})
     })
-
-
 })

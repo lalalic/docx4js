@@ -100,7 +100,11 @@ export default class ZipDocument{
 	 */
 
 	static load(inputFile){
-		var DocumentSelf=this
+		const DocumentSelf=this
+		
+		if(inputFile instanceof ZipDocument)
+			return Promise.resolve(inputFile)
+		
 		return new Promise((resolve, reject)=>{
 			function parse(data, props={}){
 				try{
