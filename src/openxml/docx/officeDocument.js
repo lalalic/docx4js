@@ -16,6 +16,32 @@ export class OfficeDocument extends Part{
 			})
 		})
 	}
+	
+	themeColor(name){
+		if(name=='phClr')
+			return name
+		let key=this.settings("w\\:clrSchemeMapping").attr(`w:${name}`)||name
+		let found=this.theme(`a\\:clrScheme>a\\:${key}`)
+		let color=found.find("a\\:srgbClr").attr("w:val") || found.find("a\\:sysClr").attr("w:lastClr") || "000000"
+		return `#${color}`
+	}
+	
+	themeFont(name){
+		let [first,...second]=name.split(/(?=[A-Z])/g)
+		second={HAnsi:'latin',Ascii:'latin',Bidi:'cs',EastAsia:'ea'}[second.join().toLowerCase()]
+		let font=this.theme(`a\\:${second}`,`a\\:fontScheme>a\\:${first}`).attr("typeface")
+		if(!font && (second=='cs' || second=='ea')){
+			let lang=this.settings("w\\:themeFontLang").attr(`w:${{cs:'bidi',ea:'eastAsia'}[second]}`)
+			font=this.theme(`a\\:font[script=${{'zh-CN':'Hans'}[lang]}]`,`a\\:fontScheme>a\\:${first}`).attr("typeface")
+		}
+		return font
+	}
+	
+	themeFormat(type,idx){
+		let kind={line:'ln',fill:'bgFillStyleLst',bgFill:'bgFillStyleLst',effect:'effectStyle',font:'fontScheme'}[type]
+		return this.theme(`a\\:${kind}:nth-child(${parseInt(idx)+1})`,`a\\:fmtScheme`)
+	}
+	
 
 	render(createElement, identify=OfficeDocument.identify){
 		return this.renderNode(this.content("w\\:document").get(0),createElement, identify)
