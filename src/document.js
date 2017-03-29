@@ -58,8 +58,8 @@ export default class ZipDocument{
 				newDoc.file(path,part._data, part.options)
 			}
 		})
-		let data=newDoc.generate({type:"nodebuffer"})
 		if(typeof(document)!="undefined" && window.URL && window.URL.createObjectURL){
+			let data=newDoc.generate({type:"blob"})
 			let url = window.URL.createObjectURL(data)
 			let link = document.createElement("a");
 			document.body.appendChild(link)
@@ -68,6 +68,7 @@ export default class ZipDocument{
 			link.click()
 			document.body.removeChild(link)
 		}else{
+			let data=newDoc.generate({type:"nodebuffer"})
 			return new Promise((resolve,reject)=>
 				require("f"+"s").writeFile(file,data,error=>{
 					error ? reject(error) : resolve(data)
