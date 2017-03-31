@@ -10,6 +10,9 @@ import {Parser, DomHandler} from "htmlparser2"
  *  	.then(doc=>doc.parse())
  */
 export default class ZipDocument{
+	static ext="unknown"
+	static mime="application/zip"
+	
 	constructor(parts,raw,props){
 		this.parts=parts
 		this.raw=raw
@@ -46,8 +49,8 @@ export default class ZipDocument{
 
 	}
 
-	save(file){
-		file=file||`${Date.now()}.docx`
+	save(file,options){
+		file=file||this.props.name||`${Date.now()}.docx`
 		
 		let newDoc=new JSZip()
 		Object.keys(this.parts).forEach(path=>{
@@ -59,7 +62,7 @@ export default class ZipDocument{
 			}
 		})
 		if(typeof(document)!="undefined" && window.URL && window.URL.createObjectURL){
-			let data=newDoc.generate({type:"blob"})
+			let data=newDoc.generate({...options,type:"blob",mimeType:this.constructor.mime})
 			let url = window.URL.createObjectURL(data)
 			let link = document.createElement("a");
 			document.body.appendChild(link)
@@ -68,7 +71,7 @@ export default class ZipDocument{
 			link.click()
 			document.body.removeChild(link)
 		}else{
-			let data=newDoc.generate({type:"nodebuffer"})
+			let data=newDoc.generate({...options,type:"nodebuffer"})
 			return new Promise((resolve,reject)=>
 				require("f"+"s").writeFile(file,data,error=>{
 					error ? reject(error) : resolve(data)

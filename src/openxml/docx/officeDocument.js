@@ -18,6 +18,10 @@ export class OfficeDocument extends Part{
 	}
 
 	render(createElement, identify=OfficeDocument.identify){
+		if(this.styles)
+			this.renderNode(this.styles("w\\:styles").get(0),createElement,identify)
+		if(this.numbering)
+			this.renderNode(this.numbering("w\\:numbering").get(0),createElement,identify)
 		return this.renderNode(this.content("w\\:document").get(0),createElement, identify)
 	}
 
@@ -35,11 +39,11 @@ export class OfficeDocument extends Part{
 			return model
 		}
 
-		doc.document=this.renderNode(this.content("w\\:document").get(0),createElement,_identify)
 		if(this.styles)
 			doc.styles=this.renderNode(this.styles("w\\:styles").get(0),createElement,_identify)
 		if(this.numbering)
 			doc.numbering=this.renderNode(this.numbering("w\\:numbering").get(0),createElement,_identify)
+		doc.document=this.renderNode(this.content("w\\:document").get(0),createElement,_identify)
 		return doc
 	}
 
@@ -232,10 +236,10 @@ const identities={
 		return {type:"style", id:wXml.attribs['w:styleId']}
 	},
 	abstractNum(wXml){
-		return {type:"numbering",id:wXml.attribs["w:abstractNumId"],children:wXml.children.filter(a=>a.name=="w:lvl")}
+		return {type:"abstractNum",id:wXml.attribs["w:abstractNumId"]}
 	},
 	num(wXml){
-		return {type:"style",id:wXml.attribs["w:numId"],numbering:wXml.children.find(a=>a.name=="w:abstractNumId").attribs["w:val"]}
+		return {type:"num",id:wXml.attribs["w:numId"],abstractNum:wXml.children.find(a=>a.name=="w:abstractNumId").attribs["w:val"]}
 	},
 	latentStyles(){
 		return null

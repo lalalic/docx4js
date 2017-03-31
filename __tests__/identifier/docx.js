@@ -149,12 +149,8 @@ describe("model identifier", function(){
     })
 
     describe("style", function(){
-        it("default P: *p", ()=>{
-			expect(identify('<w:pPrDefault/>', "style").id).toBe('*p')
-        })
-
-        it("default run: *r", ()=>{
-			expect(identify('<w:rPrDefault/>', "style").id).toBe('*r')
+        it("document default", ()=>{
+			expect(identify('<w:docDefaults/>', "style").id).not.toBeDefined()
         })
 
         it("normal paragraph: Normal",()=>{
@@ -167,14 +163,13 @@ describe("model identifier", function(){
 			let model=identify(`
 				<w:abstractNum w:abstractNumId="0">
 					<w:lvl w:ilvl="0" w:tplc="04090001"/>
-				</w:abstractNum>`, "numbering")
-			expect(model.children.length).toBe(1)
+				</w:abstractNum>`, "abstractNum")
 			expect(model.id).toBe("0")
         })
 		
 		it("list[numbering=1]=2",function(){
-			let model=identify(`<w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num>`, "style")
-			expect(model.numbering).toBe("1")
+			let model=identify(`<w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num>`, "num")
+			expect(model.abstractNum).toBe("1")
 			expect(model.id).toBe("2")
 		})
     })
