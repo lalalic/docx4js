@@ -100,8 +100,19 @@ const identities={
 		}).toArray()
 		return {type:"document", children}
 	},
-	sectPr(wXml,officeDocument){ 
-		return {type:"section", children:wXml.content}
+	sectPr(wXml,officeDocument){
+		const hf=type=>wXml.children.filter(a=>a.name==`w:${type}Reference`).reduce((headers,a)=>{
+				headers.set(a.attribs["w:type"],officeDocument.getRel(a.attribs["r:id"]))
+				return headers
+			},new Map())
+
+		return {
+			type:"section",
+			children:wXml.content,
+			headers:hf("header"),
+			footers:hf("footer"),
+			hasTitlePage: !!wXml.children.find(a=>a.name=="w:titlePg")
+		}
 	},
 	p(wXml,officeDocument){
 		let $=officeDocument.content(wXml)
