@@ -2,9 +2,9 @@
 
 # docx4js
 
-***please note 3.x is totally different from 2.x**, everything is breaking change.
+***please note 3.x is totally different from 2.x**, everything is a breaking change.
 
-***please note 2.x is totally different from 1.x**, everything is breaking change.
+***please note 2.x is totally different from 1.x**, everything is a breaking change.
 
 **docx4js** is a javascript docx parser.
 
@@ -86,7 +86,8 @@ Attributes of word model usually affects styles, but I don't understand all of t
 * table
 
 ## 3.x API
-<pre>
+
+```js
 import docx4js from "docx4js"
 
 docx4js.load("~/test.docx").then(docx=>{
@@ -123,8 +124,10 @@ docx4js.create().then(docx=>{
 	//do anything you want
 	docx.save("~/new.docx")
 })
-</pre>
+```
+
 # ChangeLog
 	* ~~identify OLE object~~
+
 # License
 GPL
