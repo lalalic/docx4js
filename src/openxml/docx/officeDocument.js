@@ -156,16 +156,22 @@ const identities={
 	},
 	inline(wXml,officeDocument){
 		let $=officeDocument.content(wXml)
-		let type=$.find('a\\:graphic>a\\:graphicData').attr('uri').split('/').pop()
-		let props={type:`inline.${type}`, children:null}
-		switch(type){
-		case "picture":
-			let rid=$.find('a\\:blip').attr('r:embed')
-			Object.assign(props,officeDocument.getRel(rid))
-		break
-		}
-		return props
+		return {type:`drawing.inline`, children:$.find('a\\:graphic>a\\:graphicData').children().toArray()}
 	},
+	anchor(wXml, officeDocument){
+		let $=officeDocument.content(wXml)
+		let graphicData=$.find('a\\:graphic>a\\:graphicData')
+		let type=graphicData.attr("uri").split("/").pop()
+		let children=graphicData.children().toArray()
+		if(type=="wordprocessingGroup")
+			children=children[0].children.filter(a=>a.name.split(":")[0]!="wpg")
+
+		return {type:"drawing.anchor",children}
+	},
+	pic(wXml, officeDocument){
+		let rid=officeDocument.content(wXml).find("a\\:blip").attr('r:embed')
+		return {type:"picture",...officeDocument.getRel(rid)}
+	},	
 	sdt(wXml,officeDocument){
 		let $=officeDocument.content(wXml)
 		let pr=$.find('>w\\:sdtPr')
