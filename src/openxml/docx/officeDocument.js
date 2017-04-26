@@ -171,7 +171,10 @@ const identities={
 	pic(wXml, officeDocument){
 		let rid=officeDocument.content(wXml).find("a\\:blip").attr('r:embed')
 		return {type:"picture",...officeDocument.getRel(rid)}
-	},	
+	},
+	wsp(wXml, officeDocument){
+		return {type:"shape", children:officeDocument.content(wXml).find(">wps\\:txbx>w\\:txbxContent").children().toArray()}
+	},
 	sdt(wXml,officeDocument){
 		let $=officeDocument.content(wXml)
 		let pr=$.find('>w\\:sdtPr')
