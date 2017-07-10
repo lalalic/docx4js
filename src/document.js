@@ -12,11 +12,12 @@ import {Parser, DomHandler} from "htmlparser2"
 export default class ZipDocument{
 	static ext="unknown"
 	static mime="application/zip"
-	
+
 	constructor(parts,raw,props){
 		this.parts=parts
 		this.raw=raw
 		this.props=props
+		this._shouldReleased=new Map()
 	}
 
 	getPart(name){
@@ -29,6 +30,21 @@ export default class ZipDocument{
 		let data=part.asUint8Array()//unsafe call, part._data is changed
 		data.crc32=part._data.crc32=crc32//so keep crc32 on part._data for future
 		return data
+	}
+
+	getDataPartAsUrl(name,type="*/*"){
+		let part=this.parts[name]
+		let crc32=part._data.crc32
+		if(!this._shouldReleased.has(crc32)){
+			this._shouldReleased.set(crc32,URL.createObjectURL(new Blob([part.asUint8Array],{type})))
+		}
+		return this._shouldReleased.get(crc32)
+	}
+
+	release(){
+		for(let [, url] of this._shouldReleased){
+			window.URL.revokeObjectURL(url)
+		}
 	}
 
 	getObjectPart(name){
@@ -51,7 +67,7 @@ export default class ZipDocument{
 
 	save(file,options){
 		file=file||this.props.name||`${Date.now()}.docx`
-		
+
 		let newDoc=new JSZip()
 		Object.keys(this.parts).forEach(path=>{
 			let part=this.parts[path]
@@ -70,6 +86,7 @@ export default class ZipDocument{
 			link.href = url;
 			link.click()
 			document.body.removeChild(link)
+			window.URL.revokeObjectURL(url)
 		}else{
 			let data=newDoc.generate({...options,type:"nodebuffer"})
 			return new Promise((resolve,reject)=>
@@ -105,10 +122,10 @@ export default class ZipDocument{
 
 	static load(inputFile){
 		const DocumentSelf=this
-		
+
 		if(inputFile instanceof ZipDocument)
 			return Promise.resolve(inputFile)
-		
+
 		return new Promise((resolve, reject)=>{
 			function parse(data, props={}){
 				try{

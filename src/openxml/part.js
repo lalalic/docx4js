@@ -6,7 +6,7 @@ export default class Part{
 		let folder=""
 		let relName="_rels/"+name+".rels"
 		let i=name.lastIndexOf('/')
-			
+
 		if(i!==-1){
 			folder=name.substring(0,i+1)
 			relName=folder+"_rels/"+name.substring(i+1)+".rels";
@@ -48,8 +48,7 @@ export default class Part{
 
 		switch(rel.attr("Type").split("/").pop()){
 		case 'image':
-			let data=this.doc.getDataPart(this.folder+target)
-			let url=URL.createObjectURL(new Blob([data],{type:"image/*"}))
+			let url=this.doc.getDataPartAsUrl(this.folder+target, "image/*")
 			return {url, crc32: data.crc32}
 		default:
 			if(target.endsWith(".xml"))
