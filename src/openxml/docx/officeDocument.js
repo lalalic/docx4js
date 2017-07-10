@@ -80,8 +80,8 @@ export class OfficeDocument extends Part{
 	static identify(wXml, officeDocument){
 		const tag=wXml.name.split(":").pop()
 		if(identities[tag])
-			return identities[tag](...arguments)||tag
-
+			return identities[tag](...arguments)
+		
 		return tag
 	}
 }
@@ -154,6 +154,7 @@ const identities={
 	fldChar(wXml){
 		return wXml.attribs["w:fldCharType"]
 	},
+
 	inline(wXml,officeDocument){
 		let $=officeDocument.content(wXml)
 		return {type:`drawing.inline`, children:$.find('a\\:graphic>a\\:graphicData').children().toArray()}
@@ -174,6 +175,9 @@ const identities={
 	},
 	wsp(wXml, officeDocument){
 		return {type:"shape", children:officeDocument.content(wXml).find(">wps\\:txbx>w\\:txbxContent").children().toArray()}
+	},
+	Fallback(){
+		return null
 	},
 	sdt(wXml,officeDocument){
 		let $=officeDocument.content(wXml)
