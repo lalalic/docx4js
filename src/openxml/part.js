@@ -49,7 +49,7 @@ export default class Part{
 		switch(rel.attr("Type").split("/").pop()){
 		case 'image':
 			let url=this.doc.getDataPartAsUrl(this.folder+target, "image/*")
-			return {url, crc32: data.crc32}
+			return {url}
 		default:
 			if(target.endsWith(".xml"))
 				return this.getRelObject(target)
