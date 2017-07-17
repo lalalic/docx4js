@@ -128,24 +128,50 @@ describe("model identifier", function(){
 			identify(`<w:unknown w:fldCharType="begin"/>`,"fldChar")
 		})
 		
-		describe("inline", function(){
-			const inline=(type='picture',data='')=>`
-				<wp:inline>
-					<a:graphic>
-						<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/${type}">
-							${data}
-						<a:/graphicData>
-					</a:graphic>
-				</wp:inline>
-			`
-			it("picture",function(){ 
-				identify(inline('picture','<a:blip r:embed="unknown"/>'),"inline.picture",{getRel(){}})
-			})
-			
-			it("shape",function(){
-				identify(inline('shape'),"inline.shape")
-			})
+		it("drawing.inline", ()=>{
+			let model=identify(`
+			<wp:inline>
+				<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+					<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+						<pic:pic/>
+						<pic:pic/>
+					</a:graphicData>
+				</a:graphic>
+			</wp:inline>`,"drawing.inline")
+			expect(model.children.length).toBe(2)
 		})
+		
+		it("drawing.anchor", ()=>{
+			let model=identify(`
+			<wp:anchor>
+				<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+					<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+						<pic:pic/>
+						<pic:pic/>
+					</a:graphicData>
+				</a:graphic>
+			</wp:anchor>
+			`,"drawing.anchor")
+			expect(model.children.length).toBe(2)
+		})
+		
+		it("drawing.anchor.group", ()=>{
+			let model=identify(`
+			<wp:anchor>
+				<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+					<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingGroup">
+						<wp:gpg>
+							<pic:pic/>
+							<pic:pic/>
+						</wp:pgp>
+					</a:graphicData>
+				</a:graphic>
+			</wp:anchor>
+			`,"drawing.anchor")
+			expect(model.children.length).toBe(2)
+		})
+		
+		
     })
 
     describe("style", function(){
