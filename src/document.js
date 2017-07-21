@@ -40,6 +40,12 @@ export default class ZipDocument{
 		}
 		return this._shouldReleased.get(crc32)
 	}
+	
+	getPartCrc32(name){
+		let part=this.parts[name]
+		let crc32=part._data.crc32
+		return crc32
+	}
 
 	release(){
 		for(let [, url] of this._shouldReleased){
