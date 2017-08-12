@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "3.1.5",
+  "version": "3.1.6",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -48,8 +48,8 @@
     "compile-superdaddy": "babel src -d ../superdaddy/node_modules/docx4js/lib --source-maps inline",
     "compile-docx-template": "babel src -d ../docx-template/node_modules/docx4js/lib --source-maps inline",
     "compile-we-edit": "babel src -d ../we-edit/node_modules/docx4js/lib --source-maps inline",
-    
-	
+
+
 	"build": "browserify -g uglifyify -r ./lib/index.js:docx4js -o dist/docx4js.js",
     "build.watch": "watchify -v -d -r ./lib/index.js:docx4js -o dist/index.js",
     "test": "jest",

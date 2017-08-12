@@ -40,7 +40,7 @@ export default class ZipDocument{
 		}
 		return this._shouldReleased.get(crc32)
 	}
-	
+
 	getPartCrc32(name){
 		let part=this.parts[name]
 		let crc32=part._data.crc32
@@ -62,7 +62,7 @@ export default class ZipDocument{
 		else
 			return this.parts[name]=this.constructor.parseXml(part.asText())
 	}
-
+	
 	parse(domHandler){
 
 	}
