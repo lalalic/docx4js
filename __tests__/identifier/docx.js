@@ -6,18 +6,18 @@ describe("model identifier", function(){
 		let node=$.root().contents().get(0)
 		expect(!!node).toBe(true)
 		let identified=docx4js.OfficeDocument.identify(node,Object.assign({content:$},officeDocument))
-		
+
 		expect(identified.type).toBe(expected)
-		
+
 		return identified
 	}
     describe("content", function(){
         it("document", ()=>{
 			identify(`<w:document><w:body/></w:document>`,"document")
         })
-		
-		
-		
+
+
+
 		describe("section", function(){
 			const xml=a=>`
 				<w:document>
@@ -25,19 +25,19 @@ describe("model identifier", function(){
 						${a||""}
 						<w:sectPr/>
 					</w:body>
-				</w:document>				
+				</w:document>
 			`
 			it("section",()=>{
 				identify(`<w:sectPr/>`,"section")
 			})
-			
+
 			it("<w:sectPr/>", ()=>{
 				let {children:sections}=identify(xml(),"document")
 				expect(sections.length).toBe(1)
 				let [first]=sections
 				expect(first.content.length).toBe(0)
 			})
-			
+
 			it('<w:p id="1"/><w:p id="2"/><w:sectPr/>', ()=>{
 				let {children:sections}=identify(xml('<w:p id="1"/><w:p id="2"/>'),"document")
 				expect(sections.length).toBe(1)
@@ -47,24 +47,24 @@ describe("model identifier", function(){
 				expect(p1.attribs.id).toBe("1")
 				expect(p2.attribs.id).toBe("2")
 			})
-			
+
 			it('<w:p id="1"/><w:p id="2"/><w:p id="3"><w:sectPr/></w:p><w:p/><w:p/><w:sectPr/>', ()=>{
 				let {children:sections}=identify(xml('<w:p id="1"/><w:p id="2"/><w:p id="3"><w:sectPr/></w:p><w:p id="4"/><w:p id="5"/>'),"document")
 				expect(sections.length).toBe(2)
 				let [first,second]=sections
 				expect(first.content.length).toBe(3)
 				expect(second.content.length).toBe(2)
-				
+
 				let [p1,p2,p3]=first.content
 				expect(p1.attribs.id).toBe("1")
 				expect(p2.attribs.id).toBe("2")
 				expect(p3.attribs.id).toBe("3")
-				
+
 				let[p4,p5]=second.content
 				expect(p4.attribs.id).toBe("4")
 				expect(p5.attribs.id).toBe("5")
 			})
-		
+
 		})
 
         it("paragraph", ()=>{
@@ -74,10 +74,18 @@ describe("model identifier", function(){
         it("run",()=>{
 			identify(`<w:r/>`,"r")
         })
-		
+
 		it("object",()=>{
 			let found=identify('<w:object/>',"object")
 			expect(found.children.length).toBe(0)
+		})
+
+		it("chunk", ()=>{
+			try{
+				identify('<w:altChunk r:id="10"/>', "chunk")
+			}catch(e){
+				expect(e.message).toBe("officeDocument.getRel is not a function")
+			}
 		})
 
         describe("sdt",function(){
@@ -96,17 +104,17 @@ describe("model identifier", function(){
 				expect(name).toBe("name")
 				expect(value).toBe("good")
 			})
-			
+
 			it("controls[text,picture,docPartList,comboBox,dropDownList,date,checkbox]",function(){
 				"text,picture,docPartList,comboBox,dropDownList,date,checkbox".split(",")
 					.forEach(a=>identify(sdt(`<w:${a}>`),`control.${a}`))
 			})
-			
+
 			it("block container", function(){
 				"p,tbl,tr,tc".split(",")
 					.forEach(a=>identify(sdt(null,`<w:${a}/>`),"block"))
 			})
-			
+
 			it("inline container",function(){
 				"r,t".split(",")
 					.forEach(a=>identify(sdt(null,`<w:${a}/>`),"inline"))
@@ -116,18 +124,18 @@ describe("model identifier", function(){
         it("table",()=>{
 			identify(`<w:tbl/>`,"tbl")
         })
-		
+
 		it("tr",()=>{
 			identify(`<w:tr/>`,"tr")
 			let model=identify(`<w:tr><w:trPr><w:tblHeader/></w:trPr></w:tr>`,"tr")
 			expect(model.isHeader).toBe(true)
         })
-		
-		
+
+
 		it.skip("fldChar", function(){
 			identify(`<w:unknown w:fldCharType="begin"/>`,"fldChar")
 		})
-		
+
 		it("drawing.inline", ()=>{
 			let model=identify(`
 			<wp:inline>
@@ -140,7 +148,7 @@ describe("model identifier", function(){
 			</wp:inline>`,"drawing.inline")
 			expect(model.children.length).toBe(2)
 		})
-		
+
 		it("drawing.anchor", ()=>{
 			let model=identify(`
 			<wp:anchor>
@@ -154,7 +162,7 @@ describe("model identifier", function(){
 			`,"drawing.anchor")
 			expect(model.children.length).toBe(2)
 		})
-		
+
 		it("drawing.anchor.group", ()=>{
 			let model=identify(`
 			<wp:anchor>
@@ -170,8 +178,8 @@ describe("model identifier", function(){
 			`,"drawing.anchor")
 			expect(model.children.length).toBe(2)
 		})
-		
-		
+
+
     })
 
     describe("style", function(){
@@ -192,7 +200,7 @@ describe("model identifier", function(){
 				</w:abstractNum>`, "abstractNum")
 			expect(model.id).toBe("0")
         })
-		
+
 		it("list[numbering=1]=2",function(){
 			let model=identify(`<w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num>`, "num")
 			expect(model.abstractNum).toBe("1")

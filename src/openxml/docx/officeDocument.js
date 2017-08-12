@@ -279,6 +279,14 @@ const identities={
 			return state
 		},{type:"tc",children:[],pr:null})
 	},
+	altChunk(wXml, officeDocument){
+		let rId=wXml.attribs['r:id']
+		let data=officeDocument.getRel(rId)
+
+		let partName=officeDocument.folder+officeDocument.rels(`[Id=${rId}]`).attr("Target")
+		let contentType=officeDocument.doc.contentTypes(`Override[PartName='${partName}']`).attr("ContentType")
+		return {type:"chunk", data, contentType}
+	},
 	docDefaults(wXml){
 		return {type:"style"}
 	},
