@@ -63,6 +63,22 @@ export default class extends Base{
 
 		return "#"+RR+GG+BB;
 	}
+	
+	toPx(length) {
+		var value = parseFloat(length),
+			units = String(length).match(RE_LENGTH_UNIT)[1];
+
+		switch (units) {
+			case 'em' : return value * 16;
+			case 'rem': return value * 16;
+			case 'cm' : return value * 96 / 2.54;
+			case 'mm' : return value * 96 / 2.54 / 10;
+			case 'in' : return value * 96;
+			case 'pt' : return value * 72;
+			case 'pc' : return value * 72 / 12;
+			default   : return value;
+		}
+	}
 
 	static OfficeDocument=Part
 }
