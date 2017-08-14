@@ -70,10 +70,8 @@ export default class ZipDocument{
 	render(){
 
 	}
-
-	save(file,options){
-		file=file||this.props.name||`${Date.now()}.docx`
-
+	
+	serialize(){
 		let newDoc=new JSZip()
 		Object.keys(this.parts).forEach(path=>{
 			let part=this.parts[path]
@@ -83,6 +81,14 @@ export default class ZipDocument{
 				newDoc.file(path,part._data, part.options)
 			}
 		})
+		return newDoc
+	}
+
+	save(file,options){
+		file=file||this.props.name||`${Date.now()}.docx`
+		
+		let newDoc=this.serialize()
+		
 		if(typeof(document)!="undefined" && window.URL && window.URL.createObjectURL){
 			let data=newDoc.generate({...options,type:"blob",mimeType:this.constructor.mime})
 			let url = window.URL.createObjectURL(data)

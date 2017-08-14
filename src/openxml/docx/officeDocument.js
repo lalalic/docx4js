@@ -60,7 +60,7 @@ export class OfficeDocument extends Part{
 			return parseInt(t.attribs.target.match(/\d+/)[0]||"0")
 		}))+1)+".jpg";
 
-		let partName=`${this.folder}/${targetName}`
+		let partName=`${this.folder}${targetName}`
 		this.doc.raw.file(partName, data)
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 
@@ -89,7 +89,7 @@ export class OfficeDocument extends Part{
 		let id=this._nextrId()
 		let rId=`rId${id}`
 		let targetName=`chunk/chunk${id}.${ext}`
-		let partName=`${this.folder}/${targetName}`
+		let partName=`${this.folder}${targetName}`
 		this.doc.raw.file(partName, data)
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 
