@@ -48,60 +48,6 @@ export class OfficeDocument extends Part{
 		return doc
 	}
 
-	_nextrId(){
-		return Math.max(...this.rels('Relationship').toArray().map(a=>parseInt(a.attribs.Id.substring(3))))+1
-	}
-
-	addImage(data){
-		const type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
-		let id=`rId${this._nextrId()}`
-
-		let targetName="media/image"+(Math.max(...this.rels("Relationship[Type$='image']").toArray().map(t=>{
-			return parseInt(t.attribs.target.match(/\d+/)[0]||"0")
-		}))+1)+".jpg";
-
-		let partName=`${this.folder}${targetName}`
-		this.doc.raw.file(partName, data)
-		this.doc.parts[partName]=this.doc.raw.file(partName)
-
-		this.rels("Relationships")
-			.append(`<Relationship Id="${id}" Type="${type}" Target="${partName}"/>`)
-
-		return id
-	}
-
-	addExternalImage(url){
-		const type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
-
-		let id=`rId${this._nextrId()}`
-
-		this.rels("Relationships")
-			.append(`<Relationship Id="${id}" Type="${type}" TargetMode="External" Target="${url}"/>`)
-
-		return id
-	}
-
-	addChunk(data, relationshipType, contentType, ext){
-		relationshipType=relationshipType||"http://schemas.openxmlformats.org/officeDocument/2006/relationships/aFChunk"
-		contentType=contentType||this.doc.constructor.mime
-		ext=ext||this.doc.constructor.ext
-
-		let id=this._nextrId()
-		let rId=`rId${id}`
-		let targetName=`chunk/chunk${id}.${ext}`
-		let partName=`${this.folder}${targetName}`
-		this.doc.raw.file(partName, data)
-		this.doc.parts[partName]=this.doc.raw.file(partName)
-
-		this.rels("Relationships")
-			.append(`<Relationship Id="${rId}" Type="${relationshipType}" Target="${targetName}"/>`)
-
-		this.doc.contentTypes
-			.append(`<Override PartName="/${partName}" ContentType="${contentType}"/>`)
-
-		return rId
-	}
-
 	static identify(wXml, officeDocument){
 		const tag=wXml.name.split(":").pop()
 		if(identities[tag])
