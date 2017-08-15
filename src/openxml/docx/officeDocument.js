@@ -65,7 +65,7 @@ export class OfficeDocument extends Part{
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 
 		this.rels("Relationships")
-			.append(`<Relationship Type="${type}" Id="${id}" Target="${partName}"/>`)
+			.append(`<Relationship Id="${id}" Type="${type}" Target="${partName}"/>`)
 
 		return id
 	}
@@ -76,7 +76,7 @@ export class OfficeDocument extends Part{
 		let id=`rId${this._nextrId()}`
 
 		this.rels("Relationships")
-			.append(`<Relationship Type="${type}" Id="${id}" TargetMode="External" Target="${url}"/>`)
+			.append(`<Relationship Id="${id}" Type="${type}" TargetMode="External" Target="${url}"/>`)
 
 		return id
 	}
@@ -94,10 +94,10 @@ export class OfficeDocument extends Part{
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 
 		this.rels("Relationships")
-			.append(`<Relationship Type="${relationshipType}" Id="${rId}" Target="${targetName}"/>`)
+			.append(`<Relationship Id="${rId}" Type="${relationshipType}" Target="${targetName}"/>`)
 
 		this.doc.contentTypes
-			.append(`<Override PartName="${partName}" ContentType="${contentType}"/>`)
+			.append(`<Override PartName="/${partName}" ContentType="${contentType}"/>`)
 
 		return rId
 	}
