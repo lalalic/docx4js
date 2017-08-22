@@ -171,7 +171,7 @@ const identities={
 			let type="text,picture,docPartList,comboBox,dropDownList,date,checkbox".split(",")
 				.find(a=>a==name)
 			if(type)
-				return {type:`control.${type}`, children:null}
+				return {type:`control.${type}`, children}
 			else{//container
 				if(content.find("w\\:p,w\\:tbl,w\\:tr,w\\:tc").length){
 					return {type:"block", children}
