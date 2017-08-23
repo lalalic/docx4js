@@ -41,14 +41,16 @@
       "babel-plugin-add-module-exports",
       "babel-plugin-transform-object-rest-spread",
       "babel-plugin-transform-class-properties"
-    ]
+    ],
+    "sourceMaps": "inline"
   },
   "main": "./lib/",
   "scripts": {
-    "compile": "babel src -d lib --source-maps inline",
-    "compile-superdaddy": "babel src -d ../superdaddy/node_modules/docx4js/lib --source-maps inline",
-    "compile-docx-template": "babel src -d ../docx-template/node_modules/docx4js/lib --source-maps inline",
-    "compile-we-edit": "babel src -d ../we-edit/node_modules/docx4js/lib --source-maps inline",
+    "compile": "babel src -d lib",
+    "compile-superdaddy": "babel src -d ../superdaddy/node_modules/docx4js/lib",
+    "compile-docx-template": "babel src -d ../docx-template/node_modules/docx4js/lib",
+    "compile-we-edit": "babel src -d ../we-edit/node_modules/docx4js/lib",
+	
     "build": "browserify -g uglifyify -r ./lib/index.js:docx4js -o dist/docx4js.js",
     "build.watch": "watchify -v -d -r ./lib/index.js:docx4js -o dist/index.js",
     "test": "jest",
