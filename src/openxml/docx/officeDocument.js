@@ -141,7 +141,8 @@ const identities={
 		return {type:"drawing.anchor",children}
 	},
 	pic(wXml, officeDocument){
-		let rid=officeDocument.content(wXml).find("a\\:blip").attr('r:embed')
+		let blip=officeDocument.content(wXml).find("a\\:blip")
+		let rid=blip.attr('r:embed')||blip.attr('r:link')
 		return {type:"picture",...officeDocument.getRel(rid)}
 	},
 	wsp(wXml, officeDocument){
