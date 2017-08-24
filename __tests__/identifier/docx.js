@@ -7,7 +7,8 @@ describe("model identifier", function(){
 		expect(!!node).toBe(true)
 		let identified=docx4js.OfficeDocument.identify(node,Object.assign({content:$},officeDocument))
 
-		expect(identified.type).toBe(expected)
+		if(expected)
+			expect(identified.type).toBe(expected)
 
 		return identified
 	}
@@ -107,8 +108,14 @@ describe("model identifier", function(){
 
 			it("controls[text,picture,docPartList,comboBox,dropDownList,date,checkbox]",function(){
 				"text,picture,docPartList,comboBox,dropDownList,date,checkbox".split(",")
-					.forEach(a=>identify(sdt(`<w:${a}>`),`control.${a}`))
+					.forEach(a=>identify(sdt(`<w:${a}/>`),`control.${a}`))
 			})
+			
+			it("controls[repeatingSection,repeatingSectionItem]",function(){
+				"repeatingSection,repeatingSectionItem".split(",")
+					.forEach(a=>identify(sdt(`<w15:${a}/>`),`control.${a}`))
+			})
+			
 
 			it("block container", function(){
 				"p,tbl,tr,tc".split(",")
@@ -118,6 +125,71 @@ describe("model identifier", function(){
 			it("inline container",function(){
 				"r,t".split(",")
 					.forEach(a=>identify(sdt(null,`<w:${a}/>`),"inline"))
+			})
+			
+			describe("control props", function(){
+				it("control.text[value]", function(){
+					let m=identify(sdt(`<w:text/>`,'<w:t>hello</w:t>'))
+					expect(m.value).toBe("hello")
+				})
+				
+				it("control.dropDownList[value, options={displayText,value}]", function(){
+					let m=identify(sdt(`
+						<w:dropDownList>
+							<w:listItem w:displayText="一年级" w:value="1"/>
+							<w:listItem w:displayText="2年纪" w:value="2"/>
+						</w:dropDownList>
+					`,'<w:t>2年纪</w:t>'))
+					expect(m.value).toBe("2")
+					expect(m.options.length).toBe(2)
+					expect(m.options[0].displayText).toBe("一年级")
+					expect(m.options[0].value).toBe("1")
+				})
+				
+				it("control.comboBox[value, options={displayText,value}]", function(){
+					let m=identify(sdt(`
+						<w:comboBox>
+							<w:listItem w:displayText="一年级" w:value="1"/>
+							<w:listItem w:displayText="2年纪" w:value="2"/>
+						</w:comboBox>
+					`,'<w:t>2年纪</w:t>'))
+					expect(m.value).toBe("2")
+					expect(m.options.length).toBe(2)
+					expect(m.options[0].displayText).toBe("一年级")
+					expect(m.options[0].value).toBe("1")
+				})
+				
+				it("control.checkbox[checked=true]",function(){
+					let m=identify(sdt(`
+						<w14:checkbox>
+							<w14:checked w14:val="1"/>
+						</w14:checkbox>
+					`))
+					expect(m.checked).toBe(true)
+				})
+				
+				it("control.checkbox[checked=false]",function(){
+					let m=identify(sdt(`
+						<w14:checkbox>
+							<w14:checked w14:val="0"/>
+						</w14:checkbox>
+					`))
+					expect(m.checked).toBe(false)
+				})
+				
+				it("control.date[value, locale, format]", function(){
+					let m=identify(sdt(`
+						<w:date w:fullDate="2017-08-26T00:00:00Z">
+							<w:dateFormat w:val="yyyy/M/d"/>
+							<w:lid w:val="zh-CN"/>
+							<w:storeMappedDataAs w:val="dateTime"/>
+							<w:calendar w:val="gregorian"/>
+						</w:date>
+					`))
+					expect(m.value.toString()).toBe(new Date("2017-08-26T00:00:00Z").toString())
+					expect(m.format).toBe("yyyy/M/d")
+					expect(m.locale).toBe("zh-CN")
+				})
 			})
         })
 

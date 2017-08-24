@@ -9,6 +9,7 @@ install:
  - yarn install
 
 before_deploy:
+ - yarn run compile
  - yarn run build
 
 deploy:

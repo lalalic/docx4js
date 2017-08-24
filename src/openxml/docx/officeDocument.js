@@ -169,17 +169,51 @@ const identities={
 			let prChildren=pr.get(0).children
 			let elType=prChildren[prChildren.length-1]
 			let name=elType.name.split(":").pop()
-			let type="text,picture,docPartList,comboBox,dropDownList,date,checkbox".split(",")
+			let type="text,picture,docPartList,comboBox,dropDownList,date,checkbox,repeatingSection,repeatingSectionItem".split(",")
 				.find(a=>a==name)
-			if(type)
-				return {type:`control.${type}`, children}
-			else{//container
+			let model={children}
+			if(type){
+				model.type=`control.${type}`
+			}else{//container
 				if(content.find("w\\:p,w\\:tbl,w\\:tr,w\\:tc").length){
-					return {type:"block", children}
+					model.type="block"
 				}else{
-					return {type:"inline", children}
+					model.type="inline"
 				}
 			}
+			
+			$=officeDocument.content
+			switch(model.type){
+				case "control.dropDownList":	
+				case "control.comboBox":{
+					let selected=$(content).text()
+					model.options=$(elType)
+						.find("w\\:listItem")
+						.map((i,li)=>{
+							return {
+								displayText: li.attribs["w:displayText"],
+								value: li.attribs["w:value"]
+							}
+						})
+						.get()
+					model.value=(model.options.find(a=>a.displayText==selected)||{}).value
+					break
+				}
+				case "control.checkbox":{
+					let ns=elType.name.split(":")[0]
+					model.checked=$(elType).find(`${ns}\\:checked`).attr(`${ns}:val`)=="1"
+					break
+				}
+				case "control.text":
+					model.value=$(content).text()
+					break
+				case "control.date":
+					model.value=new Date($(elType).attr("w:fullDate"))
+					model.format=$(elType).find("w\\:dateFormat").attr("w:val")
+					model.locale=$(elType).find("w\\:lid").attr("w:val")
+					break
+			}
+			return model
 		}
 	},
 	hyperlink(wXml,officeDocument){

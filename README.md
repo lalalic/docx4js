@@ -48,15 +48,24 @@ Attributes of word model usually affects styles, but I don't understand all of t
 * table
 	* row
 	* cell
-* control
+* control.
 	* checkbox
-	* combobox
+		* checked
+	* comboBox
+		* value
+		* options: {displayText, value}
 	* date
-	* dropdown
+		* value
+		* format
+		* locale
+	* dropDownList
+		* value
+		* options: {displayText, value}	
 	* gallery
 	* picture
 	* richtext
 	* text
+		* value
 * text
 	* softHyphen
 	* noBreakHyphen
