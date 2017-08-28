@@ -283,7 +283,11 @@ const identities={
 	latentStyles(){
 		return null
 	},
-	object(wXml){
-		return {type:"object",children:[]}
+	object(wXml,officeDocument){
+		let ole=officeDocument.content(wXml).find("o\\:OLEObject")
+		let type=ole.attr("ProgID")
+		let embed=ole.attr("Type")==="Embed"
+		let rId=ole.attr("r:id")
+		return {type:"object",embed, prog: type, data:officeDocument.getRelOleObject(rId)}
 	}
 }

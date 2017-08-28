@@ -1,3 +1,5 @@
+import OLE from "./ole"
+
 export default class Part{
 	constructor(name,doc){
 		this.name=name
@@ -111,6 +113,20 @@ export default class Part{
 			.append(`<Override PartName="/${partName}" ContentType="${contentType}"/>`)
 
 		return rId
+	}
+	
+	getRelOleObject(rid){
+		let rel=this.rels(`Relationship[Id=${rid}]`)
+		let type=rel.attr("Type")
+		let targetName=rel.attr("Target")
+		let data=this.doc.getDataPart(`${this.folder}${targetName}`)
+		switch(type.split("/").pop()){
+			case "oleObject":
+				return OLE.parse(data)
+			default:
+				return data
+		}
+		
 	}
 	
 	removeRel(id){

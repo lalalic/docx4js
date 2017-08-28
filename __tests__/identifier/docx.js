@@ -76,17 +76,42 @@ describe("model identifier", function(){
 			identify(`<w:r/>`,"r")
         })
 
-		it("object",()=>{
-			let found=identify('<w:object/>',"object")
-			expect(found.children.length).toBe(0)
-		})
-
 		it("chunk", ()=>{
 			try{
 				identify('<w:altChunk r:id="10"/>', "chunk")
 			}catch(e){
 				expect(e.message).toBe("officeDocument.getRel is not a function")
 			}
+		})
+		
+		describe("ole object", ()=>{
+			const officeDocument={
+				getRelOleObject(){
+					return "hello"
+				}
+			}
+			it("object",()=>{
+				identify('<w:object/>',"object", officeDocument)
+			})
+			
+			it("object[embed, prog,  data]",()=>{
+				let model=identify(`
+					<w:object>
+						<o:OLEObject Type="Embed" ProgID="Package1" r:id=""/>
+					</w:object>
+				`,"object", officeDocument)
+				expect(model.embed).toBe(true)
+				expect(model.prog).toBe("Package1")
+				expect(model.data).toBe("hello")
+			})
+			
+			xit("package object data", ()=>{
+				
+			})
+			
+			xit("office object data",()=>{
+				
+			})
 		})
 
         describe("sdt",function(){

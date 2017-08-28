@@ -75,7 +75,7 @@ Attributes of word model usually affects styles, but I don't understand all of t
 	* date
 	* hyperlink
 	* ref
-* OLE
+* OLE: {type:"object", embed, prog, data}
 * diagram
 * equation
 * bookmark
