@@ -36,7 +36,7 @@ export default class ZipDocument{
 		let part=this.parts[name]
 		let crc32=part._data.crc32
 		if(!this._shouldReleased.has(crc32)){
-			this._shouldReleased.set(crc32,URL.createObjectURL(new Blob([part.asUint8Array()],{type})))
+			this._shouldReleased.set(crc32,URL.createObjectURL(new Blob([this.getDataPart(name)],{type})))
 		}
 		return this._shouldReleased.get(crc32)
 	}

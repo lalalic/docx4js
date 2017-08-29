@@ -1,4 +1,4 @@
-import OLE from "./ole"
+import * as OLE from "./ole"
 
 export default class Part{
 	constructor(name,doc){
