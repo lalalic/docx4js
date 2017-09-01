@@ -205,8 +205,8 @@ const identities={
 					break
 				}
 				case "control.text":
-					if(!$(content).has('w\\:r [w\\:val~=Placeholder]'))
-						model.value=$(content).text()
+					if(content.find('w\\:r [w\\:val~=Placeholder]').length==0)
+						model.value=content.text()
 					break
 				case "control.date":
 					model.value=new Date($(elType).attr("w:fullDate"))
