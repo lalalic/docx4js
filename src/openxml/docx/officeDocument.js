@@ -19,11 +19,12 @@ export class OfficeDocument extends Part{
 	}
 
 	render(createElement, identify=OfficeDocument.identify){
+		let styles, numbering
 		if(this.styles)
-			this.renderNode(this.styles("w\\:styles").get(0),createElement,identify)
+			styles=this.renderNode(this.styles("w\\:styles").get(0),createElement,identify)
 		if(this.numbering)
-			this.renderNode(this.numbering("w\\:numbering").get(0),createElement,identify)
-		return this.renderNode(this.content("w\\:document").get(0),createElement, identify)
+			numbering=this.renderNode(this.numbering("w\\:numbering").get(0),createElement,identify)
+		return this.renderNode(this.content("w\\:document").get(0),createElement, identify, {styles,numbering})
 	}
 
 	parse(domHandler,identify=officeDocument.identify){

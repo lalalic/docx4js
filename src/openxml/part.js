@@ -78,7 +78,7 @@ export default class Part{
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 
 		this.rels("Relationships")
-			.append(`<Relationship Id="${id}" Type="${type}" Target="${partName}"/>`)
+			.append(`<Relationship Id="${id}" Type="${type}" Target="${targetName}"/>`)
 
 		return id
 	}
@@ -140,7 +140,7 @@ export default class Part{
 		rel.remove()
 	}
 
-	renderNode(node, createElement=(type,props,children)=>{type,props,children},identify=node=>node.name.split(":").pop()){
+	renderNode(node, createElement=(type,props,children)=>{type,props,children},identify=node=>node.name.split(":").pop(), extra){
 		let {name:tagName, children,id, parent}=node
 		if(node.type=="text"){
 			if(parent.name=="w:t"){
@@ -169,6 +169,9 @@ export default class Part{
 		props.key=id
 		props.node=node
 		props.type=type
+		
+		if(extra)
+			Object.assign(props,extra)
 
 		let childElements=[]
 		if(children && children.length){

@@ -49,7 +49,7 @@ export default class ZipDocument{
 
 	release(){
 		for(let [, url] of this._shouldReleased){
-			window.URL.revokeObjectURL(url)
+			URL.revokeObjectURL(url)
 		}
 	}
 
