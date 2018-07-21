@@ -11,6 +11,10 @@ install:
 before_deploy:
  - yarn run compile
  - yarn run build
+ - yarn info docx4js --json > info.json
+ - export LATEST=$(node -p "require('./info.json').data['dist-tags'].latest")
+ - export CURRENT=$(node -p "require('./package.json').version")
+
 
 deploy:
  provider: npm
@@ -18,4 +22,4 @@ deploy:
  api_key: $NPM_KEY
  on:
   branch: master
-  tags: true
+  condition: "$LATEST != $CURRENT"
