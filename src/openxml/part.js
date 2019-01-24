@@ -70,7 +70,7 @@ export default class Part{
 		let id=`rId${this._nextrId()}`
 
 		let targetName="media/image"+(Math.max(...this.rels("Relationship[Type$='image']").toArray().map(t=>{
-			return parseInt(t.attribs.target.match(/\d+/)[0]||"0")
+			return parseInt(t.attribs.Target.match(/\d+/)[0]||"0")
 		}))+1)+".jpg";
 
 		let partName=`${this.folder}${targetName}`
@@ -114,7 +114,7 @@ export default class Part{
 
 		return rId
 	}
-	
+
 	getRelOleObject(rid){
 		let rel=this.rels(`Relationship[Id=${rid}]`)
 		let type=rel.attr("Type")
@@ -126,9 +126,9 @@ export default class Part{
 			default:
 				return data
 		}
-		
+
 	}
-	
+
 	removeRel(id){
 		let rel=this.rels(`Relationship[Id="${id}"]`)
 		if(rel.attr("TargetMode")!=="External"){
@@ -169,7 +169,7 @@ export default class Part{
 		props.key=id
 		props.node=node
 		props.type=type
-		
+
 		if(extra)
 			Object.assign(props,extra)
 
