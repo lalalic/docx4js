@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "3.1.20",
+  "version": "3.1.21",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -11,7 +11,7 @@
     "parser",
     "javascript"
   ],
-  "license": "GPL",
+  "license": "MIT",
   "readme": "README.md",
   "repository": {
     "type": "git",
