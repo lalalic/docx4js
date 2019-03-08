@@ -182,10 +182,10 @@ const identities={
 					model.type="inline"
 				}
 			}
-			
+
 			$=officeDocument.content
 			switch(model.type){
-				case "control.dropDownList":	
+				case "control.dropDownList":
 				case "control.comboBox":{
 					let selected=$(content).text()
 					model.options=$(elType)

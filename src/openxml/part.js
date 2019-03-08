@@ -65,12 +65,22 @@ export default class Part{
 		return Math.max(...this.rels('Relationship').toArray().map(a=>parseInt(a.attribs.Id.substring(3))))+1
 	}
 
+	add(type,target,data){
+		const rId=`rId${this._nextrId()}`
+		this.rels("Relationships")
+			.append(`<Relationship Id="${rId}" type="${type}" target="${target}"/>`)
+		const partName=`${this.folder}${target}`
+		this.doc.raw.file(partName, data)
+		this.doc.parts[partName]=this.doc.raw.file(partName)
+		return rId
+	}
+
 	addImage(data){
 		const type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
 		let id=`rId${this._nextrId()}`
 
-		let targetName="media/image"+(Math.max(...this.rels("Relationship[Type$='image']").toArray().map(t=>{
-			return parseInt(t.attribs.Target.match(/\d+/)[0]||"0")
+		let targetName="media/image"+(Math.max(0,...this.rels("Relationship[Type$='image']").toArray().map(t=>{
+			return parseInt(t.attribs.Target.match(/\d+\./)||[0])
 		}))+1)+".jpg";
 
 		let partName=`${this.folder}${targetName}`
