@@ -14,6 +14,8 @@ before_deploy:
  - yarn info docx4js --json > info.json
  - export LATEST=$(node -p "require('./info.json').data['dist-tags'].latest")
  - export CURRENT=$(node -p "require('./package.json').version")
+ - echo $LATEST
+ - echo $CURRENT
 
 
 deploy:
