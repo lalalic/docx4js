@@ -16,6 +16,18 @@ export class OfficeDocument extends Part{
 				})
 			}
 		})
+
+		var $=this.styles
+		this.styles.prototype.basest=function(selector){
+			let current=this
+			while(current.length>0){
+				if(current.is(selector)){
+					return $(current)
+				}
+				current=$.root().find(`w\\:style[w\\:styleId="${current.children("w\\:basedOn").attr("w:val")}"]`)
+			}
+			return this.not(this)
+		}
 	}
 
 	render(createElement, identify=OfficeDocument.identify){
@@ -97,23 +109,29 @@ const identities={
 		if(pPr.length){
 			let styleId=pPr.find("w\\:pStyle").attr("w:val")
 
-			let numPr=pPr.find("w\\:numPr>w\\:numId")
+			let numPr=pPr.children("w\\:numPr")
 			if(!numPr.length && styleId){
-				numPr=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:numPr>w\\:numId`)
+				numPr=officeDocument
+					.styles(`w\\:style[w\\:styleId="${styleId}"]`)
+					.basest(`:has(w\\:numPr)`)
+					.find("w\\:numPr")
 			}
 
 			if(numPr.length){
 				identity.type="list"
 				identity.numId=numPr.find("w\\:numId").attr("w:val")
-				identity.level=numPr.find("w\\:ilvl").attr("w:val")
-			}else{
-				let outlineLvl=pPr.find("w\\:outlineLvl").attr("w:val")
-				if(!outlineLvl && styleId)
-					outlineLvl=officeDocument.styles(`w\\:style[w\\:styleId="${styleId}"] w\\:outlineLvl`).attr("w:val")
+				identity.level=parseInt(numPr.find("w\\:ilvl").attr("w:val")||0)
+			}
 
+			if(styleId && styleId.startsWith("Heading")){
+				let outlineLvl=officeDocument
+					.styles(`w\\:style[w\\:styleId="${styleId}"]`)
+					.basest(":has(w\\:outlineLvl)")
+					.find("w\\:outlineLvl")
+					.attr("w:val")
 				if(outlineLvl){
 					identity.type="heading"
-					identity.level=parseInt(outlineLvl)+1
+					identity.outline=parseInt(outlineLvl)+1
 				}
 			}
 		}
