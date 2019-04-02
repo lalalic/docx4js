@@ -1,17 +1,18 @@
-import docx4js from "../../src"
+import Document from "../../src/openxml/docx/document"
 
 describe("model identifier", function(){
 	function identify(content,expected, officeDocument={}){
-		let $=docx4js.parseXml(content)
+		let $=Document.parseXml(content)
 		let node=$.root().contents().get(0)
 		expect(!!node).toBe(true)
-		let identified=docx4js.OfficeDocument.identify(node,Object.assign({content:$},officeDocument))
+		let identified=Document.OfficeDocument.identify(node,Object.assign({content:$},officeDocument))
 
 		if(expected)
 			expect(identified.type).toBe(expected)
 
 		return identified
 	}
+
     describe("content", function(){
         it("document", ()=>{
 			identify(`<w:document><w:body/></w:document>`,"document")
@@ -83,7 +84,7 @@ describe("model identifier", function(){
 				expect(e.message).toBe("officeDocument.getRel is not a function")
 			}
 		})
-		
+
 		describe("ole object", ()=>{
 			const officeDocument={
 				getRelOleObject(){
@@ -93,7 +94,7 @@ describe("model identifier", function(){
 			it("object",()=>{
 				identify('<w:object/>',"object", officeDocument)
 			})
-			
+
 			it("object[embed, prog,  data]",()=>{
 				let model=identify(`
 					<w:object>
@@ -104,13 +105,13 @@ describe("model identifier", function(){
 				expect(model.prog).toBe("Package1")
 				expect(model.data).toBe("hello")
 			})
-			
+
 			xit("package object data", ()=>{
-				
+
 			})
-			
+
 			xit("office object data",()=>{
-				
+
 			})
 		})
 
@@ -135,12 +136,12 @@ describe("model identifier", function(){
 				"text,picture,docPartList,comboBox,dropDownList,date,checkbox".split(",")
 					.forEach(a=>identify(sdt(`<w:${a}/>`),`control.${a}`))
 			})
-			
+
 			it("controls[repeatingSection,repeatingSectionItem]",function(){
 				"repeatingSection,repeatingSectionItem".split(",")
 					.forEach(a=>identify(sdt(`<w15:${a}/>`),`control.${a}`))
 			})
-			
+
 
 			it("block container", function(){
 				"p,tbl,tr,tc".split(",")
@@ -151,13 +152,13 @@ describe("model identifier", function(){
 				"r,t".split(",")
 					.forEach(a=>identify(sdt(null,`<w:${a}/>`),"inline"))
 			})
-			
+
 			describe("control props", function(){
 				it("control.text[value]", function(){
 					let m=identify(sdt(`<w:text/>`,'<w:t>hello</w:t>'))
 					expect(m.value).toBe("hello")
 				})
-				
+
 				it("control.dropDownList[value, options={displayText,value}]", function(){
 					let m=identify(sdt(`
 						<w:dropDownList>
@@ -170,7 +171,7 @@ describe("model identifier", function(){
 					expect(m.options[0].displayText).toBe("一年级")
 					expect(m.options[0].value).toBe("1")
 				})
-				
+
 				it("control.comboBox[value, options={displayText,value}]", function(){
 					let m=identify(sdt(`
 						<w:comboBox>
@@ -183,7 +184,7 @@ describe("model identifier", function(){
 					expect(m.options[0].displayText).toBe("一年级")
 					expect(m.options[0].value).toBe("1")
 				})
-				
+
 				it("control.checkbox[checked=true]",function(){
 					let m=identify(sdt(`
 						<w14:checkbox>
@@ -192,7 +193,7 @@ describe("model identifier", function(){
 					`))
 					expect(m.checked).toBe(true)
 				})
-				
+
 				it("control.checkbox[checked=false]",function(){
 					let m=identify(sdt(`
 						<w14:checkbox>
@@ -201,7 +202,7 @@ describe("model identifier", function(){
 					`))
 					expect(m.checked).toBe(false)
 				})
-				
+
 				it("control.date[value, locale, format]", function(){
 					let m=identify(sdt(`
 						<w:date w:fullDate="2017-08-26T00:00:00Z">
