@@ -108,6 +108,8 @@ export default class extends Base{
         tbl(wXml, officeDocument){
             return {type:"table"}
         }
+		
+		
     }
 }
 
