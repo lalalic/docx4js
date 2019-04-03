@@ -17,17 +17,20 @@ describe("model identifier", ()=>{
         identify(`<p:presentation></p:presentation>`,"document")
     })
 
-    describe("parse",()=>{
-        const load=()=>{
-            return Document.load(`${__dirname}/../files/loader.pptx`)
-        }
-
-        it("get slide content",()=>{
-            return load().then(doc=>{
-                const slides=doc.officeDocument.content("p\\:sldId")
-                expect(slides.length).toBe(1)
-                expect(slides.eq(0).slide().is(":has(p\\:cSld)")).toBe(true)
+    it("render to document, master, layout, and slides",()=>{
+        return Document.load(`${__dirname}/../files/loader.pptx`).then(doc=>{
+            const createElement=jest.fn()
+            const found={}
+            doc.render((type,props,children)=>{
+                found[type]=props
             })
+            expect(found.document).toBeDefined()
+            expect(found.document.size).toBeDefined()
+            expect(found.slideMaster).toBeDefined()
+            expect(found.slideLayout).toBeDefined()
+            expect(doc.getPart(found.slideLayout.master)).toBeDefined()
+            expect(found.slide).toBeDefined()
+            expect(doc.getPart(found.slide.layout)).toBeDefined()
         })
     })
 })

@@ -34,6 +34,12 @@ export default class Part{
 		})
 	}
 
+	getRelPart(id){
+		var rel=this.rels(`Relationship[Id="${id}"]`)
+		var target=rel.attr("Target")
+		return new Part(`${this.folder}${target}`,this.doc)
+	}
+
 	getRelTarget(type){
 		return this.rels(`[Type$="${type}"]`).attr("Target")
 	}

@@ -30,7 +30,7 @@ export default class extends Base{
 		}
 	}
 
-	render(createElement, identify=OfficeDocument.identify){
+	render(createElement, identify=this.constructor.identify.bind(this.constructor)){
 		let styles, numbering
 		if(this.styles)
 			styles=this.renderNode(this.styles("w\\:styles").get(0),createElement,identify)
@@ -39,7 +39,7 @@ export default class extends Base{
 		return this.renderNode(this.content("w\\:document").get(0),createElement, identify, {styles,numbering})
 	}
 
-	parse(domHandler,identify=officeDocument.identify){
+	parse(domHandler,identify=this.constructor.identify.bind(this.constructor)){
 		const doc={}
 		const createElement=domHandler.createElement.bind(domHandler)
 		function _identify(){

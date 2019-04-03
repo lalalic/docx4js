@@ -2,6 +2,17 @@ import JSZip, {ZipObject} from 'jszip'
 import cheer from "cheerio"
 import {Parser, DomHandler} from "htmlparser2"
 
+const normalize=path=>path.split("/").filter(a=>a!=".")
+	.reduceRight((n,a)=>{
+		if(a==".."){
+			n.r++
+		}else if(n.r){
+			n.r--
+		}else{
+			n.trimed.unshift(a)
+		}
+		return n
+	},{trimed:[],r:0}).trimed.join("/")
 /**
  *  document parser
  *
@@ -20,11 +31,17 @@ export default class ZipDocument{
 		this._shouldReleased=new Map()
 	}
 
+	normalizePath(){
+		return normalize(...arguments)
+	}
+
 	getPart(name){
+		name=normalize(name)
 		return this.parts[name]
 	}
 
 	getDataPart(name){
+		name=normalize(name)
 		let part=this.parts[name]
 		let crc32=part._data.crc32
 		let data=part.asUint8Array()//unsafe call, part._data is changed
@@ -33,6 +50,7 @@ export default class ZipDocument{
 	}
 
 	getDataPartAsUrl(name,type="*/*"){
+		name=normalize(name)
 		let part=this.parts[name]
 		let crc32=part._data.crc32
 		if(!this._shouldReleased.has(crc32)){
@@ -42,6 +60,7 @@ export default class ZipDocument{
 	}
 
 	getPartCrc32(name){
+		name=normalize(name)
 		let part=this.parts[name]
 		let crc32=part._data.crc32
 		return crc32
@@ -54,6 +73,7 @@ export default class ZipDocument{
 	}
 
 	getObjectPart(name){
+		name=normalize(name)
 		const part=this.parts[name]
 		if(!part)
 			return null
@@ -62,7 +82,7 @@ export default class ZipDocument{
 		else
 			return this.parts[name]=this.constructor.parseXml(part.asText())
 	}
-	
+
 	parse(domHandler){
 
 	}
@@ -70,7 +90,7 @@ export default class ZipDocument{
 	render(){
 
 	}
-	
+
 	serialize(){
 		let newDoc=new JSZip()
 		Object.keys(this.parts).forEach(path=>{
@@ -86,9 +106,9 @@ export default class ZipDocument{
 
 	save(file,options){
 		file=file||this.props.name||`${Date.now()}.docx`
-		
+
 		let newDoc=this.serialize()
-		
+
 		if(typeof(document)!="undefined" && window.URL && window.URL.createObjectURL){
 			let data=newDoc.generate({...options,type:"blob",mimeType:this.constructor.mime})
 			let url = window.URL.createObjectURL(data)
