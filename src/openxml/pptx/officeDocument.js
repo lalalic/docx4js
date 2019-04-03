@@ -19,9 +19,8 @@ export default class extends Base{
         return {children:node.children, ...attribs, part:target}
     }
 
-    part(wXml){
-        const master=wXml.name=="p:sldLayoutId" ? this.getRelPart(root(wXml).attribs.rid) : this
-        return master.getRelPart(wXml.attribs.rid)
+    node(wXml){
+		return this.getRelObject(root(wXml).attribs.part.replace("../",""))(wXml)
     }
 
     static identities={
@@ -82,32 +81,31 @@ export default class extends Base{
         },
 
         pic(wXml, officeDocument){
-            const part=officeDocument.part(wXml)
-            let blip=part.content(wXml).find("a\\:blip")
-            let rid=blip.attr('r:embed')||blip.attr('r:link')
+            const node=officeDocument.node(wXml)
+            const blip=node.find("a\\:blip")
+            const rid=blip.attr('r:embed')||blip.attr('r:link')
             return {type:"picture",...part.getRel(rid)}
         },
 
         sp(wXml, officeDocument){
-            return {type:"shape", children:officeDocument.part(wXml).content(wXml).find(">wps\\:txbx>w\\:txbxContent").children().toArray()}
+			const $=officeDocument.node(wXml)
+			const bodyPr=($.children("a\\:bodyPr").get(0)||{}).attribs
+			return {...bodyPr, type:"shape", children:$.find(">p\\:txBody>a\\:p").children().toArray()}
         },
 
         graphicFrame(wXml, officeDocument){
-            return {type:"graphic", children:officeDocument.part(wXml).content(wXml).find("c\\:chart, dgm\\:relIds, a\\:tbl").toArray()}
+            return {type:"graphic", children:officeDocument.node(wXml).find("c\\:chart, dgm\\:relIds, a\\:tbl").toArray()}
         },
 
         chart(wXml, officeDocument){
-            const part=officeDocument.part(wXml)
             return {type: "chart"}
         },
 
         relIds(wXml, officeDocument){
-            const part=officeDocument.part(wXml)
             return {type:"diagram"}
         },
 
         tbl(wXml, officeDocument){
-            const part=officeDocument.part(wXml)
             return {type:"table"}
         }
     }
