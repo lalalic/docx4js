@@ -1,9 +1,18 @@
 import Base from "../officeDocument"
 import Part from "../part"
+import drawml from "../drawml"
 
 export default class extends Base{
     _init(){
 		super._init()
+        this.content("p\\:sldMasterId,p\\:sldId,p\\:notesMasterId,p\\:handoutMasterId")
+            .each((i,a)=>this.linkRel(a))
+            .filter("p\\:sldMasterId")
+            .each((i,a)=>{
+                const master=this.getRelPart(a.attribs["r:id"])
+                master.content("p\\:sldLayoutId")
+                    .each((i,a)=>this.linkRel.call(master,a))
+            })
 	}
 
     render(createElement, identify=this.constructor.identify.bind(this.constructor)){
@@ -14,9 +23,12 @@ export default class extends Base{
         const target=this.rels(`Relationship[Id="${rid}"]`).attr("Target")
         const $=this.getRelObject(target)
         Object.assign($.root()[0].attribs,{id,rid,part:target})
-        const node=$(context)[0]
-        const attribs=Object.keys(node.attribs).filter(a=>a.startsWith("xmlns")).reduce((a,k)=>(delete a[k], a),{...node.attribs})
-        return {children:node.children, ...attribs, part:target}
+        if(context){
+            const node=$(context)[0]
+            const attribs=Object.keys(node.attribs).filter(a=>a.startsWith("xmlns")).reduce((a,k)=>(delete a[k], a),{...node.attribs})
+            return {children:node.children, ...attribs, part:target}
+        }
+        return {}
     }
 
     node(wXml){
@@ -80,17 +92,69 @@ export default class extends Base{
             return model
         },
 
+        spTree(wXml,od){
+            debugger
+            const nvGrpSpPr=wXml.children.find(a=>a.name=="p:nvGrpSpPr")
+            const grpSpPr=wXml.children.find(a=>a.name=="p:grpSpPr")
+            const model={type:"frame"}
+            if(nvGrpSpPr){
+                const {type, ...props}=drawml.nvGrpSpPr(nvGrpSpPr,od)
+                Object.assign(model, props)
+            }
+
+            if(grpSpPr){
+                const {type, ...props}=drawml.grpSpPr(grpSpPr,od)
+                Object.assign(model, props)
+            }
+            return model
+        },
+
         pic(wXml, officeDocument){
             const node=officeDocument.node(wXml)
-            const blip=node.find("a\\:blip")
+            const blip=node.children("a\\:blip")
             const rid=blip.attr('r:embed')||blip.attr('r:link')
             return {type:"picture",...part.getRel(rid)}
         },
 
         sp(wXml, officeDocument){
 			const $=officeDocument.node(wXml)
-			const bodyPr=($.children("a\\:bodyPr").get(0)||{}).attribs
-			return {...bodyPr, type:"shape", children:$.find(">p\\:txBody>a\\:p").children().toArray()}
+            const nvSpPr=$.children("p\\:nvSpPr")[0]
+            const spPr=$.children("p\\:spPr")[0]
+			return {
+                ...(nvSpPr ? drawml.nvSpPr(nvSpPr, officeDocument) : {}),
+                ...(spPr ? drawml.spPr(spPr, officeDocument) : {}),
+                type:"shape",
+                children:$.children("p\\:txBody").toArray()
+            }
+        },
+
+        txBody(wXml,officeDocument){
+            const model={type:"textBox", children:wXml.children.filter(a=>a.name && a.name.endsWith(":p"))}
+            const pr=wXml.children.find(a=>a.name && a.name.endsWith(":bodyPr"))
+            if(pr)
+                Object.assign(model,pr.attribs)
+            const listStyle=wXml.children.find(a=>a.name && a.name.endsWith(":lstStyle"))
+            if(listStyle)
+                model.list=drawml.lstStyle(listStyle,officeDocument)
+            return model
+        },
+
+        p({children, attribs}, od){
+            const model={type:"p", children:children.filter(a=>a.name && !a.name.endsWith(":pPr")), }
+            const pr=children.find(a=>a.name && a.name.endsWith(":pPr"))
+            if(pr){
+                Object.assign(model, drawml.pPr(pr, od))
+            }
+            return model
+        },
+
+        r({children, attribs},od){
+            const model={type:"r", children:children.filter(a=>a.name && !a.name.endsWith(":rPr")), }
+            const pr=children.find(a=>a.name && a.name.endsWith(":rPr"))
+            if(pr){
+                Object.assign(model, drawml.rPr(pr, od))
+            }
+            return model
         },
 
         graphicFrame(wXml, officeDocument){
@@ -108,8 +172,6 @@ export default class extends Base{
         tbl(wXml, officeDocument){
             return {type:"table"}
         }
-		
-		
     }
 }
 

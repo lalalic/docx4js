@@ -63,10 +63,10 @@ export default class extends Base{
 
 		return "#"+RR+GG+BB;
 	}
-	
+
 	toPx(length) {
 		var value = parseFloat(length),
-			units = String(length).match(RE_LENGTH_UNIT)[1];
+			units = String(length).match(RE_LENGTH_UNIT)[2];
 
 		switch (units) {
 			case 'em' : return value * 16;
@@ -82,4 +82,5 @@ export default class extends Base{
 
 	static OfficeDocument=Part
 }
-let RGB=/([a-fA-F0-9]{2}?){3}?/;
+const RGB=/([a-fA-F0-9]{2}?){3}?/;
+const RE_LENGTH_UNIT=/^(\d+)(\w)+$/
