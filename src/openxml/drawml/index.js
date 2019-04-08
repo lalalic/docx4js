@@ -180,6 +180,14 @@ export default {
         },props)
 	},
 
+    defRPr(){
+        return this.rPr(...arguments)
+    },
+
+    defPPr(){
+        return this.pPr(...arguments)
+    },
+
     latin({attribs}){
         return {type:"fonts",...attribs}
     },

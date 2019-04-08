@@ -80,7 +80,7 @@ export default class ZipDocument{
 		else if(part.cheerio)
 			return part
 		else
-			return this.parts[name]=this.constructor.parseXml(part.asText())
+			return Object.assign(this.parts[name]=this.constructor.parseXml(part.asText()),{part:name})
 	}
 
 	parse(domHandler){

@@ -27,6 +27,10 @@ export default class extends Base{
 		return this.pt2Px(parseInt(a)/20.0)
 	}
 
+	emu2Px(a){
+		return this.pt2Px(parseInt(a)/12700)
+	}
+
 	pt2Px(pt){
 		return Math.ceil(pt*96/72)
 	}

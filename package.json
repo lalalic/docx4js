@@ -48,6 +48,7 @@
   "main": "./lib/",
   "scripts": {
     "compile": "babel src -d lib",
+    "compilex": "babel src",
     "compile-superdaddy": "babel src -d ../superdaddy/node_modules/docx4js/lib",
     "compile-docx-template": "babel src -d ../docx-template/node_modules/docx4js/lib",
     "compile-we-edit": "babel src -d ../we-edit/node_modules/docx4js/lib",

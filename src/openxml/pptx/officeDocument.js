@@ -43,7 +43,7 @@ export default class extends Base{
             children.sort((a,b)=>(orders[a.name]||99)-(orders[b.name]||99))
             const model={type:"document",children}
 
-            const normalize=({cx=0, cy=0, ...attr})=>({...attr, width:officeDocument.doc.dxa2Px(cx),height:officeDocument.doc.dxa2Px(cy)})
+            const normalize=({cx=0, cy=0, ...attr})=>({...attr, width:officeDocument.doc.emu2Px(cx),height:officeDocument.doc.emu2Px(cy)})
             const size=($.find("p\\:sldSz").get(0)||{}).attribs
             const noteSize=($.find("p\\:notesSz").get(0)||{}).attribs
 
@@ -93,7 +93,6 @@ export default class extends Base{
         },
 
         spTree(wXml,od){
-            debugger
             const nvGrpSpPr=wXml.children.find(a=>a.name=="p:nvGrpSpPr")
             const grpSpPr=wXml.children.find(a=>a.name=="p:grpSpPr")
             const model={type:"frame"}
