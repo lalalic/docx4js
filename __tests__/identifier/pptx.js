@@ -43,7 +43,7 @@ describe("model identifier", ()=>{
                     found[type]=props
                 })
                 expect(found.document).toBeDefined()
-                expect(found.document.size).toBeDefined()
+                expect(found.document.sldSz).toBeDefined()
                 expect(found.slideMaster).toBeDefined()
                 expect(found.slideLayout).toBeDefined()
                 expect(doc.getPart(found.slideLayout.master)).toBeDefined()
@@ -181,7 +181,7 @@ describe("model identifier", ()=>{
         })
 
         it("pic",()=>{
-            
+
         })
 
         it("chart",()=>{

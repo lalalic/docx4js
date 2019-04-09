@@ -201,4 +201,8 @@ export default class Part{
 				childElements
 			)
 	}
+
+	$(node){
+		return this.doc.$(node)
+	}
 }

@@ -5,6 +5,7 @@ import drawml from "../drawml"
 export default class extends Base{
     _init(){
 		super._init()
+        return
         this.content("p\\:sldMasterId,p\\:sldId,p\\:notesMasterId,p\\:handoutMasterId")
             .each((i,a)=>this.linkRel(a))
             .filter("p\\:sldMasterId")
@@ -20,9 +21,9 @@ export default class extends Base{
     }
 
     linkRel({attribs:{id,"r:id":rid}},context){
+        return {}
         const target=this.rels(`Relationship[Id="${rid}"]`).attr("Target")
         const $=this.getRelObject(target)
-        Object.assign($.root()[0].attribs,{id,rid,part:target})
         if(context){
             const node=$(context)[0]
             const attribs=Object.keys(node.attribs).filter(a=>a.startsWith("xmlns")).reduce((a,k)=>(delete a[k], a),{...node.attribs})
@@ -31,65 +32,92 @@ export default class extends Base{
         return {}
     }
 
-    node(wXml){
-		return this.getRelObject(root(wXml).attribs.part.replace("../",""))(wXml)
+    slide({id,"r:id":rid}){
+        return this.getRel(rid)
+    }
+
+    master({id,"r:id":rid}){
+        return this.slide(...arguments)
+    }
+
+    notesMaster(){
+        return this.slide(...arguments)
+    }
+
+    handoutMaster(){
+        return this.slide(...arguments)
+    }
+
+    masterPartOfLayout(wXmlLayoutIdInMaster){
+        const masterRoot=this.$(wXmlLayoutIdInMaster).root().get(0)
+        const {part:masterPartName}=masterRoot.attribs
+        return this.doc.getRelObject(masterPartName)
     }
 
     static identities={
         presentation(wXml,officeDocument){
 			const $=officeDocument.content("p\\:presentation")
-            const children=$.children().not("p\\:sldSz, p\\:notesSz").toArray()
-            const orders={"p:embeddedFontLst":1,"p:defaultTextStyle":3,"p:sldMasterIdLst":5, "p:sldIdLst":7,}
+            const content="p\\:handoutMasterIdLst,p\\:notesMasterIdLst,p\\:sldIdLst,p\\:sldMasterIdLst"
+            const children=$.children(content).toArray()
+            const orders={"p:sldMasterIdLst":1, "p:sldIdLst":2}
             children.sort((a,b)=>(orders[a.name]||99)-(orders[b.name]||99))
-            const model={type:"document",children}
 
-            const normalize=({cx=0, cy=0, ...attr})=>({...attr, width:officeDocument.doc.emu2Px(cx),height:officeDocument.doc.emu2Px(cy)})
-            const size=($.find("p\\:sldSz").get(0)||{}).attribs
-            const noteSize=($.find("p\\:notesSz").get(0)||{}).attribs
+            const sz=({attribs:{cx,cy}})=>({width:officeDocument.doc.emu2Px(cx),height:officeDocument.doc.emu2Px(cy)})
+            const props=$.props({
+                filter:`:not(${content})`,
+                sldSz:sz, notesSz:sz,
+            })
 
-            if(size)
-                model.size=normalize(size)
-
-            if(noteSize)
-                model.noteSize=normalize(noteSize)
-
-			return model
+            return {...props, type:"document",children}
 		},
 
         sldMasterId(wXml, officeDocument){
-            const model={...officeDocument.linkRel(wXml,"p\\:sldMaster"),type:"slideMaster",}
-            const orders={"p:clrMap":1, "p:sldLayoutLst":100, "p:cSld":101}
-            model.children.sort((a,b)=>(orders[a.name]||99)-(orders[b.name]||99))
-            return model
+            const content="p\\:sldLayoutIdLst,p\\:cSld"
+            const $=officeDocument.master(wXml.attribs)
+            const $master=$("p\\:sldMaster")
+            const props=$master.props({
+                filter:`:not(${content})`
+            })
+            const children=$master.children(content).toArray()
+            const orders={"p:sldLayoutLst":1, "p:cSld":2}
+            children.sort((a,b)=>(orders[a.name]||99)-(orders[b.name]||99))
+
+            return {...props, part: $.part, children,type:"slideMaster"}
         },
 
         sldId(wXml,officeDocument){
+            const content="p\\:cSld"
+            const $=officeDocument.slide(wXml.attribs)
+            const $slide=$('p\\:sld')
+            const props=$slide.props({filter:`:not(${content})`})
+            const children=$slide.children(content).toArray()
+
             const slidePart=officeDocument.getRelPart(wXml.attribs["r:id"])
             const layoutTarget=officeDocument.doc.normalizePath(slidePart.folder+slidePart.getRelTarget("slideLayout"))
-            const model={...officeDocument.linkRel(wXml,"p\\:sld"),type:"slide",layout:layoutTarget}
-            const orders={"p:clrMapOvr":1, "p:cSld":101}
-            model.children.sort((a,b)=>(orders[a.name]||99)-(orders[b.name]||99))
-
-            return model
+            const layoutPart=new Part(layoutTarget,officeDocument.doc)
+            const masterTarget=officeDocument.doc.normalizePath(layoutPart.folder+layoutPart.getRelTarget("slideMaster"))
+            return {...props,part:$.part, layout:layoutTarget, master:masterTarget, children, type:"slide"}
         },
 
         notesMasterId(wXml, officeDocument){
-            return { ...officeDocument.linkRel(wXml,"p\\:notesMaster"),type:"noteMaster",}
+            const $=officeDocument.notesMaster(wXml.attribs)
+            return {part:$.part,type:"noteMaster",}
         },
 
         handoutMasterId(wXml, officeDocument){
-            return {...officeDocument.linkRel(wXml,"p\\:handoutMaster"),type:"handoutMaster", }
+            const $=officeDocument.handoutMaster(wXml.attribs)
+            return {part:$.part,type:"handoutMaster", }
         },
 
-        sldLayoutId(wXml,officeDocument){
-            const {rid}=root(wXml).attribs
-            const master=officeDocument.getRelPart(rid)
-            const attribs=officeDocument.linkRel.call(master, wXml,"p\\:sldLayout")
-            const model={...attribs,type:"slideLayout", master:master.name}
+        sldLayoutId(wXml,officeDocument){//in master
+            const content="p\\:cSld"
+            const master=officeDocument.$(wXml).part()
+            const $=new Part(master,officeDocument.doc).getRel(wXml.attribs["r:id"])
+            const $layout=$("p\\:sldLayout")
+            const props=$layout.props({filter:`:not(${content})`})
+            const children=$layout.children(content).toArray()
 
-            const orders={"p:clrMapOvr":1, "p:cSld":101}
-            model.children.sort((a,b)=>(orders[a.name]||99)-(orders[b.name]||99))
-            return model
+            return {...props,part:$.part, master, children, type:"slideLayout", }
         },
 
         spTree(wXml,od){
@@ -109,55 +137,51 @@ export default class extends Base{
         },
 
         pic(wXml, officeDocument){
-            const node=officeDocument.node(wXml)
+            const node=officeDocument.$(wXml)
             const blip=node.children("a\\:blip")
             const rid=blip.attr('r:embed')||blip.attr('r:link')
             return {type:"picture",...part.getRel(rid)}
         },
 
         sp(wXml, officeDocument){
-			const $=officeDocument.node(wXml)
-            const nvSpPr=$.children("p\\:nvSpPr")[0]
-            const spPr=$.children("p\\:spPr")[0]
-			return {
-                ...(nvSpPr ? drawml.nvSpPr(nvSpPr, officeDocument) : {}),
-                ...(spPr ? drawml.spPr(spPr, officeDocument) : {}),
-                type:"shape",
-                children:$.children("p\\:txBody").toArray()
-            }
+            const content="p\\:txBody"
+			const $=officeDocument.$(wXml)
+            const children=$.children("p\\:txBody").toArray()
+            const names={spLocks:"locks", ph:"placeholder"}
+            const props=$.props({
+                filter:`:not(${content})`,
+                nameFn:k=>names[k]||k,
+    			tidy:({spPr, nvSpPr:{cNvPr={},cNvSpPr={},nvPr={}}})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr})
+            })
+			return {...props, children, type:"shape"}
         },
 
         txBody(wXml,officeDocument){
-            const model={type:"textBox", children:wXml.children.filter(a=>a.name && a.name.endsWith(":p"))}
-            const pr=wXml.children.find(a=>a.name && a.name.endsWith(":bodyPr"))
-            if(pr)
-                Object.assign(model,pr.attribs)
-            const listStyle=wXml.children.find(a=>a.name && a.name.endsWith(":lstStyle"))
-            if(listStyle)
-                model.list=drawml.lstStyle(listStyle,officeDocument)
-            return model
+            const content="a\\:p"
+            const $=officeDocument.$(wXml)
+            const children=$.children(content).toArray()
+            const props=$.props({filter:`:not(${content})`})
+            return {...props, children, type:"textBox"}
         },
 
-        p({children, attribs}, od){
-            const model={type:"p", children:children.filter(a=>a.name && !a.name.endsWith(":pPr")), }
-            const pr=children.find(a=>a.name && a.name.endsWith(":pPr"))
-            if(pr){
-                Object.assign(model, drawml.pPr(pr, od))
-            }
-            return model
+        p(wXml, officeDocument){
+            const content=":not(a\\:pPr)"
+            const $=officeDocument.$(wXml)
+            const children=$.children(content).toArray()
+            const style=$.children("a\\:pPr").props()
+            return {style, children, type:"p"}
         },
 
-        r({children, attribs},od){
-            const model={type:"r", children:children.filter(a=>a.name && !a.name.endsWith(":rPr")), }
-            const pr=children.find(a=>a.name && a.name.endsWith(":rPr"))
-            if(pr){
-                Object.assign(model, drawml.rPr(pr, od))
-            }
-            return model
+        r(wXml,officeDocument){
+            const content=":not(a\\:rPr)"
+            const $=officeDocument.$(wXml)
+            const children=$.children(content).toArray()
+            const style=$.children("a\\:rPr").props()
+            return {style, children, type:"textBox"}
         },
 
         graphicFrame(wXml, officeDocument){
-            return {type:"graphic", children:officeDocument.node(wXml).find("c\\:chart, dgm\\:relIds, a\\:tbl").toArray()}
+            return {type:"graphic", children:officeDocument.$(wXml).find("c\\:chart, dgm\\:relIds, a\\:tbl").toArray()}
         },
 
         chart(wXml, officeDocument){
@@ -173,5 +197,3 @@ export default class extends Base{
         }
     }
 }
-
-const root=a=>a.root || root(a.parent)

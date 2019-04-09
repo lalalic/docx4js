@@ -1,4 +1,5 @@
 import JSZip, {ZipObject} from 'jszip'
+import "./$props"
 import cheer from "cheerio"
 import {Parser, DomHandler} from "htmlparser2"
 
@@ -79,9 +80,18 @@ export default class ZipDocument{
 			return null
 		else if(part.cheerio)
 			return part
-		else
-			return Object.assign(this.parts[name]=this.constructor.parseXml(part.asText()),{part:name})
+		else{
+			const $=Object.assign(this.parts[name]=this.constructor.parseXml(part.asText()),{part:name})
+			Object.assign($.root()[0].attribs,{part:name})
+			$.prototype.part=()=>name
+			return $
+		}
 	}
+
+	$(node){
+        const root=a=>a.root || root(a.parent)
+		return this.getObjectPart(root(node).attribs.part)(node)
+    }
 
 	parse(domHandler){
 
