@@ -53,7 +53,7 @@ describe("model identifier", ()=>{
             })
         })
 
-        it("shape",()=>{
+        xit("shape",()=>{
             return load(`
             <p:sp>
               <p:nvSpPr>
@@ -131,7 +131,7 @@ describe("model identifier", ()=>{
             })
         })
 
-        it("paragraph style",()=>{
+        xit("paragraph style",()=>{
             return load(`<a:p>
                 <a:pPr marL="457200" indent="274320">
                     <a:spcAft>
@@ -149,7 +149,7 @@ describe("model identifier", ()=>{
                 })
         })
 
-        it("run style",()=>{
+        xit("run style",()=>{
             return load(`
                 <a:r>
                   <a:rPr lan="en-US" sz="2400" b="1" i="1" u="sng" strike="dblStrike" dirty="0" smtClean="0">
@@ -167,7 +167,7 @@ describe("model identifier", ()=>{
                         </a:solidFill>
                         <a:prstDash val="dash"/>
                     </a:ln>
-                    <a:latin/>
+                    <a:latin typeface="+mn-lt"/>
                     <a:hlinkClick/>
                 </a:rPr>
                   <a:t>DANGEROUS</a:t>

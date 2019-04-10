@@ -3,7 +3,7 @@ import Base from "../officeDocument"
 export default class extends Base{
 	_init(){
 		super._init()
-		const supported="styles,numbering,theme,settings".split(",")
+		const supported="styles,numbering,settings".split(",")
 		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
 			let $=this.rels(rel)
 			let type=$.attr("Type").split("/").pop()

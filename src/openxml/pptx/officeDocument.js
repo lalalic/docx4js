@@ -66,6 +66,7 @@ export default class extends Base{
             const props=$.props({
                 filter:`:not(${content})`,
                 sldSz:sz, notesSz:sz,
+                ...fonts(officeDocument),
             })
 
             return {...props, type:"document",children}
@@ -76,7 +77,8 @@ export default class extends Base{
             const $=officeDocument.master(wXml.attribs)
             const $master=$("p\\:sldMaster")
             const props=$master.props({
-                filter:`:not(${content})`
+                filter:`:not(${content})`,
+                ...fonts(officeDocument),
             })
             const children=$master.children(content).toArray()
             const orders={"p:sldLayoutLst":1, "p:cSld":2}
@@ -89,7 +91,10 @@ export default class extends Base{
             const content="p\\:cSld"
             const $=officeDocument.slide(wXml.attribs)
             const $slide=$('p\\:sld')
-            const props=$slide.props({filter:`:not(${content})`})
+            const props=$slide.props({
+                filter:`:not(${content})`,
+                ...fonts(officeDocument),
+            })
             const children=$slide.children(content).toArray()
 
             const slidePart=officeDocument.getRelPart(wXml.attribs["r:id"])
@@ -146,38 +151,38 @@ export default class extends Base{
         sp(wXml, officeDocument){
             const content="p\\:txBody"
 			const $=officeDocument.$(wXml)
-            const children=$.children("p\\:txBody").toArray()
+            const children=$.children("p\\:txBody").children("a\\:p").toArray()
             const names={spLocks:"locks", ph:"placeholder"}
             const props=$.props({
                 filter:`:not(${content})`,
                 nameFn:k=>names[k]||k,
+                ext:({attribs:{cx,cy}})=>({width:officeDocument.doc.emu2Px(cx),height:officeDocument.doc.emu2Px(cy)}),
+                off:({attribs:{x,y}})=>({x:officeDocument.doc.emu2Px(x),y:officeDocument.doc.emu2Px(y)}),
     			tidy:({spPr, nvSpPr:{cNvPr={},cNvSpPr={},nvPr={}}})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr})
             })
-			return {...props, children, type:"shape"}
-        },
-
-        txBody(wXml,officeDocument){
-            const content="a\\:p"
-            const $=officeDocument.$(wXml)
-            const children=$.children(content).toArray()
-            const props=$.props({filter:`:not(${content})`})
-            return {...props, children, type:"textBox"}
+            const textStyle=$.children("p\\:txBody").props({
+                filter:`:not(a\\:p)`,
+                ...fonts(officeDocument),
+                tidy:({lstStyle={},bodyPr={},...others})=>({...others, ...bodyPr, ...lstStyle})
+            })
+			return {...props, textStyle, children, type:"shape"}
         },
 
         p(wXml, officeDocument){
-            const content=":not(a\\:pPr)"
+            const content=":not(a\\:pPr,a\\:endParaRPr)"
             const $=officeDocument.$(wXml)
             const children=$.children(content).toArray()
             const style=$.children("a\\:pPr").props()
-            return {style, children, type:"p"}
+            const defaultStyle=$.children("a\\:endParaRPr").props({...fonts(officeDocument)})
+            return {style:{lvl:1, ...style}, defaultStyle, children, type:"p"}
         },
 
         r(wXml,officeDocument){
             const content=":not(a\\:rPr)"
             const $=officeDocument.$(wXml)
             const children=$.children(content).toArray()
-            const style=$.children("a\\:rPr").props()
-            return {style, children, type:"textBox"}
+            const style=$.children("a\\:rPr").props({...fonts(officeDocument)})
+            return {style, children, type:"r"}
         },
 
         graphicFrame(wXml, officeDocument){
@@ -197,3 +202,9 @@ export default class extends Base{
         }
     }
 }
+
+const font=od=>({attribs:{typeface=""}})=>od.theme.font(typeface)
+const fonts=od=>({latin:font(od),ea:font(od),cs:font(od)})
+const pr=od=>({
+    spcPts:({attribs:{val}})=>val
+})

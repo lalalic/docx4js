@@ -12,7 +12,7 @@ cheerio.prototype.props=function(opt={}){
             const{children,attribs}=node
             const o={..._xmlns(attribs)}
             children.filter(a=>a.name).forEach(a=>set(a,o))
-            return Object.keys(o).length ? o : undefined
+            return o
         }
     }
 
