@@ -24,13 +24,17 @@ describe("convert cheer content to props",()=>{
           <a:bodyPr/>
           <a:lstStyle/>
           <a:p>
-          <a:pPr marL="457200" indent="274320">
-			<a:spcAft>
-			<a:spcPts val="1200"/>
-			</a:spcAft>
-		</a:pPr>
+	          <a:pPr marL="457200" indent="274320">
+				<a:spcAft>
+				<a:spcPts val="1200"/>
+				</a:spcAft>
+			</a:pPr>
             <a:r>
-              <a:rPr lang="en-US" dirty="0"/>
+              <a:rPr lang="en-US" dirty="0">
+				  <a:solidFill>
+		            <a:schemeClr val="tx1"/>
+		          </a:solidFill>
+			</a:rPr>
               <a:t>test</a:t>
             </a:r>
              <a:r>
@@ -47,19 +51,19 @@ describe("convert cheer content to props",()=>{
         </p:txBody>
       </p:sp>
 	`,{xmlMode:true})
-	
+
 	it("attribs as fields, content as object fields",()=>{
 		expect($("a\\:pPr").props()).toMatchObject({marL:"457200",spcAft:{}})
 	})
-	
+
 	it("object field name  can be renamed in {nameFn}",()=>{
 		expect($("a\\:pPr").props({nameFn:k=>k=='spcAft'?'space':k})).toMatchObject({space:{}})
 	})
-	
+
 	it("support content filter",()=>{
 		expect($("a\\:pPr").props({filter:":not(a\\:spcAft)"})).not.toMatchObject({spcAft:{}})
 	})
-	
+
 	it("specifc node handler by nodeName,opt{[nodeName without namespace]}",()=>{
 		expect($("a\\:pPr").props({spcAft:()=>1})).toMatchObject({spcAft:1})
 	})
@@ -67,7 +71,7 @@ describe("convert cheer content to props",()=>{
 	it("tidy props at end",()=>{
 		expect($("a\\:pPr").props({tidy:props=>(props.a=1,props)})).toMatchObject({a:1})
 	})
-	
+
 	it("nested content aslo be proped",()=>{
 		expect($("p\\:sp>p\\:nvSpPr").props({
 			filter:":not(a\\:extLst)",
@@ -79,5 +83,22 @@ describe("convert cheer content to props",()=>{
 			name: "Title 1",
 			ph:  {type: "ctrTitle"}
 		})
+	})
+
+	it(`<a:solidFill><a:schemeClr val="tx1"/></a:solidFill> => {fill:"tx1"}`,()=>{
+		expect($("a\\:rPr").props({
+			schemeClr:({attribs:{val}})=>val,
+			tidy_solidFill:({color})=>color,
+			names:{schemeClr:"color", solidFill:"fill"},
+		})).toMatchObject({
+			fill:"tx1"
+		})
+	})
+
+	it("attrib can be renamed, and transformed too",()=>{
+		expect($("a\\:rPr").props({
+			names:{lang:"xlang"},
+			lang:x=>1,
+		})).toMatchObject({xlang:1})
 	})
 })

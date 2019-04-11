@@ -3,6 +3,7 @@ import Part from "./part"
 export default class extends Part{
     _init(){
         super._init(...arguments)
+        const doc=this.doc
         const supported="theme".split(",")
 		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
 			let $=this.rels(rel)
@@ -23,8 +24,9 @@ export default class extends Part{
                 const [a,b]=typeface.split(/[+-]/g).filter(a=>a)
                 return this(`a\\:fontScheme>a\\:${type[a]}Font>a\\:${b=="lt"?"latin":b}`).attr("typeface")
             },
-            color(){
-
+            color(k){
+                const $=this(`a\\:clrScheme>a\\:${k}`).children().eq(0)
+                return doc.asColor($.attr("lastClr")||$.attr("val"))
             },
             format(){
 

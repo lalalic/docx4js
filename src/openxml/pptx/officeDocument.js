@@ -66,7 +66,7 @@ export default class extends Base{
             const props=$.props({
                 filter:`:not(${content})`,
                 sldSz:sz, notesSz:sz,
-                ...fonts(officeDocument),
+                ...common(officeDocument),
             })
 
             return {...props, type:"document",children}
@@ -78,7 +78,7 @@ export default class extends Base{
             const $master=$("p\\:sldMaster")
             const props=$master.props({
                 filter:`:not(${content})`,
-                ...fonts(officeDocument),
+                ...common(officeDocument),
             })
             const children=$master.children(content).toArray()
             const orders={"p:sldLayoutLst":1, "p:cSld":2}
@@ -93,7 +93,7 @@ export default class extends Base{
             const $slide=$('p\\:sld')
             const props=$slide.props({
                 filter:`:not(${content})`,
-                ...fonts(officeDocument),
+                ...common(officeDocument),
             })
             const children=$slide.children(content).toArray()
 
@@ -152,17 +152,18 @@ export default class extends Base{
             const content="p\\:txBody"
 			const $=officeDocument.$(wXml)
             const children=$.children("p\\:txBody").children("a\\:p").toArray()
-            const names={spLocks:"locks", ph:"placeholder"}
+            const commonProps=common(officeDocument)
+            const names={spLocks:"locks", ph:"placeholder", ...commonProps.names}
             const props=$.props({
                 filter:`:not(${content})`,
-                nameFn:k=>names[k]||k,
-                ext:({attribs:{cx,cy}})=>({width:officeDocument.doc.emu2Px(cx),height:officeDocument.doc.emu2Px(cy)}),
-                off:({attribs:{x,y}})=>({x:officeDocument.doc.emu2Px(x),y:officeDocument.doc.emu2Px(y)}),
-    			tidy:({spPr, nvSpPr:{cNvPr={},cNvSpPr={},nvPr={}}})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr})
+                ...commonProps,
+                names,
+                ph:({attribs:{type="body",idx}})=>({type,idx}),
+                tidy:({spPr, nvSpPr:{cNvPr={},cNvSpPr={},nvPr={}}})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr})
             })
             const textStyle=$.children("p\\:txBody").props({
                 filter:`:not(a\\:p)`,
-                ...fonts(officeDocument),
+                ...commonProps,
                 tidy:({lstStyle={},bodyPr={},...others})=>({...others, ...bodyPr, ...lstStyle})
             })
 			return {...props, textStyle, children, type:"shape"}
@@ -172,16 +173,16 @@ export default class extends Base{
             const content=":not(a\\:pPr,a\\:endParaRPr)"
             const $=officeDocument.$(wXml)
             const children=$.children(content).toArray()
-            const style=$.children("a\\:pPr").props()
-            const defaultStyle=$.children("a\\:endParaRPr").props({...fonts(officeDocument)})
-            return {style:{lvl:1, ...style}, defaultStyle, children, type:"p"}
+            const style=$.children("a\\:pPr").props(common(officeDocument))
+            const defaultStyle=$.children("a\\:endParaRPr").props(common(officeDocument))
+            return {style:{lvl:0, ...style}, defaultStyle, children, type:"p"}
         },
 
         r(wXml,officeDocument){
             const content=":not(a\\:rPr)"
             const $=officeDocument.$(wXml)
             const children=$.children(content).toArray()
-            const style=$.children("a\\:rPr").props({...fonts(officeDocument)})
+            const style=$.children("a\\:rPr").props({...common(officeDocument)})
             return {style, children, type:"r"}
         },
 
@@ -203,8 +204,37 @@ export default class extends Base{
     }
 }
 
-const font=od=>({attribs:{typeface=""}})=>od.theme.font(typeface)
-const fonts=od=>({latin:font(od),ea:font(od),cs:font(od)})
-const pr=od=>({
-    spcPts:({attribs:{val}})=>val
+const common=od=>({
+    latin:font(od),
+    ea:font(od),
+    cs:font(od),
+
+    schemeClr:({attribs:{val}})=>od.theme.color(val),
+    srgbClr:({attribs:{val}})=>od.doc.asColor(val),
+    sysClr:({attribs:{val}})=>od.doc.asColor(val),
+    tidy_solidFill:({color})=>color,
+
+    lvl:v=>parseInt(v),
+    spcPts:({attribs:{val}})=>od.doc.pt2Px(parseInt(val)/100),
+    tidy_spcAft:({spcPts:a})=>a,
+    tidy_spcBef:({spcPts:a})=>a,
+
+    buFont:({attribs:{typeface}})=>typeface,
+    buChar:({attribs:{char}})=>char,
+    buSzPts:({attribs:{val}})=>od.doc.pt2Px(parseInt(val)/100),
+    buSzPct:({attribs:{val}})=>parseInt(val)/1000/100,
+    buAutoNum:({attribs})=>({...attribs}),
+    tidy_buClr:({color})=>color,
+
+    indent:v=>od.doc.emu2Px(v),
+    marL:v=>od.doc.emu2Px(v),
+
+    ext:({attribs:{cx,cy}})=>({width:od.doc.emu2Px(cx),height:od.doc.emu2Px(cy)}),
+    off:({attribs:{x,y}})=>({x:od.doc.emu2Px(x),y:od.doc.emu2Px(y)}),
+    tidy_xfrm:({ext={},off={}, ...transform})=>({...ext, ...off, ...transform}),
+
+    names:{
+        schemeClr:"color", srgbClr:"color", sysClr:"color",
+    }
 })
+const font=od=>({attribs:{typeface=""}})=>od.theme.font(typeface)

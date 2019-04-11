@@ -3,17 +3,34 @@ import cheerio from "cheerio"
 cheerio.prototype.props=function(opt={}){
     if(this.length==0)
         return {}
-    const _xmlns=attribs=>Object.keys(attribs).filter(k=>!k.startsWith("xmlns")).reduce((o,k)=>(o[k]=attribs[k],o),{})
-	const $=this.constructor
-    const {nameFn=a=>a,filter='*',tidy=a=>a}=opt
-    const set=(a,o,k=a.name.split(":").pop(),b=opt[k]?opt[k](a):toJS(a))=>(b!=undefined && (o[nameFn(k,a,o)]=b),o)
-    const toJS=(node,p)=>{
-        if($(node).is(filter)){
-            const{children,attribs}=node
-            const o={..._xmlns(attribs)}
-            children.filter(a=>a.name).forEach(a=>set(a,o))
+    const $=this.constructor
+    const {names, nameFn=a=>names&&names[a]||a,filter='*',tidy=a=>a}=opt
+
+    const _xmlns=attribs=>Object.keys(attribs)
+        .filter(k=>!k.startsWith("xmlns"))
+        .reduce((o,k)=>{
+            const v=attribs[k]
+            const b=opt[k] ? opt[k](v) : v
+            if(b!=undefined){
+                o[nameFn(k)]=b
+            }
             return o
+        },{})
+
+	const set=(a,o)=>{
+        const k=a.name.split(":").pop()
+        const b=opt[k]?opt[k](a):toJS(a)
+        if(b!=undefined){
+            o[nameFn(k,a,o)]=opt[`tidy_${k}`] ? opt[`tidy_${k}`](b) : b
         }
+        return o
+    }
+
+    const toJS=(node,p)=>{
+        const{children,attribs}=node
+        const o={..._xmlns(attribs)}
+        children.filter(a=>a.name && $(a).is(filter)).forEach(a=>set(a,o))
+        return o
     }
 
     var ob
