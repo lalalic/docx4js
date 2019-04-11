@@ -142,10 +142,11 @@ export default class extends Base{
         },
 
         pic(wXml, officeDocument){
-            const node=officeDocument.$(wXml)
-            const blip=node.children("a\\:blip")
-            const rid=blip.attr('r:embed')||blip.attr('r:link')
-            return {type:"picture",...part.getRel(rid)}
+            const props=officeDocument.$(wXml).props({
+                ...common(officeDocument),
+                tidy:({spPr, nvPicPr:{cNvPr={},cNvSpPr={},nvPr={}}, blipFill})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...blipFill})
+            })
+            return {...props,type:"picture"}
         },
 
         sp(wXml, officeDocument){
@@ -213,6 +214,14 @@ const common=od=>({
     srgbClr:({attribs:{val}})=>od.doc.asColor(val),
     sysClr:({attribs:{val}})=>od.doc.asColor(val),
     tidy_solidFill:({color})=>color,
+
+    blip:n=>{
+        const {attribs:{"r:embed":embed, "r:link":url}}=n
+        if(url)
+            return {url}
+        const part=od.$(n).part()
+        return new Part(part,od.doc).getRel(embed)
+    },
 
     lvl:v=>parseInt(v),
     spcPts:({attribs:{val}})=>od.doc.pt2Px(parseInt(val)/100),
