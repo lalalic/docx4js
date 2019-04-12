@@ -2,34 +2,17 @@ import Base from "../officeDocument"
 import Part from "../part"
 import drawml from "../drawml"
 
-export default class extends Base{
+export default class OfficeDocument extends Base{
     _init(){
-		super._init()
-        return
-        this.content("p\\:sldMasterId,p\\:sldId,p\\:notesMasterId,p\\:handoutMasterId")
-            .each((i,a)=>this.linkRel(a))
-            .filter("p\\:sldMasterId")
-            .each((i,a)=>{
-                const master=this.getRelPart(a.attribs["r:id"])
-                master.content("p\\:sldLayoutId")
-                    .each((i,a)=>this.linkRel.call(master,a))
-            })
-	}
-
-    render(createElement, identify=this.constructor.identify.bind(this.constructor)){
-        return this.renderNode(this.content("p\\:presentation").get(0), createElement, identify)
+        super._init()
+        this._assignRel("tableStyles,viewProps,presProps".split(","))
     }
 
-    linkRel({attribs:{id,"r:id":rid}},context){
-        return {}
-        const target=this.rels(`Relationship[Id="${rid}"]`).attr("Target")
-        const $=this.getRelObject(target)
-        if(context){
-            const node=$(context)[0]
-            const attribs=Object.keys(node.attribs).filter(a=>a.startsWith("xmlns")).reduce((a,k)=>(delete a[k], a),{...node.attribs})
-            return {children:node.children, ...attribs, part:target}
+    render(createElement, identify=this.constructor.identify.bind(this.constructor)){
+        if(this.tableStyles){
+            this.renderNode(this.tableStyles.root().children().get(0), createElement, identify)
         }
-        return {}
+        return this.renderNode(this.content("p\\:presentation").get(0), createElement, identify)
     }
 
     slide({id,"r:id":rid}){
@@ -54,6 +37,10 @@ export default class extends Base{
         return this.doc.getRelObject(masterPartName)
     }
 
+    tableStyle(id){
+        retu
+    }
+
     static identities={
         presentation(wXml,officeDocument){
 			const $=officeDocument.content("p\\:presentation")
@@ -64,9 +51,9 @@ export default class extends Base{
 
             const sz=({attribs:{cx,cy}})=>({width:officeDocument.doc.emu2Px(cx),height:officeDocument.doc.emu2Px(cy)})
             const props=$.props({
-                filter:`:not(${content})`,
-                sldSz:sz, notesSz:sz,
                 ...common(officeDocument),
+                filter:`:not(${content},a\\:extLst)`,
+                sldSz:sz, notesSz:sz,
             })
 
             return {...props, type:"document",children}
@@ -77,8 +64,8 @@ export default class extends Base{
             const $=officeDocument.master(wXml.attribs)
             const $master=$("p\\:sldMaster")
             const props=$master.props({
-                filter:`:not(${content})`,
                 ...common(officeDocument),
+                filter:`:not(${content},a\\:extLst)`,
             })
             const children=$master.children(content).toArray()
             const orders={"p:sldLayoutLst":1, "p:cSld":2}
@@ -92,8 +79,8 @@ export default class extends Base{
             const $=officeDocument.slide(wXml.attribs)
             const $slide=$('p\\:sld')
             const props=$slide.props({
-                filter:`:not(${content})`,
                 ...common(officeDocument),
+                filter:`:not(${content},a\\:extLst)`,
             })
             const children=$slide.children(content).toArray()
 
@@ -119,7 +106,7 @@ export default class extends Base{
             const master=officeDocument.$(wXml).part()
             const $=new Part(master,officeDocument.doc).getRel(wXml.attribs["r:id"])
             const $layout=$("p\\:sldLayout")
-            const props=$layout.props({filter:`:not(${content})`})
+            const props=$layout.props({filter:`:not(${content},a\\:extLst)`})
             const children=$layout.children(content).toArray()
 
             return {...props,part:$.part, master, children, type:"slideLayout", }
@@ -144,7 +131,7 @@ export default class extends Base{
         pic(wXml, officeDocument){
             const props=officeDocument.$(wXml).props({
                 ...common(officeDocument),
-                tidy:({spPr, nvPicPr:{cNvPr={},cNvSpPr={},nvPr={}}, blipFill})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...blipFill})
+                tidy:({spPr, nvPicPr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
             })
             return {...props,type:"picture"}
         },
@@ -152,22 +139,31 @@ export default class extends Base{
         sp(wXml, officeDocument){
             const content="p\\:txBody"
 			const $=officeDocument.$(wXml)
-            const children=$.children("p\\:txBody").children("a\\:p").toArray()
+            const children=$.children(content).toArray()
             const commonProps=common(officeDocument)
             const names={spLocks:"locks", ph:"placeholder", ...commonProps.names}
             const props=$.props({
-                filter:`:not(${content})`,
                 ...commonProps,
+                filter:`:not(${content},a\\:extLst)`,
                 names,
                 ph:({attribs:{type="body",idx}})=>({type,idx}),
                 tidy:({spPr, nvSpPr:{cNvPr={},cNvSpPr={},nvPr={}}})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr})
             })
-            const textStyle=$.children("p\\:txBody").props({
-                filter:`:not(a\\:p)`,
-                ...commonProps,
+
+            const txBody=OfficeDocument.identities.txBody(children[0],officeDocument)
+            return {...props, children, ...txBody, type:"shape"}
+        },
+
+        txBody(wXml, officeDocument){
+            const content="a\\:p"
+			const $=officeDocument.$(wXml)
+            const children=$.children("a\\:p").toArray()
+            const textStyle=$.props({
+                ...common(officeDocument),
+                filter:`:not(a\\:p,a\\:extLst)`,
                 tidy:({lstStyle={},bodyPr={},...others})=>({...others, ...bodyPr, ...lstStyle})
             })
-			return {...props, textStyle, children, type:"shape"}
+			return {textStyle, children, type:"txBody"}
         },
 
         p(wXml, officeDocument){
@@ -187,10 +183,6 @@ export default class extends Base{
             return {style, children, type:"r"}
         },
 
-        graphicFrame(wXml, officeDocument){
-            return {type:"graphic", children:officeDocument.$(wXml).find("c\\:chart, dgm\\:relIds, a\\:tbl").toArray()}
-        },
-
         chart(wXml, officeDocument){
             return {type: "chart"}
         },
@@ -200,15 +192,61 @@ export default class extends Base{
         },
 
         tbl(wXml, officeDocument){
-            return {type:"table"}
+            const $=officeDocument.$(wXml)
+            const props=$.closest("p\\:graphicFrame").props({
+                ...common(officeDocument),
+                filter:`:not(a\\:graphic,a\\:extLst)`,
+                tidy:({spPr, nvGraphicFramePr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
+            })
+
+            const content="a\\:tr"
+            const tableProps=$.props({
+                ...common(officeDocument),
+                filter:`:not(${content}, a\\:extLst)`,
+                tableStyleId:({children})=>children.find(a=>a.data).data,
+                tblGrid:({children})=>children.filter(a=>a.name).reduce((cols,{attribs:{w}})=>{
+                    cols.push(officeDocument.doc.emu2Px(w))
+                    return cols
+                },[]),
+                tidy:({tblPr, tblGrid:cols, ...others})=>({...tblPr, cols, ...others})
+            })
+            const children=$.children(content).toArray()
+            return {...props, ...tableProps, children, type:"tbl"}
+        },
+
+        tblStyle(wXml, officeDocument){
+            const $=officeDocument.$(wXml)
+            const props=$.props({
+                ...common(officeDocument)
+            })
+            return {...props, type:"tblStyle"}
+        },
+
+        tr(wXml, officeDocument){
+            const $=officeDocument.$(wXml)
+            const props=$.props({
+                filter:":not(*)",
+                h:v=>officeDocument.doc.emu2Px(v),
+                names:{h:"height"}
+            })
+            return {...props, children:wXml.children, type:"tr"}
+        },
+
+        tc(wXml, officeDocument){
+            const content="a\\:txBody"
+            const $=officeDocument.$(wXml)
+            const children=$.children(content).toArray()
+            const props=$.props({
+                filter:`:not(${content},a\\:extLst)`
+            })
+            return {...props, type:"tc", children}
         }
     }
 }
 
 const common=od=>({
-    latin:font(od),
-    ea:font(od),
-    cs:font(od),
+    filter:":not(a\\:extLst)",
+    ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
 
     schemeClr:({attribs:{val}})=>od.theme.color(val),
     srgbClr:({attribs:{val}})=>od.doc.asColor(val),
@@ -222,6 +260,41 @@ const common=od=>({
         const part=od.$(n).part()
         return new Part(part,od.doc).getRel(embed)
     },
+
+    prstGeom(x){
+		return x.attribs.prst
+	},
+	pathLst({children}){
+		const px=x=>od.doc.emu2Px(x)
+        return children.filter(a=>a.name=="a:path")
+            .reduce((d,path)=>{
+                path.children.filter(a=>a.name)
+                    .forEach(a=>{
+                        switch(a.name.split(":").pop()){
+            			case 'moveTo':
+            				d.push('M '+px(a.children[0].attribs.x)+' '+px(a.children[0].attribs.y))
+            				break
+            			case 'lnTo':
+            				d.push('L '+px(a.children[0].attribs.x)+' '+px(a.children[0].attribs.y))
+            				break
+            			break
+            			case 'cubicBezTo':
+            				d.push('L '+px(a.children[0].attr('x'))+' '+px(a.children[0].attr('y')))
+            				d.push('Q '+px(a.children[1].attr('x'))+' '+px(a.children[1].attr('y'))
+            					+' '+px(a.children[2].attr('x'))+' '+px(a.children[2].attr('y')))
+            			break
+            			case 'arcTo':
+            				d.push(`A`)
+            			break
+            			case 'close':
+            				d.push('Z')
+            			break
+            			}
+                    })
+                return d
+            },[]).join(" ")
+	},
+    tidy_custGeom:({pathLst})=>pathLst,
 
     lvl:v=>parseInt(v),
     spcPts:({attribs:{val}})=>od.doc.pt2Px(parseInt(val)/100),
@@ -242,8 +315,13 @@ const common=od=>({
     off:({attribs:{x,y}})=>({x:od.doc.emu2Px(x),y:od.doc.emu2Px(y)}),
     tidy_xfrm:({ext={},off={}, ...transform})=>({...ext, ...off, ...transform}),
 
+    ...same("ln,lnB,lnR,lnL,lnT,lnTlToBr,lnBlToTr".split(","),({attribs:{w,...props}})=>({...props, w:od.doc.emu2Px(w)})),
+    ...same("left,right,top,bottom".split(",").map(a=>'tidy_'+a),({ln})=>ln),
     names:{
         schemeClr:"color", srgbClr:"color", sysClr:"color",
+        prstGeom:"geometry", custGeom:"geometry",
+        lnB:"bottom", lnR:"right", lnL:"left", lnT:"top",
     }
 })
-const font=od=>({attribs:{typeface=""}})=>od.theme.font(typeface)
+
+const same=(keys,fx)=>keys.reduce((fs, k)=>(fs[k]=fx, fs),{})

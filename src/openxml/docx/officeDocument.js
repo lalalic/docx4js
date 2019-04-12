@@ -3,19 +3,7 @@ import Base from "../officeDocument"
 export default class extends Base{
 	_init(){
 		super._init()
-		const supported="styles,numbering,settings".split(",")
-		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
-			let $=this.rels(rel)
-			let type=$.attr("Type").split("/").pop()
-			if(supported.indexOf(type)!=-1){
-				let target=$.attr("Target")
-				Object.defineProperty(this,type,{
-					get(){
-						return this.getRelObject(target)
-					}
-				})
-			}
-		})
+		this._assignRel("styles,numbering,settings".split(","))
 
 		var $=this.styles
 		this.styles.prototype.basest=function(selector){

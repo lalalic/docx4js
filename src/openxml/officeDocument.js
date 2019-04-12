@@ -3,21 +3,9 @@ import Part from "./part"
 export default class extends Part{
     _init(){
         super._init(...arguments)
-        const doc=this.doc
-        const supported="theme".split(",")
-		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
-			let $=this.rels(rel)
-			let type=$.attr("Type").split("/").pop()
-			if(supported.indexOf(type)!=-1){
-				let target=$.attr("Target")
-				Object.defineProperty(this,type,{
-					get(){
-						return this.getRelObject(target)
-					}
-				})
-			}
-		})
+        this._assignRel(["theme"])
 
+        const doc=this.doc
         Object.assign(this.theme,{
             font(typeface){
                 const type={mn:"minor",mj:"major"}
@@ -32,6 +20,21 @@ export default class extends Part{
 
             }
         })
+    }
+
+    _assignRel(supported){
+        this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
+			let $=this.rels(rel)
+			let type=$.attr("Type").split("/").pop()
+			if(supported.indexOf(type)!=-1){
+				let target=$.attr("Target")
+				Object.defineProperty(this,type,{
+					get(){
+						return this.getRelObject(target)
+					}
+				})
+			}
+		})
     }
 
     static identify(wXml, officeDocument){
