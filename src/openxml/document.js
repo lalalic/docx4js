@@ -1,5 +1,6 @@
 import Base from "../document"
 import Part from './part'
+import Color from "color"
 
 export default class extends Base{
 	constructor(){
@@ -39,11 +40,31 @@ export default class extends Base{
 		return this.pt2Px(parseInt(cm)*28.3464567/360000)
 	}
 
-	asColor(v){
+	asColor(v, transform){
 		if(!v || v.length==0 || v=='auto')
 			return '#000000'
 		v=v.split(' ')[0]
-		return v.charAt(0)=='#' ? v : (RGB.test(v) ? '#'+v : v)
+		const rgb=v.charAt(0)=='#' ? v : (RGB.test(v) ? '#'+v : v)
+		if(transform){
+			const {lumMod,lumOff,tint}=transform
+			if(lumMod||lumOff||tint){
+		        let color=Color(rgb)
+
+		        if(tint!=undefined){
+		            color=color.lighten(1-tint)
+		        }
+
+		        if(lumMod!=undefined){
+		            color=color.lighten(lumMod)
+		        }
+
+		        if(lumOff!=undefined){
+		            color=color.darken(lumOff)
+		        }
+		        return `${color.hex()}`.replace(/^0x/,"#")
+		    }
+		}
+		return rgb
 	}
 
 	shadeColor(color, percent) {

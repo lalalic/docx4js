@@ -30,6 +30,7 @@
   "dependencies": {
     "cfb": "^0.12.1",
     "cheerio": "^0.22.0",
+    "color": "^3.1.0",
     "htmlparser2": "^3.9.2",
     "jest": "^23.6.0",
     "jszip": "^2.6.0"

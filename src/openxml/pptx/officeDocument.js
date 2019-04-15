@@ -216,15 +216,14 @@ export default class OfficeDocument extends Base{
 
         tblStyle(wXml, officeDocument){
             const $=officeDocument.$(wXml)
-            const props=$.props({
-                ...common(officeDocument)
-            })
+            const props=$.props(common(officeDocument))
             return {...props, type:"tblStyle"}
         },
 
         tr(wXml, officeDocument){
             const $=officeDocument.$(wXml)
             const props=$.props({
+                ...common(officeDocument),
                 filter:":not(*)",
                 h:v=>officeDocument.doc.emu2Px(v),
                 names:{h:"height"}
@@ -243,14 +242,14 @@ export default class OfficeDocument extends Base{
         }
     }
 }
-
 const common=od=>({
     filter:":not(a\\:extLst)",
     ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
 
-    schemeClr:({attribs:{val}})=>od.theme.color(val),
-    srgbClr:({attribs:{val}})=>od.doc.asColor(val),
-    sysClr:({attribs:{val}})=>od.doc.asColor(val),
+    ...same("lumMod,lumOff,tint".split(","),({attribs:{val}})=>parseInt(val)/100000),
+    tidy_schemeClr:({val,lumMod,lumOff,tint})=>od.doc.asColor(od.theme.color(val),{lumMod,lumOff,tint}),
+    tidy_srgbClr:({val,lumMod,lumOff,tint})=>od.doc.asColor(val,{lumMod,lumOff,tint}),
+    sysClr:({attribs:{val}})=>val,
     tidy_solidFill:({color})=>color,
 
     blip:n=>{
@@ -315,8 +314,9 @@ const common=od=>({
     off:({attribs:{x,y}})=>({x:od.doc.emu2Px(x),y:od.doc.emu2Px(y)}),
     tidy_xfrm:({ext={},off={}, ...transform})=>({...ext, ...off, ...transform}),
 
-    ...same("ln,lnB,lnR,lnL,lnT,lnTlToBr,lnBlToTr".split(","),({attribs:{w,...props}})=>({...props, w:od.doc.emu2Px(w)})),
+    ...same("ln,lnB,lnR,lnL,lnT,lnTlToBr,lnBlToTr".split(",").map(a=>'tidy_'+a),({w,...props})=>({...props, w:od.doc.emu2Px(w)})),
     ...same("left,right,top,bottom".split(",").map(a=>'tidy_'+a),({ln})=>ln),
+    tidy_tcTxStyle:({color,...props})=>({...props, solidFill:color}),
     names:{
         schemeClr:"color", srgbClr:"color", sysClr:"color",
         prstGeom:"geometry", custGeom:"geometry",
