@@ -10,11 +10,13 @@
 
 The original goal is to support docx, pptx, and xlsx, but it's a huge work, so I limited to docx so far.
 
-In sake of performance, the implementation doesn't keep parsed structure. It only traverse docx content, and identify docx model, then call passed visitors one by one. No matter content, and styles, are all with the same stratigy. This method makes it do more with less memory.  
+In sake of performance, the implementation doesn't keep parsed structure. It only traverse docx content, and identify docx model, then call passed visitors one by one. No matter content, and styles, are all with the same stratigy. This method makes it do more with less memory.
 
 There are lots of information in docx, but the client application usually only cares about part of them, such as content only, structure only, some styles, or some attributes. The client application is able to handle special word model by TYPE.
 
 Attributes of word model usually affects styles, but I don't understand all of them, so I'm lazy just to iterate every attribute, and some unknown child elements, so client application is possible to catch all information you know.
+
+# pptx supported since 3.1.30
 
 # Features
 
@@ -60,7 +62,7 @@ Attributes of word model usually affects styles, but I don't understand all of t
 		* locale
 	* dropDownList
 		* value
-		* options: {displayText, value}	
+		* options: {displayText, value}
 	* gallery
 	* picture
 	* richtext
@@ -103,12 +105,12 @@ docx4js.load("~/test.docx").then(docx=>{
 	docx.render(function createElement(type,props,children){
 		return {type,props,children}
 	})
-	
+
 	//or use a event handler for more flexible control
 	const ModelHandler=require("docx4js/openxml/docx/model-handler").default
 	class MyModelhandler extends ModelHandler{
 		onp({type,children,node,...}, node, officeDocument){
-		
+
 		}
 	}
 	let handler=new MyModelhandler()
@@ -118,9 +120,9 @@ docx4js.load("~/test.docx").then(docx=>{
 	handler.on("r",function({type,children,node,...}, node, officeDocument){
 		console.log("found a run")
 	})
-	
+
 	docx.parse(handler)
-	
+
 	//you can change content on docx.officeDocument.content, and then save
 	docx.officeDocument.content("w\\:t").text("hello")
 	docx.save("~/changed.docx")

@@ -191,16 +191,23 @@ export default class OfficeDocument extends Base{
             return {type:"diagram"}
         },
 
-        tbl(wXml, officeDocument){
+        graphicFrame(wXml, officeDocument){
+            const content="a\\:graphic"
             const $=officeDocument.$(wXml)
-            const props=$.closest("p\\:graphicFrame").props({
+            const children=$.children(content).toArray()
+            const props=$.props({
                 ...common(officeDocument),
-                filter:`:not(a\\:graphic,a\\:extLst)`,
+                filter:`:not(${content},a\\:extLst)`,
                 tidy:({spPr, nvGraphicFramePr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
             })
+            return {...props, children, type:"graphicFrame"}
+        },
 
+        tbl(wXml, officeDocument){
             const content="a\\:tr"
-            const tableProps=$.props({
+            const $=officeDocument.$(wXml)
+            const children=$.children(content).toArray()
+            const props=$.props({
                 ...common(officeDocument),
                 filter:`:not(${content}, a\\:extLst)`,
                 tableStyleId:({children})=>children.find(a=>a.data).data,
@@ -210,8 +217,7 @@ export default class OfficeDocument extends Base{
                 },[]),
                 tidy:({tblPr, tblGrid:cols, ...others})=>({...tblPr, cols, ...others})
             })
-            const children=$.children(content).toArray()
-            return {...props, ...tableProps, children, type:"tbl"}
+            return {...props, children, type:"tbl"}
         },
 
         tblStyle(wXml, officeDocument){

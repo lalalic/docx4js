@@ -28,21 +28,12 @@ cheerio.prototype.props=function(opt={}){
 
     const toJS=(node,p)=>{
         const{children,attribs}=node
-        const o={..._xmlns(attribs)}
-        children.filter(a=>a.name && $(a).is(filter)).forEach(a=>set(a,o))
-        return o
+        return children
+            .filter(a=>a.name && $(a).is(filter))
+            .reduce((o,a)=>set(a,o),{..._xmlns(attribs)})
     }
 
-    var ob
-    if(this[0].name.endsWith("Pr")){
-        ob=toJS(this[0])
-    }else{
-        const el=this.eq(0)
-        ob=el.children()
-            .filter((i,a)=>$(a).is(filter))
-            .toArray()
-            .reduce((o,a)=>set(a,o),{..._xmlns(el.get(0).attribs)})
-    }
+    const props=toJS(this[0])
 
-    return tidy ? tidy(ob) : ob
+    return tidy ? tidy(props) : props
 }
