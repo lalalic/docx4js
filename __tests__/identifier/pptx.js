@@ -49,7 +49,6 @@ describe("model identifier", ()=>{
                 expect(doc.getPart(found.slideLayout.master)).toBeDefined()
                 expect(found.slide).toBeDefined()
                 expect(doc.getPart(found.slide.layout)).toBeDefined()
-                expect(found.frame).toBeDefined()
             })
         })
 

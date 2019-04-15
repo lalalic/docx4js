@@ -1,4 +1,5 @@
 import Base from "../officeDocument"
+import drawml from "../drawml"
 
 export default class extends Base{
 	_init(){
@@ -136,13 +137,25 @@ export default class extends Base{
 
 			return {type:"drawing.anchor",children}
 		},
+
 		pic(wXml, officeDocument){
-			let blip=officeDocument.content(wXml).find("a\\:blip")
-			let rid=blip.attr('r:embed')||blip.attr('r:link')
-			return {type:"picture",...officeDocument.getRel(rid)}
-		},
+            const props=officeDocument.$(wXml).props({
+                ...drawml(officeDocument),
+                tidy:({spPr, nvPicPr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
+            })
+            return {...props,type:"picture"}
+        },
+
 		wsp(wXml, officeDocument){
-			return {type:"shape", children:officeDocument.content(wXml).find(">wps\\:txbx>w\\:txbxContent").children().toArray()}
+			const content="w\\:txbx"
+			const $=officeDocument.$(wXml)
+			const children=$.children(content).children("w\\:txbxContent").children().toArray()
+			const props=$.props({
+				...drawml(officeDocument),
+				filter:`:not(${content})`,
+				tidy:({cNvSpPr={}, spPr={}, bodyPr={}})=>({...cNvSpPr, ...spPr, ...bodyPr})
+			})
+			return {...props, type:"shape", children}
 		},
 		Fallback(){
 			return null

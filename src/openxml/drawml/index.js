@@ -1,210 +1,83 @@
-export default {
-    pic(wXml, officeDocument){
-        let blip=officeDocument.content(wXml).find("a\\:blip")
-        let rid=blip.attr('r:embed')||blip.attr('r:link')
-        return {type:"picture",...officeDocument.getRel(rid)}
+export default od=>({
+    filter:":not(a\\:extLst)",
+    ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
+
+    ...same("lumMod,lumOff,tint".split(","),({attribs:{val}})=>parseInt(val)/100000),
+    tidy_schemeClr:({val,lumMod,lumOff,tint})=>od.doc.asColor(od.theme.color(val),{lumMod,lumOff,tint}),
+    tidy_srgbClr:({val,lumMod,lumOff,tint})=>od.doc.asColor(val,{lumMod,lumOff,tint}),
+    sysClr:({attribs:{val}})=>val,
+    tidy_solidFill:({color})=>color,
+
+    blip:n=>{
+        const {attribs:{"r:embed":embed, "r:link":url}}=n
+        if(url)
+            return {url}
+        const part=od.$(n).part()
+        return new Part(part,od.doc).getRel(embed)
     },
 
-    sp(wXml, officeDocument){
-        return {type:"shape", children:officeDocument.content(wXml).find(">wps\\:txbx>w\\:txbxContent").children().toArray()}
-    },
-
-	nvSpPr(wXml,officeDocument){
-        const props=wXml.children.filter(a=>a.name).find(a=>a.name.endsWith(":cNvPr")).attribs
-		const sp=wXml.children.filter(a=>a.name).find(a=>a.name.endsWith(":cNvSpPr"))
-        const nvPr=wXml.children.filter(a=>a.name).find(a=>a.name.endsWith(":nvPr"))
-		var locks=undefined, nv=undefined
-		if(sp){
-			locks=sp.children.filter(a=>a.name).find(a=>a.name.endsWith(":spLocks"))
-			if(locks){
-				locks={...locks.attribs}
-			}
-		}
-
-        if(nvPr){
-            nv=this.nvPr(nvPr,officeDocument)
-        }
-		return {...props, locks, ...nv, type:"nonVisualProps"}
+    prstGeom(x){
+		return x.attribs.prst
 	},
-
-	nvPicPr(wXml,od){
-		return this.nvSpPr(...arguments)
+	pathLst({children}){
+		const px=x=>od.doc.emu2Px(x)
+        return children.filter(a=>a.name=="a:path")
+            .reduce((d,path)=>{
+                path.children.filter(a=>a.name)
+                    .forEach(a=>{
+                        switch(a.name.split(":").pop()){
+            			case 'moveTo':
+            				d.push('M '+px(a.children[0].attribs.x)+' '+px(a.children[0].attribs.y))
+            				break
+            			case 'lnTo':
+            				d.push('L '+px(a.children[0].attribs.x)+' '+px(a.children[0].attribs.y))
+            				break
+            			break
+            			case 'cubicBezTo':
+            				d.push('L '+px(a.children[0].attr('x'))+' '+px(a.children[0].attr('y')))
+            				d.push('Q '+px(a.children[1].attr('x'))+' '+px(a.children[1].attr('y'))
+            					+' '+px(a.children[2].attr('x'))+' '+px(a.children[2].attr('y')))
+            			break
+            			case 'arcTo':
+            				d.push(`A`)
+            			break
+            			case 'close':
+            				d.push('Z')
+            			break
+            			}
+                    })
+                return d
+            },[]).join(" ")
 	},
+    tidy_custGeom:({pathLst})=>pathLst,
 
-	nvGrpSpPr(){
-		return this.nvSpPr(...arguments)
-	},
+    lvl:v=>parseInt(v),
+    spcPts:({attribs:{val}})=>od.doc.pt2Px(parseInt(val)/100),
+    tidy_spcAft:({spcPts:a})=>a,
+    tidy_spcBef:({spcPts:a})=>a,
 
-    grpSpPr(){
-		return this.spPr(...arguments)
-	},
+    buFont:({attribs:{typeface}})=>typeface,
+    buChar:({attribs:{char}})=>char,
+    buSzPts:({attribs:{val}})=>od.doc.pt2Px(parseInt(val)/100),
+    buSzPct:({attribs:{val}})=>parseInt(val)/1000/100,
+    buAutoNum:({attribs})=>({...attribs}),
+    tidy_buClr:({color})=>color,
 
-    nvPr(wXml,od){
-        const ph=wXml.children.filter(a=>a.name).find(a=>a.name.endsWith(":ph"))
-        if(ph){
-            return {placeholder:this.ph(ph,od)}
-        }
-        return {}
-    },
+    indent:v=>od.doc.emu2Px(v),
+    marL:v=>od.doc.emu2Px(v),
 
-    ph({attribs}){
-        return {...attribs}
-    },
+    ext:({attribs:{cx,cy}})=>({width:od.doc.emu2Px(cx),height:od.doc.emu2Px(cy)}),
+    off:({attribs:{x,y}})=>({x:od.doc.emu2Px(x),y:od.doc.emu2Px(y)}),
+    tidy_xfrm:({ext={},off={}, ...transform})=>({...ext, ...off, ...transform}),
 
-	spPr(wXml,od){
-		const props=wXml.children.filter(a=>a.name).reduce((props,a)=>{
-			const {type, ...attribs}=this[a.name.split(":").pop()](a,od)
-			props[type]=attribs
-			return props
-		},{})
-		return {type:"shapeProps", ...props, ...wXml.attribs}
-	},
-
-	xfrm(wXml, officeDocument){
-		return {type:"transform",x:0,y:0,width:0,height:0,...wXml.attribs}
-	},
-
-	prstGeom(wXml,officeDocument){
-		return {type:"geometry"}
-	},
-
-	custGeom(wXml, officeDocument){
-		return {type:"geometry"}
-	},
-
-	solidFill(wXml, od){
-		return {type:"fill"}
-	},
-
-	blipFill(wXml,od){
-		return {type:"fill"}
-	},
-
-	gradFill(wXml,od){
-		return {type:"fill"}
-	},
-
-	pattFill(wXml,od){
-		return {type:"fill"}
-	},
-
-	grpFill(wXml,od){
-		return {type:"fill"}
-	},
-
-	effectLst(wXml,od){
-		return {type:"effects"}
-	},
-
-	ln(wXml,od){
-		return {type:"outline"}
-	},
-
-	sp3d(wXml,od){
-		return {type:"shape3d"}
-	},
-
-	scene3d(wXml,od){
-		return {type:"scene3d"}
-	},
-
-	lstStyle(wXml,od){
-        const isList=/\:lvl\dpPr$/
-        return wXml.children.filter(a=>a.name && isList.test(a.name)).reduce((nums,a)=>{
-            nums[a.name.substr(-4,1)]=this.lvl1pPr(a,od)
-            return nums
-        },{})
-	},
-
-    lvl1pPr({children,attribs},od){
-        return children.filter(a=>a.name).reduce((props,a)=>{
-            const k=a.name.split(":").pop()
-            switch(k){
-                case "buFont":
-                    props.fonts={...a.attribs}
-                    break
-                case "buChar":
-                    props.char=a.attribs.char
-                    break
-                case "buClr":
-                    props.color=this.color(a,od)
-                    break
-                case "buAutoNum":
-                    props.autoNum={...a.attribs}
-            }
-            return props
-        },{...attribs})
-    },
-
-    srgbClr({attribs:{val}},od){
-        return od.doc.asColor(val)
-    },
-
-	pPr({children,attribs:{marL,marR,indent}},od){
-        const props={}
-        if(indent!=undefined)
-            props.indent=od.doc.dxa2Px(indent)
-        if(marL!=undefined)
-            props.marginLeft=od.doc.toPx(`${parseInt(marL)*2/457200}in`)
-        if(marR!=undefined)
-            props.marginRight=od.doc.toPx(`${parseInt(marR)*2/457200}in`)
-
-        return children.filter(a=>a.name).reduce((props,a)=>{
-            switch(a.name.split(":").pop()){
-                case "lnSpc":
-                    props.lineHeight=this.lnSpc(a,od);
-                    break;
-                case "spcAft":
-                    props.after=this.lnSpc(a,od);
-                    break;
-                case "spcBef":
-                    props.before=this.lnSpc(a,od);
-                    break;
-            }
-            return props
-        },props)
-	},
-
-    lnSpc({children},od){
-        return od.doc.pt2Px(parseInt(children.find(a=>a.name).attribs.val)/100)
-    },
-
-	rPr({children, attribs:{sz, ...attribs}},od){
-        const props={...attribs}
-        if(sz!=undefined){
-            props.size=parseInt(sz)/100
-        }
-        return children.filter(a=>a.name).reduce((props,a)=>{
-            const {type, ...attr}=this[a.name.split(":").pop()](a,od)
-            return Object.assign(props,type ? {[type]:attr} : attr)
-        },props)
-	},
-
-    defRPr(){
-        return this.rPr(...arguments)
-    },
-
-    defPPr(){
-        return this.pPr(...arguments)
-    },
-
-    latin({attribs}){
-        return {type:"fonts",...attribs}
-    },
-
-    hlinkClick(n,od){
-        return {href:""}
-    },
-
-    uFill({children},od){
-        return {underlineFill: this.color(...arguments)}
-    },
-
-    highlight(){
-        return {highlight:this.color(...arguments)}
-    },
-
-    color({children},od){
-        return children.filter(a=>a.name).reduce((v,a)=>this[a.name.split(":").pop()](a,od),null)
+    ...same("ln,lnB,lnR,lnL,lnT,lnTlToBr,lnBlToTr".split(",").map(a=>'tidy_'+a),({w,...props})=>({...props, w:od.doc.emu2Px(w)})),
+    ...same("left,right,top,bottom".split(",").map(a=>'tidy_'+a),({ln})=>ln),
+    tidy_tcTxStyle:({color,...props})=>({...props, solidFill:color}),
+    names:{
+        schemeClr:"color", srgbClr:"color", sysClr:"color",
+        prstGeom:"geometry", custGeom:"geometry",
+        lnB:"bottom", lnR:"right", lnL:"left", lnT:"top",
     }
-}
+})
+
+const same=(keys,fx)=>keys.reduce((fs, k)=>(fs[k]=fx, fs),{})
