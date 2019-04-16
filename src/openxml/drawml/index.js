@@ -1,3 +1,5 @@
+import Part from "../part"
+
 export default od=>({
     filter:":not(a\\:extLst)",
     ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
@@ -7,6 +9,7 @@ export default od=>({
     tidy_srgbClr:({val,lumMod,lumOff,tint})=>od.doc.asColor(val,{lumMod,lumOff,tint}),
     sysClr:({attribs:{val}})=>val,
     tidy_solidFill:({color})=>color,
+    id:()=>undefined,
 
     blip:n=>{
         const {attribs:{"r:embed":embed, "r:link":url}}=n

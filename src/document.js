@@ -145,7 +145,8 @@ export default class ZipDocument{
 		let parts=Object.keys(this.parts).reduce((state, k)=>{
 			let v=this.parts[k]
 			if(v.cheerio){
-				state[k]=this.constructor.parseXml(v.xml())
+				zip.file(v.name,v.xml(),v.options)
+				state[k]=zip.file(v.name)
 			}else{
 				zip.file(v.name,v._data,v.options)
 				state[k]=zip.file(v.name)

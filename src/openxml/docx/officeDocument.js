@@ -139,7 +139,8 @@ export default class extends Base{
 		},
 
 		pic(wXml, officeDocument){
-            const props=officeDocument.$(wXml).props({
+			const $=officeDocument.$(wXml)
+            const props=$.props({
                 ...drawml(officeDocument),
                 tidy:({spPr, nvPicPr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
             })
