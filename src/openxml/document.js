@@ -46,7 +46,7 @@ export default class extends Base{
 		v=v.split(' ')[0]
 		const rgb=v.charAt(0)=='#' ? v : (RGB.test(v) ? '#'+v : v)
 		if(transform){
-			const {lumMod,lumOff,tint}=transform
+			const {lumMod,lumOff,tint,shade}=transform
 			if(lumMod||lumOff||tint){
 		        let color=Color(rgb)
 
@@ -61,34 +61,20 @@ export default class extends Base{
 		        if(lumOff!=undefined){
 		            color=color.darken(lumOff)
 		        }
+
+				if(shade!=undefined){
+					color=color
+						.red(color.red()*(1+shade))
+						.green(color.green()*(1+shade))
+						.blue(color.blue()*(1+shade))
+				}
+
 		        return `${color.hex()}`.replace(/^0x/,"#")
 		    }
 		}
 		return rgb
 	}
-
-	shadeColor(color, percent) {
-		if(!RGB.test(color))
-			return color
-		var R = parseInt(color.substring(1,3),16);
-		var G = parseInt(color.substring(3,5),16);
-		var B = parseInt(color.substring(5,7),16);
-
-		R = parseInt(R * (100 + percent) / 100);
-		G = parseInt(G * (100 + percent) / 100);
-		B = parseInt(B * (100 + percent) / 100);
-
-		R = (R<255)?R:255;
-		G = (G<255)?G:255;
-		B = (B<255)?B:255;
-
-		var RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-		var GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-		var BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-
-		return "#"+RR+GG+BB;
-	}
-
+	
 	toPx(length) {
 		var value = parseFloat(length),
 			units = String(length).match(RE_LENGTH_UNIT)[2];

@@ -142,7 +142,7 @@ export default class extends Base{
 			const $=officeDocument.$(wXml)
             const props=$.props({
                 ...drawml(officeDocument),
-                tidy:({spPr, nvPicPr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
+                tidy:({spPr, nvPicPr:{cNvPr={},cNvSpPr={},nvPr={}}, style:{lnRef={},fillRef={},effectRef={}}={},...others})=>({...lnRef,...fillRef, ...effectRef,...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
             })
             return {...props,type:"picture"}
         },
@@ -154,7 +154,7 @@ export default class extends Base{
 			const props=$.props({
 				...drawml(officeDocument),
 				filter:`:not(${content})`,
-				tidy:({cNvSpPr={}, spPr={}, bodyPr={}})=>({...cNvSpPr, ...spPr, ...bodyPr})
+				tidy:({cNvSpPr={}, spPr={}, style:{lnRef={},fillRef={},effectRef={},fontRef={}}={}, bodyPr={}})=>({...cNvSpPr, ...lnRef,...fillRef, ...effectRef, ...spPr, ...bodyPr})
 			})
 			return {...props, type:"shape", children}
 		},

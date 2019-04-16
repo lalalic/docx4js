@@ -4,9 +4,9 @@ export default od=>({
     filter:":not(a\\:extLst)",
     ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
 
-    ...same("lumMod,lumOff,tint".split(","),({attribs:{val}})=>parseInt(val)/100000),
-    tidy_schemeClr:({val,lumMod,lumOff,tint})=>od.doc.asColor(od.theme.color(val),{lumMod,lumOff,tint}),
-    tidy_srgbClr:({val,lumMod,lumOff,tint})=>od.doc.asColor(val,{lumMod,lumOff,tint}),
+    ...same("lumMod,lumOff,tint,shade".split(","),({attribs:{val}})=>parseInt(val)/100000),
+    tidy_schemeClr:({val,...effect})=>od.doc.asColor(od.theme.color(val),effect),
+    tidy_srgbClr:({val,...effect})=>od.doc.asColor(val,effect),
     sysClr:({attribs:{val}})=>val,
     tidy_solidFill:({color})=>color,
     id:()=>undefined,
@@ -76,6 +76,12 @@ export default od=>({
     ...same("ln,lnB,lnR,lnL,lnT,lnTlToBr,lnBlToTr".split(",").map(a=>'tidy_'+a),({w,...props})=>({...props, w:od.doc.emu2Px(w)})),
     ...same("left,right,top,bottom".split(",").map(a=>'tidy_'+a),({ln})=>ln),
     tidy_tcTxStyle:({color,...props})=>({...props, solidFill:color}),
+
+    tidy_lnRef:({idx,...ph})=>od.theme.lnRef(idx,ph),
+    tidy_fillRef:({idx,...ph})=>od.theme.fillRef(idx,ph),
+    tidy_EffectRef:({idx,...ph})=>od.theme.effectRef(idx,ph),
+    tidy_fontRef:({idx,...ph})=>od.theme.fontRef(idx,ph),
+
     names:{
         schemeClr:"color", srgbClr:"color", sysClr:"color",
         prstGeom:"geometry", custGeom:"geometry",
