@@ -2,6 +2,7 @@ import Part from "../part"
 
 export default od=>({
     filter:":not(a\\:extLst)",
+    id:()=>undefined,
     ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
 
     ...same("lumMod,lumOff,tint,shade".split(","),({attribs:{val}})=>parseInt(val)/100000),
@@ -9,7 +10,7 @@ export default od=>({
     tidy_srgbClr:({val,...effect})=>od.doc.asColor(val,effect),
     sysClr:({attribs:{val}})=>val,
     tidy_solidFill:({color})=>color,
-    id:()=>undefined,
+    rot:v=>parseInt(v)/60000,
 
     blip:n=>{
         const {attribs:{"r:embed":embed, "r:link":url}}=n
@@ -86,6 +87,7 @@ export default od=>({
         schemeClr:"color", srgbClr:"color", sysClr:"color",
         prstGeom:"geometry", custGeom:"geometry",
         lnB:"bottom", lnR:"right", lnL:"left", lnT:"top",
+        rot:"rotate",
     }
 })
 

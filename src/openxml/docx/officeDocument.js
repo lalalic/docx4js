@@ -154,7 +154,7 @@ export default class extends Base{
 			const props=$.props({
 				...drawml(officeDocument),
 				filter:`:not(${content})`,
-				tidy:({cNvSpPr={}, spPr={}, style:{lnRef={},fillRef={},effectRef={},fontRef={}}={}, bodyPr={}})=>({...cNvSpPr, ...lnRef,...fillRef, ...effectRef, ...spPr, ...bodyPr})
+				tidy:({cNvSpPr={}, spPr={}, style:{lnRef={},fillRef={},effectRef={},fontRef={}}={},...others})=>({...cNvSpPr, ...lnRef,...fillRef, ...effectRef, ...spPr, ...others})
 			})
 			return {...props, type:"shape", children}
 		},
