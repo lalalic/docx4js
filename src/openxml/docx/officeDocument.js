@@ -148,13 +148,16 @@ export default class extends Base{
         },
 
 		wsp(wXml, officeDocument){
-			const content="w\\:txbx"
+			const content="wps\\:txbx"
 			const $=officeDocument.$(wXml)
 			const children=$.children(content).children("w\\:txbxContent").children().toArray()
+			const same=(keys,fx)=>keys.reduce((fs, k)=>(fs[k]=fx, fs),{})
+
 			const props=$.props({
 				...drawml(officeDocument),
+				...same("r,t,l,b".split(",").map(a=>`${a}Ins`), v=>officeDocument.doc.emu2Px(v)),
 				filter:`:not(${content})`,
-				tidy:({cNvSpPr={}, spPr={}, style:{lnRef={},fillRef={},effectRef={},fontRef={}}={},...others})=>({...cNvSpPr, ...lnRef,...fillRef, ...effectRef, ...spPr, ...others})
+				tidy:({cNvSpPr={}, spPr={}, style:{lnRef={},fillRef={},effectRef={},fontRef={}}={},...others})=>({...cNvSpPr, ...lnRef,...fillRef, ...effectRef, ...spPr, textStyle: fontRef, ...others})
 			})
 			return {...props, type:"shape", children}
 		},
