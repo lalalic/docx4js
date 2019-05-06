@@ -10,6 +10,7 @@ cheerio.prototype.props=function(opt={}){
         .filter(k=>!k.startsWith("xmlns"))
         .reduce((o,k)=>{
             const v=attribs[k]
+            k=k.split(":").pop()
             const b=opt[k] ? opt[k](v) : v
             if(b!=undefined){
                 o[nameFn(k)]=b
