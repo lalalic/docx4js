@@ -182,7 +182,7 @@ export default class extends Base{
 				let prChildren=pr.get(0).children
 				let elType=prChildren[prChildren.length-1]
 				let name=elType.name.split(":").pop()
-				let type="text,picture,docPartList,comboBox,dropDownList,date,checkbox,repeatingSection,repeatingSectionItem".split(",")
+				let type="text,picture,docPartList,docPartObj,comboBox,dropDownList,date,checkbox,repeatingSection,repeatingSectionItem".split(",")
 					.find(a=>a==name)
 				let model={children}
 				if(type){
@@ -231,8 +231,12 @@ export default class extends Base{
 			}
 		},
 		hyperlink(wXml,officeDocument){
-			let url=officeDocument.getRel(wXml.attribs["r:id"])
-			return {type:"hyperlink", url}
+			if(wXml.attribs["r:id"]){
+				let url=officeDocument.getRel(wXml.attribs["r:id"])
+				return {type:"hyperlink", url}
+			}else if(wXml.attribs["w:anchor"]){
+				return {type:"hyperlink", url:`#${wXml.attribs["w:anchor"]}`}
+			}
 		},
 		tbl(wXml){
 			return wXml.children.reduce((state,node)=>{
