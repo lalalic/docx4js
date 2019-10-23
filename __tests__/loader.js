@@ -1,6 +1,6 @@
-const zipDoc=require("../src/document")
-const openxml=require("../src/openxml/document")
-const docx4js=require("../src")
+import zipDoc from "../src/document"
+import openxml from "../src/openxml/document"
+import docx4js from "../src"
 
 describe("loader", function(){
     var loader=`${__dirname}/files/loader`
