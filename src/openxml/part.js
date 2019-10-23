@@ -159,6 +159,7 @@ export default class Part{
 	renderNode(node, createElement=(type,props,children)=>{type,props,children},identify=node=>node.name.split(":").pop(), extra){
 		let {name:tagName, children,id, parent}=node
 		if(node.type=="text"){
+			return node.data
 			if(parent.name=="w:t"){
 				return node.data
 			}
@@ -189,10 +190,11 @@ export default class Part{
 		if(extra)
 			Object.assign(props,extra)
 
-		let childElements=[]
-		if(children && children.length){
-			childElements=children.map(a=>a ? this.renderNode(a,createElement,identify) : null)
-				.filter(a=>!!a)
+		let childElements=children
+		if(Array.isArray(children)){
+			if(children.length){
+				childElements=children.map(a=>a ? this.renderNode(a,createElement,identify) : null).filter(a=>!!a)
+			}
 		}
 
 		return createElement(

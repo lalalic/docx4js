@@ -80,6 +80,10 @@ export default class extends Part{
 		})
     }
 
+    render(createElement, identify=this.constructor.identify.bind(this.constructor)){
+
+    }
+
     static identify(wXml, officeDocument){
         const identities=this.identities
         const tag=wXml.name.split(":").pop()
@@ -90,6 +94,6 @@ export default class extends Part{
     }
 
     static identities={
-
+        
     }
 }
