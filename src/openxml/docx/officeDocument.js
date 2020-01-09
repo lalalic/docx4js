@@ -129,7 +129,7 @@ export default class extends Base{
 		},
 		anchor(wXml, officeDocument){
 			let $=officeDocument.content(wXml)
-			let graphicData=$.find('a\\:graphic>a\\:graphicData')
+			let graphicData=$.find('>a\\:graphic>a\\:graphicData')
 			let type=graphicData.attr("uri").split("/").pop()
 			let children=graphicData.children().toArray()
 			if(type=="wordprocessingGroup")

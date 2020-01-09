@@ -72,6 +72,7 @@ export default class extends Part{
 			if(supported.indexOf(type)!=-1){
 				let target=$.attr("Target")
 				Object.defineProperty(this,type,{
+                    configurable:true,
 					get(){
 						return this.getRelObject(target)
 					}

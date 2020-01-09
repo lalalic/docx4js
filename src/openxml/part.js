@@ -28,6 +28,7 @@ export default class Part{
 
 	_init(){
 		Object.defineProperty(this,"content",{
+			configurable:true,
 			get(){
 				return this.doc.getObjectPart(this.name)
 			}
