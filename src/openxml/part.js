@@ -1,5 +1,4 @@
 import * as OLE from "./ole"
-import FileType from "file-type/browser"
 
 export default class Part{
 	constructor(name,doc){
