@@ -1,4 +1,5 @@
 import * as OLE from "./ole"
+import FileType from "file-type/browser"
 
 export default class Part{
 	constructor(name,doc){
@@ -82,13 +83,13 @@ export default class Part{
 		return rId
 	}
 
-	addImage(data){
+	addImage(data, {ext,mime}={ext:"jpg",mime:"image/jpg"}){
 		const type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
 		let id=`rId${this._nextrId()}`
 
 		let targetName="media/image"+(Math.max(0,...this.rels("Relationship[Type$='image']").toArray().map(t=>{
 			return parseInt(t.attribs.Target.match(/\d+\./)||[0])
-		}))+1)+".jpg";
+		}))+1)+"."+ext;
 
 		let partName=`${this.folder}${targetName}`
 		this.doc.raw.file(partName, data)
@@ -97,6 +98,11 @@ export default class Part{
 		this.rels("Relationships")
 			.append(`<Relationship Id="${id}" Type="${type}" Target="${targetName}"/>`)
 
+		const DefaultTypes=this.doc.getObjectPart("[Content_Types].xml")(`Types`)
+		const extType=DefaultTypes.find(`>Default[Extension='${ext}']`)
+		if(extType.length==0){
+			DefaultTypes.prepend(`<Default Extension="${ext}" ContentType="${mime}"/>`)
+		}
 		return id
 	}
 

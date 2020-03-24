@@ -38,9 +38,9 @@ export default od=>({
             				break
             			break
             			case 'cubicBezTo':
-            				d.push('L '+px(a.children[0].attr('x'))+' '+px(a.children[0].attr('y')))
-            				d.push('Q '+px(a.children[1].attr('x'))+' '+px(a.children[1].attr('y'))
-            					+' '+px(a.children[2].attr('x'))+' '+px(a.children[2].attr('y')))
+            				d.push('L '+px(a.children[0].attribs.x)+' '+px(a.children[0].attribs.y))
+            				d.push('Q '+px(a.children[1].attribs.x)+' '+px(a.children[1].attribs.y)
+            					+' '+px(a.children[2].attribs.x)+' '+px(a.children[2].attribs.y))
             			break
             			case 'arcTo':
             				d.push(`A`)
