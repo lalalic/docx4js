@@ -49,7 +49,8 @@ export default class OfficeDocument extends Base{
             const props=$.props({
                 ...drawml(officeDocument),
                 filter:`:not(${content},a\\:extLst)`,
-                sldSz:sz, notesSz:sz,
+                sldSz:sz, 
+                notesSz:sz,
             })
 
             return {...props, type:"document",children}
@@ -153,6 +154,8 @@ export default class OfficeDocument extends Base{
             const children=$.children("a\\:p").toArray()
             const textStyle=$.props({
                 ...drawml(officeDocument),
+                lnSpcReduction:v=>parseInt(v),
+                fontScale: v=>parseInt(v),
                 filter:`:not(a\\:p,a\\:extLst)`,
                 tidy:({lstStyle={},bodyPr={},...others})=>({...others, ...bodyPr, ...lstStyle})
             })

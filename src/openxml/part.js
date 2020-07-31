@@ -166,10 +166,6 @@ export default class Part{
 		let {name:tagName, children,id, parent}=node
 		if(node.type=="text"){
 			return node.data
-			if(parent.name=="w:t"){
-				return node.data
-			}
-			return null
 		}
 
 		let type=tagName

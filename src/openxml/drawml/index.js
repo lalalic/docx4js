@@ -4,10 +4,11 @@ export default od=>({
     filter:":not(a\\:extLst)",
     id:()=>undefined,
     ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
-
+    //sz:v=>od.doc.pt2Px(parseInt(v)/100),
     ...same("lumMod,lumOff,tint,shade".split(","),({attribs:{val}})=>parseInt(val)/100000),
     tidy_schemeClr:({val,...effect})=>od.doc.asColor(od.theme.color(val),effect),
     tidy_srgbClr:({val,...effect})=>od.doc.asColor(val,effect),
+    tidy_prstClr:({val,...effect})=>od.doc.asColor(val,effect),
     sysClr:({attribs:{val}})=>val,
     tidy_solidFill:({color})=>color,
     rot:v=>parseInt(v)/60000,
@@ -69,6 +70,10 @@ export default od=>({
 
     indent:v=>od.doc.emu2Px(v),
     marL:v=>od.doc.emu2Px(v),
+    lIns:v=>od.doc.emu2Px(v),
+    rIns:v=>od.doc.emu2Px(v),
+    bIns:v=>od.doc.emu2Px(v),
+    tIns:v=>od.doc.emu2Px(v),
 
     ext:({attribs:{cx,cy}})=>({width:od.doc.emu2Px(cx),height:od.doc.emu2Px(cy)}),
     off:({attribs:{x,y}})=>({x:od.doc.emu2Px(x),y:od.doc.emu2Px(y)}),
@@ -84,10 +89,21 @@ export default od=>({
     tidy_fontRef:({idx,...ph})=>od.theme.fontRef(idx,ph),
 
     names:{
-        schemeClr:"color", srgbClr:"color", sysClr:"color",
+        schemeClr:"color", srgbClr:"color", sysClr:"color",prstClr:"color",
         prstGeom:"geometry", custGeom:"geometry",
         lnB:"bottom", lnR:"right", lnL:"left", lnT:"top",
         rot:"rotate",
+    },
+
+    inherit(...additions){
+        return additions.reduce(({filter="",names={}, ...others}, {filter:_filter="",names:_names={}, ..._others})=>{
+            return {
+                ...others,
+                ..._others,
+                filter:[filter,_filter].filter(a=>!!a).join(","),
+                names:{...names, ..._names},
+            }
+        },this)
     }
 })
 

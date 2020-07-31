@@ -25,11 +25,11 @@ export default class extends Base{
 	}
 
 	dxa2Px(a){
-		return this.pt2Px(parseInt(a)/20.0)
+		return this.pt2Px(a/20.0)
 	}
 
 	emu2Px(a){
-		return this.pt2Px(parseInt(a)/12700)
+		return this.pt2Px(a/12700)
 	}
 
 	pt2Px(pt){
@@ -37,7 +37,7 @@ export default class extends Base{
 	}
 
 	cm2Px(cm){
-		return this.pt2Px(parseInt(cm)*28.3464567/360000)
+		return this.pt2Px(parseInt(cm)*28.3464567)
 	}
 
 	asColor(v, transform){
@@ -80,13 +80,11 @@ export default class extends Base{
 			units = String(length).match(RE_LENGTH_UNIT)[2];
 
 		switch (units) {
-			case 'em' : return value * 16;
-			case 'rem': return value * 16;
-			case 'cm' : return value * 96 / 2.54;
-			case 'mm' : return value * 96 / 2.54 / 10;
-			case 'in' : return value * 96;
-			case 'pt' : return value * 72;
-			case 'pc' : return value * 72 / 12;
+			case 'cm' : return this.cm2Px(value);
+			case 'mm' : return this.cm2Px(value / 10);
+			case 'in' : return this.pt2Px(value * 72);
+			case 'pt' : return this.pt2Px(value);
+			case 'ft' : return this.pt2Px(value*864)
 			default   : return value;
 		}
 	}
@@ -94,4 +92,4 @@ export default class extends Base{
 	static OfficeDocument=Part
 }
 const RGB=/([a-fA-F0-9]{2}?){3}?/;
-const RE_LENGTH_UNIT=/^(\d+)(\w)+$/
+const RE_LENGTH_UNIT=/^(\d+)(\w+)$/
