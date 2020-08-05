@@ -88,11 +88,16 @@ export default od=>({
     tidy_EffectRef:({idx,...ph})=>od.theme.effectRef(idx,ph),
     tidy_fontRef:({idx,...ph})=>od.theme.fontRef(idx,ph),
 
+    tidy_noAutoFit:()=>undefined,
+    tidy_normAutoFit:props=>({type:"font",...props}),
+    tidy_spAutoFit:props=>({type:"block",...props}),
+
     names:{
         schemeClr:"color", srgbClr:"color", sysClr:"color",prstClr:"color",
         prstGeom:"geometry", custGeom:"geometry",
         lnB:"bottom", lnR:"right", lnL:"left", lnT:"top",
         rot:"rotate",
+        spAutoFit:"autofit",normAutoFit:"autofit",noAutoFit:"autofit",
     },
 
     inherit(...additions){
