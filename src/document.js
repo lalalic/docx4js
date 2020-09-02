@@ -1,4 +1,4 @@
-import JSZip, {ZipObject} from 'jszip'
+import JSZip from 'jszip'
 import "./$props"
 import cheer from "cheerio"
 import {Parser, DomHandler} from "htmlparser2"
@@ -89,7 +89,7 @@ export default class ZipDocument{
 	}
 
 	$(node){
-        const root=a=>a.root || root(a.parent)
+        const root=a=>a.root || (a.parent && root(a.parent))
 		return this.getObjectPart(root(node).attribs.part)(node)
     }
 

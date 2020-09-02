@@ -82,9 +82,9 @@ export default class OfficeDocument extends Base{
             const children=$slide.children(content).toArray()
 
             const slidePart=officeDocument.getRelPart(wXml.attribs["r:id"])
-            const layoutTarget=officeDocument.doc.normalizePath(slidePart.folder+slidePart.getRelTarget("slideLayout"))
+            const layoutTarget=officeDocument.doc.normalizePath(slidePart.normalizePath(slidePart.getRelTarget("slideLayout")))
             const layoutPart=new Part(layoutTarget,officeDocument.doc)
-            const masterTarget=officeDocument.doc.normalizePath(layoutPart.folder+layoutPart.getRelTarget("slideMaster"))
+            const masterTarget=officeDocument.doc.normalizePath(layoutPart.normalizePath(layoutPart.getRelTarget("slideMaster")))
             return {...props,part:$.part, layout:layoutTarget, master:masterTarget, children, type:"slide"}
         },
 

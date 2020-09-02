@@ -79,7 +79,7 @@ export default od=>({
     off:({attribs:{x,y}})=>({x:od.doc.emu2Px(x),y:od.doc.emu2Px(y)}),
     tidy_xfrm:({ext={},off={}, ...transform})=>({...ext, ...off, ...transform}),
 
-    ...same("ln,lnB,lnR,lnL,lnT,lnTlToBr,lnBlToTr".split(",").map(a=>'tidy_'+a),({w,...props})=>({...props, w:od.doc.emu2Px(w)})),
+    ...same("ln,lnB,lnR,lnL,lnT,lnTlToBr,lnBlToTr".split(",").map(a=>'tidy_'+a),({w,...props})=>({...props, w:w ? od.doc.emu2Px(w) : undefined})),
     ...same("left,right,top,bottom".split(",").map(a=>'tidy_'+a),({ln})=>ln),
     tidy_tcTxStyle:({color,...props})=>({...props, solidFill:color}),
 

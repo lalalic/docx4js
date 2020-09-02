@@ -1,5 +1,10 @@
 import * as OLE from "./ole"
 
+/**
+ * name: ABSOLUTE path of a part, word.xml, ppt/slides/slide1.xml
+ * folder:absolute folder, ends with "/" or totally empty ""
+ * relName:absolute path of a relationship part
+ */
 export default class Part{
 	constructor(name,doc){
 		this.name=name
@@ -35,10 +40,16 @@ export default class Part{
 		})
 	}
 
+	normalizePath(path=""){
+		if(path.startsWith("/"))
+			return path.substr(1)
+		return this.folder+path
+	}
+
 	getRelPart(id){
 		var rel=this.rels(`Relationship[Id="${id}"]`)
 		var target=rel.attr("Target")
-		return new Part(`${this.folder}${target}`,this.doc)
+		return new Part(this.normalizePath(target),this.doc)
 	}
 
 	getRelTarget(type){
@@ -46,7 +57,7 @@ export default class Part{
 	}
 
 	getRelObject(target){
-		return this.doc.getObjectPart(this.folder+target)
+		return this.doc.getObjectPart(this.normalizePath(target))
 	}
 
 	getRel(id){
@@ -57,14 +68,14 @@ export default class Part{
 
 		switch(rel.attr("Type").split("/").pop()){
 		case 'image':
-			let url=this.doc.getDataPartAsUrl(this.folder+target, "image/*")
-			let crc32=this.doc.getPartCrc32(this.folder+target)
+			let url=this.doc.getDataPartAsUrl(this.normalizePath(target), "image/*")
+			let crc32=this.doc.getPartCrc32(this.normalizePath(target))
 			return {url,crc32}
 		default:
 			if(target.endsWith(".xml"))
 				return this.getRelObject(target)
 			else
-				return this.doc.getPart(this.folder+target)
+				return this.doc.getPart(this.normalizePath(target))
 		}
 	}
 
@@ -76,7 +87,7 @@ export default class Part{
 		const rId=`rId${this._nextrId()}`
 		this.rels("Relationships")
 			.append(`<Relationship Id="${rId}" type="${type}" target="${target}"/>`)
-		const partName=`${this.folder}${target}`
+		const partName=this.normalizePath(target)
 		this.doc.raw.file(partName, data)
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 		return rId
@@ -90,7 +101,7 @@ export default class Part{
 			return parseInt(t.attribs.Target.match(/\d+\./)||[0])
 		}))+1)+"."+ext;
 
-		let partName=`${this.folder}${targetName}`
+		let partName=this.normalizePath(targetName)
 		this.doc.raw.file(partName, data)
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 
@@ -124,7 +135,8 @@ export default class Part{
 		let id=this._nextrId()
 		let rId=`rId${id}`
 		let targetName=`chunk/chunk${id}.${ext}`
-		let partName=`${this.folder}${targetName}`
+
+		let partName=this.normalizePath(targetName)
 		this.doc.raw.file(partName, data)
 		this.doc.parts[partName]=this.doc.raw.file(partName)
 
@@ -141,7 +153,7 @@ export default class Part{
 		let rel=this.rels(`Relationship[Id=${rid}]`)
 		let type=rel.attr("Type")
 		let targetName=rel.attr("Target")
-		let data=this.doc.getDataPart(`${this.folder}${targetName}`)
+		let data=this.doc.getDataPart(this.normalizePath(targetName))
 		switch(type.split("/").pop()){
 			case "oleObject":
 				return OLE.parse(data)
@@ -154,7 +166,7 @@ export default class Part{
 	removeRel(id){
 		let rel=this.rels(`Relationship[Id="${id}"]`)
 		if(rel.attr("TargetMode")!=="External"){
-			let partName=this.folder+rel.attr("Target")
+			let partName=this.normalizePath(rel.attr("Target"))
 			this.doc.contentTypes.find(`[PartName='/${partName}']`).remove()
 			this.doc.raw.remove(partName)
 			delete this.doc.parts[partName]
