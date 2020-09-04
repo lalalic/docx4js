@@ -61,7 +61,7 @@ export default od=>({
     tidy_spcAft:({spcPts:a})=>a,
     tidy_spcBef:({spcPts:a})=>a,
 
-    buFont:({attribs:{typeface}})=>typeface,
+    buFont:({attribs:{typeface}})=>od.theme.font(typeface),
     buChar:({attribs:{char}})=>char,
     buSzPts:({attribs:{val}})=>od.doc.pt2Px(parseInt(val)/100),
     buSzPct:({attribs:{val}})=>parseInt(val)/1000/100,
