@@ -17,7 +17,9 @@ export default class extends Part{
             font(typeface){
                 const type={mn:"minor",mj:"major"}
                 const [a,b]=typeface.split(/[+-]/g).filter(a=>a)
-                return this(`a\\:fontScheme>a\\:${type[a]}Font>a\\:${b=="lt"?"latin":b}`).attr("typeface")
+                if(a && b)
+                    return this(`a\\:fontScheme>a\\:${type[a]}Font>a\\:${b=="lt"?"latin":b}`).attr("typeface")
+                return typeface
             },
             color(k){
                 const $=this(`a\\:clrScheme>a\\:${k}`).children().eq(0)
