@@ -58,26 +58,15 @@ export default class OfficeDocument extends Base{
     }
 
     render(createElement, identify){
-        this.sharedStringsCache=new WeakMap()
-        try{
-            this.renderNode(this.styles("styleSheet").get(0),createElement,identify)
-            this.renderNode(this.sharedStrings("sst").get(0),createElement,identify)
-            return this.renderNode(this.content("workbook").get(0), createElement, identify)
-        }finally{
-            delete this.sharedStringsCache
-        }
+        this.renderNode(this.styles("styleSheet").get(0),createElement,identify)
+        return this.renderNode(this.content("workbook").get(0), createElement, identify)
     }
 
-    renderNode(node,createElement,identify){
-        if(node.tag=="si" && this.sharedStringsCache && this.sharedStringsCache.has(node)){
-            return this.sharedStringsCache.get(node)
-        }
-        const el=super.renderNode(node,createElement,identify||this.constructor.identify.bind(this.constructor))
-        if(node.tag=="si" && this.sharedStringsCache){
-            return this.sharedStringsCache.put(node,el)
-        }
-        
-        return el
+    cellPlainText(sheetIndex,row,col){
+        row=row+1
+        col=colIntToStr(col)
+        const sheet=this.sheet(this.content(`sheets>sheet`).get(sheetIndex).attribs)
+        return sheet(`worksheet>sheetData>row[r=${row}]>c[r='${col}${row}']>v`).text()
     }
 
     static identities={
@@ -135,14 +124,21 @@ export default class OfficeDocument extends Base{
             const {attribs:{t:kind}}=wXml.parent
             const {children:[{data}]}=wXml
             switch(kind){
+            case "i":
+                return {type:"paragraph",kind,children:[...wXml.children]}
             case "s":
-                return {type:"paragraph",sharedString:parseInt(data),children:[od.sharedStrings.eq(data).get(0)]}
+                od.$(wXml).empty().append(od.sharedStrings.eq(data).clone().children())
+                break
             default:
-                return {type:"paragraph",children:data}
+                od.$(wXml).empty().append(`<r><t>${data}</t></r>`)
+                break
             }
+            wXml.parent.attribs.t="i"
+            return {type:"paragraph",kind,children:[...wXml.children]}
         },
         is(wXml,od){
-            return {type:"paragraph",children:wXml.children}
+            wXml.name="v"
+            return {type:"paragraph",kind:"is",children:[...wXml.children]}
         },
         
         r(wXml,od){
