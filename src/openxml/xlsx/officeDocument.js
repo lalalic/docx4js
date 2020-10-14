@@ -57,16 +57,9 @@ export default class OfficeDocument extends Base{
         return this.getRel(rid)
     }
 
-    render(createElement, identify){
+    render(createElement, identify=this.constructor.identify.bind(this.constructor)){
         this.renderNode(this.styles("styleSheet").get(0),createElement,identify)
         return this.renderNode(this.content("workbook").get(0), createElement, identify)
-    }
-
-    cellPlainText(sheetIndex,row,col){
-        row=row+1
-        col=colIntToStr(col)
-        const sheet=this.sheet(this.content(`sheets>sheet`).get(sheetIndex).attribs)
-        return sheet(`worksheet>sheetData>row[r=${row}]>c[r='${col}${row}']>v`).text()
     }
 
     static identities={

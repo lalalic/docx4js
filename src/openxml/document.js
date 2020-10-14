@@ -33,7 +33,7 @@ export default class extends Base{
 	}
 
 	pt2Px(pt){
-		return Math.ceil(pt*96/72)
+		return pt*96/72
 	}
 
 	cm2Px(cm){
