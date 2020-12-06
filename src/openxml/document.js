@@ -31,6 +31,7 @@ export default class extends Base{
 	emu2Px(a){
 		return this.pt2Px(a/12700)
 	}
+	
 
 	pt2Px(pt){
 		return pt*96/72
@@ -77,7 +78,7 @@ export default class extends Base{
 	
 	toPx(length) {
 		var value = parseFloat(length),
-			units = String(length).match(RE_LENGTH_UNIT)[2];
+			units = String(length).match(RE_LENGTH_UNIT)[1];
 
 		switch (units) {
 			case 'cm' : return this.cm2Px(value);
@@ -92,4 +93,4 @@ export default class extends Base{
 	static OfficeDocument=Part
 }
 const RGB=/([a-fA-F0-9]{2}?){3}?/;
-const RE_LENGTH_UNIT=/^(\d+)(\w+)$/
+const RE_LENGTH_UNIT=/^([a-zA-Z]+)$/

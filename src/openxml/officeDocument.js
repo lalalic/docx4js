@@ -13,6 +13,47 @@ export default class extends Part{
             },
         })
 
+        Object.assign(this.content.prototype,{
+            forwardUntil(selector,filter){
+                const Empty=this.constructor.root().not(a=>true)
+                const $=n=>Empty.not(a=>true).add(n)
+                let until=Empty, filtered=Empty
+
+                let next=this.get(0)
+                const parentNext=node=>node?.parent && (node.parent.next || parentNext(node.parent))
+                const getNext=node=>(node?.children&&node.children[0])||node.next||parentNext(node)
+                while(next && (next=getNext(next))){
+                    let $n=$(next)
+                    if($n.is(selector)){
+                        until=until.add(next)
+                        break
+                    }else if(filter && $n.is(filter)){
+                        filtered=filtered.add(next)
+                    }
+                }
+                return filter ? filtered : until
+            },
+            backwardUntil(selector,filter){
+                const Empty=this.constructor.root().not(a=>true)
+                const $=n=>Empty.not(a=>true).add(n)
+                let until=Empty, filtered=Empty
+
+                let prev=this.get(0)
+                const parentPrev=node=>node?.parent && (node.parent.prev || parentPrev(node.parent))
+                const getPrev=node=>(node?.children&&node.children[node.children.length-1])||node.prev||parentPrev(node)
+                while(prev && (prev=getPrev(prev))){
+                    let $n=$(prev)
+                    if($n.is(selector)){
+                        until=until.add(prev)
+                        break
+                    }else if(filter && $n.is(filter)){
+                        filtered=filtered.add(next)
+                    }
+                }
+                return filter ? filtered : until
+            }
+        })
+
         Object.assign(this.theme,{
             font(typeface){
                 const type={mn:"minor",mj:"major"}

@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "3.2.11",
+  "version": "3.2.12",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
