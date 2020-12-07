@@ -1,6 +1,6 @@
 import JSZip from 'jszip'
-import "./$props"
 import cheer from "cheerio"
+import "./cheerio-fn"
 import {Parser, DomHandler} from "htmlparser2"
 
 const normalize=path=>path.split("/").filter(a=>a!=".")

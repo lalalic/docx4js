@@ -1,5 +1,5 @@
-import "../src/$props"
 import cheerio from "cheerio"
+import "../src/cheerio-fn"
 
 describe("convert cheer content to props",()=>{
 	const $=cheerio.load(`
