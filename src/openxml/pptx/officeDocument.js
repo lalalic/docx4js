@@ -48,7 +48,7 @@ export default class OfficeDocument extends Base{
             const sz=({attribs:{cx,cy}})=>({width:officeDocument.doc.emu2Px(cx),height:officeDocument.doc.emu2Px(cy)})
             const props=$.props({
                 ...drawml(officeDocument),
-                filter:`:not(${content},a\\:extLst)`,
+                __filter:`:not(${content},a\\:extLst)`,
                 sldSz:sz, 
                 notesSz:sz,
             })
@@ -62,7 +62,7 @@ export default class OfficeDocument extends Base{
             const $master=$("p\\:sldMaster")
             const props=$master.props({
                 ...drawml(officeDocument),
-                filter:`:not(${content},a\\:extLst)`,
+                __filter:`:not(${content},a\\:extLst)`,
             })
             const children=$master.children(content).toArray()
             const orders={"p:sldLayoutLst":1, "p:cSld":2}
@@ -77,7 +77,7 @@ export default class OfficeDocument extends Base{
             const $slide=$('p\\:sld')
             const props=$slide.props({
                 ...drawml(officeDocument),
-                filter:`:not(${content},a\\:extLst)`,
+                __filter:`:not(${content},a\\:extLst)`,
             })
             const children=$slide.children(content).toArray()
 
@@ -103,7 +103,7 @@ export default class OfficeDocument extends Base{
             const master=officeDocument.$(wXml).part()
             const $=new Part(master,officeDocument.doc).getRel(wXml.attribs["r:id"])
             const $layout=$("p\\:sldLayout")
-            const props=$layout.props({filter:`:not(${content},a\\:extLst)`})
+            const props=$layout.props({__filter:`:not(${content},a\\:extLst)`})
             const children=$layout.children(content).toArray()
 
             return {...props,part:$.part, master, children, type:"slideLayout", }
@@ -115,7 +115,7 @@ export default class OfficeDocument extends Base{
             const children=$.children(content).toArray()
             const props=officeDocument.$(wXml).props({
                 ...drawml(officeDocument),
-                filter:`p\\:nvGrpSpPr,p\\:grpSpPr`,
+                __filter:`p\\:nvGrpSpPr,p\\:grpSpPr`,
                 tidy:({grpSpPr, nvGrpSpPr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...grpSpPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
             })
 
@@ -138,7 +138,7 @@ export default class OfficeDocument extends Base{
             const names={spLocks:"locks", ph:"placeholder", ...commonProps.names}
             const props=$.props({
                 ...commonProps,
-                filter:`:not(${content},a\\:extLst)`,
+                __filter:`:not(${content},a\\:extLst)`,
                 names,
                 ph:({attribs:{type="body",idx}})=>({type,idx}),
                 tidy:({spPr, nvSpPr:{cNvPr={},cNvSpPr={},nvPr={}}})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr})
@@ -156,7 +156,7 @@ export default class OfficeDocument extends Base{
                 ...drawml(officeDocument),
                 lnSpcReduction:v=>parseInt(v),
                 fontScale: v=>parseInt(v),
-                filter:`:not(a\\:p,a\\:extLst)`,
+                __filter:`:not(a\\:p,a\\:extLst)`,
                 tidy:({lstStyle={},bodyPr={},...others})=>({...others, ...bodyPr, ...lstStyle})
             })
 			return {textStyle, children, type:"txBody"}
@@ -193,7 +193,7 @@ export default class OfficeDocument extends Base{
             const children=$.children(content).toArray()
             const props=$.props({
                 ...drawml(officeDocument),
-                filter:`:not(${content},a\\:extLst)`,
+                __filter:`:not(${content},a\\:extLst)`,
                 tidy:({spPr, nvGraphicFramePr:{cNvPr={},cNvSpPr={},nvPr={}}, ...others})=>({...spPr, ...cNvPr,...cNvSpPr,...nvPr,...others})
             })
             return {...props, children, type:"graphicFrame"}
@@ -205,7 +205,7 @@ export default class OfficeDocument extends Base{
             const children=$.children(content).toArray()
             const props=$.props({
                 ...drawml(officeDocument),
-                filter:`:not(${content}, a\\:extLst)`,
+                __filter:`:not(${content}, a\\:extLst)`,
                 tableStyleId:({children})=>children.find(a=>a.data).data,
                 tblGrid:({children})=>children.filter(a=>a.name).reduce((cols,{attribs:{w}})=>{
                     cols.push(officeDocument.doc.emu2Px(w))
@@ -226,7 +226,7 @@ export default class OfficeDocument extends Base{
             const $=officeDocument.$(wXml)
             const props=$.props({
                 ...drawml(officeDocument),
-                filter:":not(*)",
+                __filter:":not(*)",
                 h:v=>officeDocument.doc.emu2Px(v),
                 names:{h:"height"}
             })
@@ -238,7 +238,7 @@ export default class OfficeDocument extends Base{
             const $=officeDocument.$(wXml)
             const children=$.children(content).toArray()
             const props=$.props({
-                filter:`:not(${content},a\\:extLst)`
+                __filter:`:not(${content},a\\:extLst)`
             })
             return {...props, type:"tc", children}
         }

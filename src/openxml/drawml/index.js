@@ -1,7 +1,7 @@
 import Part from "../part"
 
 export default od=>({
-    filter:":not(a\\:extLst)",
+    __filter:":not(a\\:extLst)",
     id:()=>undefined,
     ...same("latin,ea,cs".split(","),({attribs:{typeface=""}})=>od.theme.font(typeface)),
     //sz:v=>od.doc.pt2Px(parseInt(v)/100),
@@ -101,11 +101,11 @@ export default od=>({
     },
 
     inherit(...additions){
-        return additions.reduce(({filter="",names={}, ...others}, {filter:_filter="",names:_names={}, ..._others})=>{
+        return additions.reduce(({__filter="",names={}, ...others}, {__filter:_filter="",names:_names={}, ..._others})=>{
             return {
                 ...others,
                 ..._others,
-                filter:[filter,_filter].filter(a=>!!a).join(","),
+                __filter:[__filter,_filter].filter(a=>!!a).join(","),
                 names:{...names, ..._names},
             }
         },this)

@@ -156,7 +156,7 @@ export default class extends Base{
 			const props=$.props({
 				...drawml(officeDocument),
 				...same("r,t,l,b".split(",").map(a=>`${a}Ins`), v=>officeDocument.doc.emu2Px(v)),
-				filter:`:not(${content})`,
+				__filter:`:not(${content})`,
 				tidy:({cNvSpPr={}, spPr={}, style:{lnRef={},fillRef={},effectRef={},fontRef={}}={},...others})=>({...cNvSpPr, ...lnRef,...fillRef, ...effectRef, ...spPr, textStyle: fontRef, ...others})
 			})
 			return {...props, type:"shape", children}

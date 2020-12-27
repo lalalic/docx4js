@@ -222,7 +222,7 @@ const tidy_border=({style,...a})=>{
     return a
 }
 const TextStyle=od=>({
-    filter:":not(scheme,family,charset)",
+    __filter:":not(scheme,family,charset)",
     names:{
         rFont:"fonts",
         name:"fonts",
