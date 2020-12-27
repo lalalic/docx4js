@@ -4,7 +4,7 @@ cheerio.prototype.props=function(opt={}){
     if(this.length==0)
         return {}
     const $=this.constructor
-    const {names, nameFn=a=>names&&names[a]||a,filter='*',tidy=a=>a}=opt
+    const {names, nameFn=a=>names&&names[a]||a,__filter='*',tidy=a=>a}=opt
 
     const _xmlns=attribs=>Object.keys(attribs)
         .filter(k=>!k.startsWith("xmlns"))
@@ -30,7 +30,7 @@ cheerio.prototype.props=function(opt={}){
     const toJS=(node,p)=>{
         const{children,attribs}=node
         return children
-            .filter(a=>a.name && $(a).is(filter))
+            .filter(a=>a.name && $(a).is(__filter))
             .reduce((o,a)=>set(a,o),{..._xmlns(attribs)})
     }
 
