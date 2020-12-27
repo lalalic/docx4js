@@ -61,7 +61,7 @@ describe("convert cheer content to props",()=>{
 	})
 
 	it("support content filter",()=>{
-		expect($("a\\:pPr").props({filter:":not(a\\:spcAft)"})).not.toMatchObject({spcAft:{}})
+		expect($("a\\:pPr").props({__filter:":not(a\\:spcAft)"})).not.toMatchObject({spcAft:{}})
 	})
 
 	it("specifc node handler by nodeName,opt{[nodeName without namespace]}",()=>{
@@ -74,7 +74,7 @@ describe("convert cheer content to props",()=>{
 
 	it("nested content aslo be proped",()=>{
 		expect($("p\\:sp>p\\:nvSpPr").props({
-			filter:":not(a\\:extLst)",
+			__filter:":not(a\\:extLst)",
 			nameFn:k=>k=="spLocks"?'locks':k,
 			tidy:({cNvPr={},cNvSpPr={},nvPr={}})=>({...cNvPr,...cNvSpPr,...nvPr})
 		})).toMatchObject({
