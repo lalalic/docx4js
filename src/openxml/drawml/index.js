@@ -70,12 +70,23 @@ export default od=>({
 
     indent:v=>od.doc.emu2Px(v),
     marL:v=>od.doc.emu2Px(v),
+    marR:v=>od.doc.emu2Px(v),
+    marT:v=>od.doc.emu2Px(v),
+    marB:v=>od.doc.emu2Px(v),
+    
     lIns:v=>od.doc.emu2Px(v),
     rIns:v=>od.doc.emu2Px(v),
     bIns:v=>od.doc.emu2Px(v),
     tIns:v=>od.doc.emu2Px(v),
 
+    distL:v=>od.doc.emu2Px(v),
+    distR:v=>od.doc.emu2Px(v),
+    distT:v=>od.doc.emu2Px(v),
+    distB:v=>od.doc.emu2Px(v),
+
     ext:({attribs:{cx,cy}})=>({width:od.doc.emu2Px(cx),height:od.doc.emu2Px(cy)}),
+    extent:({attribs:{cx,cy}})=>({width:od.doc.emu2Px(cx),height:od.doc.emu2Px(cy)}),
+    effectExtent:({attribs:{l,t,r,b}})=>({left:od.doc.emu2Px(l),right:od.doc.emu2Px(r),top:od.doc.emu2Px(t),bottom:od.doc.emu2Px(b)}),
     off:({attribs:{x,y}})=>({x:od.doc.emu2Px(x),y:od.doc.emu2Px(y)}),
     tidy_xfrm:({ext={},off={}, ...transform})=>({...ext, ...off, ...transform}),
 
@@ -85,7 +96,7 @@ export default od=>({
 
     tidy_lnRef:({idx,...ph})=>od.theme.lnRef(idx,ph),
     tidy_fillRef:({idx,...ph})=>od.theme.fillRef(idx,ph),
-    tidy_EffectRef:({idx,...ph})=>od.theme.effectRef(idx,ph),
+    tidy_effectRef:({idx,...ph})=>od.theme.effectRef(idx,ph),
     tidy_fontRef:({idx,...ph})=>od.theme.fontRef(idx,ph),
 
     tidy_noAutoFit:()=>undefined,
@@ -98,6 +109,7 @@ export default od=>({
         lnB:"bottom", lnR:"right", lnL:"left", lnT:"top",
         rot:"rotate",
         spAutoFit:"autofit",normAutoFit:"autofit",noAutoFit:"autofit",
+        gsLst:"[]"
     },
 
     inherit(...additions){

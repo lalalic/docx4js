@@ -125,7 +125,15 @@ export default class extends Base{
 
 		inline(wXml,officeDocument){
 			let $=officeDocument.content(wXml)
-			return {type:`drawing.inline`, children:$.find('a\\:graphic>a\\:graphicData').children().toArray()}
+			const props=$.props({
+				...drawml(officeDocument),
+				__filter:"wp\\:extent,wp\\:effectExtent",
+			})
+			return {
+				type:`drawing.inline`, 
+				...props,
+				children:$.find('a\\:graphic>a\\:graphicData').children().toArray()
+			}
 		},
 		anchor(wXml, officeDocument){
 			let $=officeDocument.content(wXml)
@@ -150,7 +158,7 @@ export default class extends Base{
 		wsp(wXml, officeDocument){
 			const content="wps\\:txbx"
 			const $=officeDocument.$(wXml)
-			const children=$.children(content).children("w\\:txbxContent").children().toArray()
+			const children=$.children(content).toArray()
 			const same=(keys,fx)=>keys.reduce((fs, k)=>(fs[k]=fx, fs),{})
 
 			const props=$.props({

@@ -6,32 +6,36 @@ cheerio.prototype.props=function(opt={}){
     const $=this.constructor
     const {names, nameFn=a=>names&&names[a]||a,__filter='*',tidy=a=>a}=opt
 
-    const _xmlns=attribs=>Object.keys(attribs)
+    const propsAttribs=attribs=>Object.keys(attribs)
         .filter(k=>!k.startsWith("xmlns"))
-        .reduce((o,k)=>{
-            const v=attribs[k]
-            k=k.split(":").pop()
-            const b=opt[k] ? opt[k](v) : v
-            if(b!=undefined){
-                o[nameFn(k)]=b
+        .reduce((props,attribKey)=>{
+            const value=attribs[attribKey]
+            attribKey=attribKey.split(":").pop()
+            const parsedValue=opt[attribKey] ? opt[attribKey](value) : value
+            if(parsedValue!=undefined){
+                props[nameFn(attribKey)]=parsedValue
             }
-            return o
+            return props
         },{})
 
-	const set=(a,o)=>{
-        const k=a.name.split(":").pop()
-        const b=opt[k]?opt[k](a):toJS(a)
-        if(b!=undefined){
-            o[nameFn(k,a,o)]=opt[`tidy_${k}`] ? opt[`tidy_${k}`](b) : b
+	const propsChild=(node,parentProps,index)=>{
+        const tagName=node.name.split(":").pop()
+        const parsed=opt[tagName]?opt[tagName](node):toJS(node)
+        if(parsed!=undefined){
+            const key= Array.isArray(parentProps) ? index : nameFn(tagName,node,parentProps)
+            parentProps[key=="[]"? tagName : key]=opt[`tidy_${tagName}`] ? opt[`tidy_${tagName}`](parsed) : parsed
         }
-        return o
+        return parentProps
     }
 
     const toJS=(node,p)=>{
-        const{children,attribs}=node
+        const{children,attribs,name="",tagName=name.split(":").pop()}=node
         return children
             .filter(a=>a.name && $(a).is(__filter))
-            .reduce((o,a)=>set(a,o),{..._xmlns(attribs)})
+            .reduce(
+                (parentProps,child,i)=>propsChild(child,parentProps,i),
+                nameFn(tagName,node)==="[]" ? [] : propsAttribs(attribs)
+            )
     }
 
     const props=toJS(this[0])
