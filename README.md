@@ -138,4 +138,4 @@ docx4js.create().then(docx=>{
 # ChangeLog
 	* ~~identify OLE object~~
 # License
-GPL
+MIT
