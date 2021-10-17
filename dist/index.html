@@ -28,7 +28,9 @@
 					return el
 				})
 				
-				document.querySelector('#docx').removeChild(element)
+				const container=document.querySelector('#docx')
+				container.lastChild && container.removeChild(container.lastChild)
+				container.appendChild(element)
 			})
 		}
 	</script>
