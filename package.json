@@ -35,7 +35,7 @@
     "cheerio": "^0.22.0",
     "color": "^3.1.0",
     "htmlparser2": "^3.9.2",
-    "jszip": "^2.6.0"
+    "jszip": "^3.7.0"
   },
   "babel": {
     "presets": [
