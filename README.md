@@ -22,7 +22,7 @@ docx4js.load("~/test.docx").then(docx=>{
 
 		}
 	}
-	
+
 	const handler=new MyModelhandler()
 	handler.on("*",function({type,children,node,...}, node, officeDocument){
 		console.log("found model:"+type)
