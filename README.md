@@ -121,7 +121,7 @@ It's to create a factory function that to create a visitor specific to word mode
 					case 'text':
 						return this.push(this.model.getText())
 					}
-				}
+				})
 				return DOCX.createVisitorFactory(function(wordModel){
 					visitor.model=wordModel
 				})
@@ -153,4 +153,4 @@ It's to create a factory function that to create a visitor specific to word mode
 			doc.parse(nothingFactory, textFactory, complexFactory)
 		})
 # License
-GPL
+MIT
