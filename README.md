@@ -107,7 +107,7 @@ docx4js.load("~/test.docx").then(docx=>{
 	})
 
 	//or use a event handler for more flexible control
-	const ModelHandler=require("docx4js/openxml/docx/model-handler").default
+	const ModelHandler=require("docx4js/lib/openxml/docx/model-handler").default
 	class MyModelhandler extends ModelHandler{
 		onp({type,children,node,...}, node, officeDocument){
 
