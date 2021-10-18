@@ -52,7 +52,7 @@
   "scripts": {
     "compile": "babel src -d lib",
     "build": "browserify -g uglifyify -r ./lib/index.js:docx4js -o dist/docx4js.js",
-    "dev": "watchify -v -d -r ./lib/index.js:docx4js -o dist/index.js",
+    "dev": "watchify -v -d -r ./lib/index.js:docx4js -o docs/index.js",
     "test": "jest"
   }
 }

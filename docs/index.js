@@ -10191,7 +10191,7 @@ function CollectingHandler(cbs) {
     this.events = [];
 }
 
-var EVENTS = require("./").EVENTS;
+var EVENTS = require(".").EVENTS;
 Object.keys(EVENTS).forEach(function(name) {
     if (EVENTS[name] === 0) {
         name = "on" + name;
@@ -10749,7 +10749,7 @@ function ProxyHandler(cbs) {
     this._cbs = cbs || {};
 }
 
-var EVENTS = require("./").EVENTS;
+var EVENTS = require(".").EVENTS;
 Object.keys(EVENTS).forEach(function(name) {
     if (EVENTS[name] === 0) {
         name = "on" + name;
@@ -10788,7 +10788,7 @@ function Cbs(scope) {
     this.scope = scope;
 }
 
-var EVENTS = require("../").EVENTS;
+var EVENTS = require("../lib").EVENTS;
 
 Object.keys(EVENTS).forEach(function(name) {
     if (EVENTS[name] === 0) {
