@@ -2,7 +2,7 @@
 
 docx4js
 ===
-a docx/pptx/xlsx parser
+a docx/pptx/xlsx parser, <a href="http://lalalic.github.io/docx4js/">here</a>'s a demo.
 
 API
 ===
@@ -36,7 +36,6 @@ docx4js.load("~/test.docx").then(docx=>{
 	//you can change content on docx.officeDocument.content, and then save
 	docx.officeDocument.content("w\\:t").text("hello")
 	docx.save("~/changed.docx")
-
 })
 
 //you can create a blank docx
