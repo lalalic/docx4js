@@ -56,9 +56,6 @@
     "build": "babel src -d lib --source-maps inline",
     "dist": "watchify -v -d -r ./lib/openxml/docx/document.js:docx4js -o dist/index.js -i jquery",
     "dist.min": "browserify -g uglifyify -r ./lib/openxml/docx/document.js:docx4js -o dist/docx4js.js -i jquery",
-    "test": "jasmine",
-    "test.debug": "node --debug-brk .jasmine.js",
-    "karma": "karma start",
-    "doc": "esdoc -c esdoc.json"
+    "test": "jasmine"
   }
 }
