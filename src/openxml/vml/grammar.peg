@@ -1,0 +1,98 @@
+{
+	function flatten(x){
+    	return x.flat()
+    }
+}
+vmp_path
+	= wsp* commands:command* wsp*
+    {return commands.join("")}
+    
+command
+	=close 
+    / end
+    / lineto / rlineto
+    / moveto / rmoveto
+    / curveto / rcurveto
+    / quadraticbezier
+    
+close
+	="x" 
+	{return "z"}
+end
+	="e"
+    {return ""}
+moveto
+	="m" comma_wsp* xy:xy
+	{return `M${xy.x},${xy.y}`}
+rmoveto
+	="t" comma_wsp* points:points
+    {return `m${points.map(a=>`${a.x},${a.y}`).join(",")}`}
+lineto
+	="l" comma_wsp* points:points
+	{return `L${points.map(a=>`${a.x},${a.y}`).join(",")}`}
+rlineto
+	="r" comma_wsp* points:points
+	{return `l${points.map(a=>`${a.x},${a.y}`).join(",")}`}
+curveto
+	="c" comma_wsp* points:points
+    {return `C${points.map(a=>`${a.x},${a.y}`).join(",")}`}
+rcurveto
+	="v" comma_wsp* points:points
+    {return `c${points.map(a=>`${a.x},${a.y}`).join(",")}`}
+quadraticbezier
+	="qb" comma_wsp* points:points
+	{return `Q${points.map(a=>`${a.x},${a.y}`).join(",")}`}
+
+
+
+
+
+
+points 
+  	=points:(xy comma_wsp?)+
+    {return points.map(a=>a[0])}
+	
+xy
+  = x:coordinate comma_wsp? y:coordinate
+  { return { x:x, y:y } }
+
+coordinate
+  = number
+
+nonnegative_number
+  = floating_point_constant / integer_constant
+
+number
+  = parts:(sign? floating_point_constant / sign? integer_constant)
+  { return flatten(parts).join('')*1 }
+
+comma_wsp
+  = (wsp+ comma? wsp*) / (comma wsp*)
+
+comma
+  = [,@]
+
+integer_constant
+  = n:digit_sequence
+  { return n*1 }
+
+floating_point_constant
+  = n:(fractional_constant exponent? / digit_sequence exponent)
+  { return flatten(n).join('')*1 }
+
+fractional_constant
+  = n:(digit_sequence? "." digit_sequence / digit_sequence ".")
+  { return flatten(n).join('')*1 }  
+
+exponent
+  = [eE] sign? digit_sequence
+
+sign
+  = "+" / "-"
+
+digit_sequence
+  = digits:[0-9]+
+    { return digits.join("") }
+
+wsp
+  = [ \t\n\r]

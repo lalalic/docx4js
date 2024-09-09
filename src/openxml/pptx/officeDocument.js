@@ -15,6 +15,22 @@ export default class OfficeDocument extends Base{
         return this.renderNode(this.content("p\\:presentation").get(0), createElement, identify)
     }
 
+    parse(domHandler,identify=this.constructor.identify.bind(this.constructor)){
+		const createElement=domHandler.createElement.bind(domHandler)
+		function _identify(){
+			let model=identify(...arguments)
+			if(model && typeof(model)=="object"){
+				domHandler.emit("*",model,...arguments)
+				domHandler.emit(model.type, model,...arguments)
+				if(domHandler[`on${model.type}`])
+					domHandler[`on${model.type}`](model,...arguments)
+			}
+			return model
+		}
+
+        return this.render(createElement, _identify)
+	}
+
     slide({id,"r:id":rid}){
         return this.getRel(rid)
     }

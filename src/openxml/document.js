@@ -5,7 +5,7 @@ import Color from "color"
 export default class extends Base{
 	constructor(){
 		super(...arguments)
-		this.main=new Part("",this)
+		this.main=this.rels=new Part("",this)
 		this.officeDocument=new this.constructor.OfficeDocument(this.main.getRelTarget("officeDocument"), this)
 	}
 	get vender(){"Microsoft"}

@@ -6,16 +6,18 @@ export default class extends Base{
 		super._init()
 		this._assignRel("styles,numbering,settings".split(","))
 
-		var $=this.styles
-		this.styles.prototype.basest=function(selector){
-			let current=this
-			while(current.length>0){
-				if(current.is(selector)){
-					return $(current)
+		if(this.styles){
+			let $=this.styles
+			this.styles.prototype.basest=function(selector){
+				let current=this
+				while(current.length>0){
+					if(current.is(selector)){
+						return $(current)
+					}
+					current=$.root().find(`w\\:style[w\\:styleId="${current.children("w\\:basedOn").attr("w:val")}"]`)
 				}
-				current=$.root().find(`w\\:style[w\\:styleId="${current.children("w\\:basedOn").attr("w:val")}"]`)
+				return this.not(this)
 			}
-			return this.not(this)
 		}
 	}
 

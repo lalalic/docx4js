@@ -40,6 +40,22 @@ export default class Part{
 		})
 	}
 
+	_assignRel(supported=true){
+		this.rels(`Relationship[Target$=".xml"]`).each((i,rel)=>{
+			let $=this.rels(rel)
+			let type=$.attr("Type").split("/").pop()
+			if(supported===true || supported.indexOf(type)!=-1){
+				let target=$.attr("Target")
+				Object.defineProperty(this,type,{
+                    configurable:true,
+					get(){
+						return this.getRelObject(target)
+					}
+				})
+			}
+		})
+    }
+
 	normalizePath(path=""){
 		if(path.startsWith("/"))
 			return path.substr(1)
@@ -47,7 +63,7 @@ export default class Part{
 	}
 
 	getRelPart(id){
-		var rel=this.rels(`Relationship[Id="${id}"]`)
+		var rel=this.rels(`Relationship[Id="${id}"],Relationship[Type$="${id}"],Relationship[Target$="${id}"]`)
 		var target=rel.attr("Target")
 		return new Part(this.normalizePath(target),this.doc)
 	}
@@ -63,6 +79,9 @@ export default class Part{
 	getRel(id){
 		var rel=this.rels(`Relationship[Id="${id}"]`)
 		var target=rel.attr("Target")
+		if(!target){
+			return 
+		}
 		if(rel.attr("TargetMode")==='External')
 			return {url:target}
 
@@ -220,5 +239,12 @@ export default class Part{
 
 	$(node){
 		return this.doc.$(node)
+	}
+}
+
+class RelsPart extends Part{
+	_init(){
+		super._init()
+
 	}
 }

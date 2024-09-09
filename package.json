@@ -1,7 +1,7 @@
 {
   "name": "docx4js",
   "description": "javascript docx parser",
-  "version": "3.2.21",
+  "version": "3.3.0",
   "author": {
     "name": "Raymond Li",
     "email": "lalalic@139.com"
@@ -49,10 +49,11 @@
     "sourceMaps": "inline"
   },
   "main": "./lib/",
+  "module":"./src/",
   "scripts": {
     "compile": "babel src -d lib",
     "build": "browserify -g uglifyify -r ./lib/index.js:docx4js -o dist/docx4js.js",
     "dev": "watchify -v -d -r ./lib/index.js:docx4js -o docs/index.js",
-    "test": "jest"
+    "test": "node node_modules/.bin/jest"
   }
 }

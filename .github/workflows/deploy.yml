@@ -1,0 +1,24 @@
+
+name: deployment
+on:
+  push:
+    branch: master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14.x
+          cache: 'yarn'
+      - run: yarn
+      - name: build
+        run: |
+          yarn compile
+          yarn build  
+      - name: publish
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}

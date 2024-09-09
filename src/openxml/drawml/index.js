@@ -17,6 +17,8 @@ export default od=>({
         const {attribs:{"r:embed":embed, "r:link":url}}=n
         if(url)
             return {url}
+        if(!embed)
+            return 
         const part=od.$(n).part()
         return new Part(part,od.doc).getRel(embed)
     },
