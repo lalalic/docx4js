@@ -6,6 +6,7 @@
 
 name: test
 description: test how to use cloud agent
+model: gpt-4.1
 ---
 
 # Test agent
